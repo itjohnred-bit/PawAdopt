@@ -2,7 +2,7 @@
 
 die("If you see this, the file is being loaded correctly.");
 
-/*
+
 require_once __DIR__ . '/../../includes/functions.php';
 requireRole('ADMIN');
 $pageTitle = 'Admin Dashboard';
