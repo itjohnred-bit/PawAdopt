@@ -2,31 +2,28 @@
 $is_production = isset($_ENV['RENDER']) || getenv('RENDER') || strpos($_SERVER['HTTP_HOST'], 'onrender') !== false;
 
 if ($is_production) {
+
     define('DB_HOST', getenv('DB_HOST'));
+    define('DB_PORT', getenv('DB_PORT') ?: '13404');
     define('DB_NAME', getenv('DB_NAME'));
     define('DB_USER', getenv('DB_USER'));
     define('DB_PASS', getenv('DB_PASS'));
-    define('DB_CHARSET', 'utf8mb4');
-
-    define('APP_NAME', 'PawAdopt');
-    define('APP_URL', 'https://pawadopt-xt8a.onrender.com'); 
-    define('UPLOAD_PATH', '/opt/render/project/uploads/');
-    define('UPLOAD_URL', APP_URL . '/uploads/');
+    define('SSL_CA', __DIR__ . '/../ca.pem'); 
+    define('APP_URL', 'https://pawadopt-xt8a.onrender.com');
 } else {
-    define('DB_HOST', 'pawadopt-db-itjohnred-7d65.i.aivencloud.com');
-    define('DB_NAME', 'defaultdb');
-    define('DB_USER', 'avnadmin');
-    define('DB_PASS', 'AVNS_1UWsIrYi4MSF7Y2EQse');
-    define('DB_CHARSET', 'utf8mb4');
 
-    define('APP_NAME', 'PawAdopt');
+    define('DB_HOST', '127.0.0.1');
+    define('DB_PORT', '3307');
+    define('DB_NAME', 'pawadopt');
+    define('DB_USER', 'root');
+    define('DB_PASS', '');
+    define('SSL_CA', null);
     define('APP_URL', 'http://localhost:8080/PawAdopt');
-    define('UPLOAD_PATH', __DIR__ . '/../uploads/');
-    define('UPLOAD_URL', APP_URL . '/uploads/');
 }
 
-define('MAX_FILE_SIZE', 5 * 1024 * 1024);
-
+define('DB_CHARSET', 'utf8mb4');
+define('UPLOAD_PATH', $is_production ? '/opt/render/project/uploads/' : __DIR__ . '/../uploads/');
+define('UPLOAD_URL', APP_URL . '/uploads/');
 class Database {
     private static $instance = null;
     private $pdo;
