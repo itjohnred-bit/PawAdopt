@@ -2,6 +2,8 @@
 require_once __DIR__ . '/../includes/functions.php';
 startSession(); 
 requireLogin();
+define('APP_NAME', 'PawAdopt');
+
 $currentUser = getCurrentUser();
 
 $unreadNotifs = getUnreadNotificationCount($currentUser['user_id']);
