@@ -1,0 +1,242 @@
+<?php
+require_once __DIR__ . '/../includes/functions.php';
+require_once __DIR__ . '/../config/database.php';
+startSession();
+requireLogin();
+
+$db     = Database::getInstance();
+$action = $_GET['action'] ?? $_POST['action'] ?? '';
+$method = $_SERVER['REQUEST_METHOD'];
+$user   = getCurrentUser();
+
+/**
+ * FIXED: Changed path from /../../ to /../ 
+ * because api/ is a direct child of the root.
+ */
+function handleCertificateUpload($file) {
+    if (!$file || $file['error'] === UPLOAD_ERR_NO_FILE) return null;
+    
+    // 1. Get the ABSOLUTE path to your PAWADOPT root folder
+    // If this file is in PAWADOPT/api/pets.php, dirname(__DIR__) is C:/xampp/htdocs/PawAdopt/
+    $basePath = dirname(__DIR__); 
+    
+    $uploadDir = $basePath . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . 'certificates' . DIRECTORY_SEPARATOR;
+
+    // 2. Create directory if it doesn't exist
+    if (!is_dir($uploadDir)) {
+        mkdir($uploadDir, 0777, true);
+    }
+
+    $newName = 'cert_' . bin2hex(random_bytes(8)) . '.pdf';
+    $destPath = $uploadDir . $newName;
+
+    // 3. Move the file
+    if (move_uploaded_file($file['tmp_name'], $destPath)) {
+        // We store the path relative to the project root for the URL to work
+        return ['url' => 'uploads/certificates/' . $newName];
+    }
+
+    return ['error' => 'Could not save the certificate. Check folder permissions.'];
+}
+
+
+switch ($action) {
+
+    case 'list':
+        $where  = ['p.status = ?'];
+        $params = ['Available'];
+
+        if (!empty($_GET['species']))  { $where[] = 'p.species = ?';  $params[] = $_GET['species']; }
+        if (!empty($_GET['sex']))      { $where[] = 'p.sex = ?';      $params[] = $_GET['sex']; }
+        if (!empty($_GET['size']))     { $where[] = 'p.size = ?';     $params[] = $_GET['size']; }
+        if (!empty($_GET['city']))     { $where[] = 'sp.city LIKE ?'; $params[] = '%'.$_GET['city'].'%'; }
+        if (!empty($_GET['search']))   {
+            $where[] = '(p.name LIKE ? OR p.breed LIKE ? OR p.description LIKE ?)';
+            $params[] = '%'.$_GET['search'].'%';
+            $params[] = '%'.$_GET['search'].'%';
+            $params[] = '%'.$_GET['search'].'%';
+        }
+        if (!empty($_GET['age_min'])) { $where[] = 'p.age_months >= ?'; $params[] = (int)$_GET['age_min']; }
+        if (!empty($_GET['age_max'])) { $where[] = 'p.age_months <= ?'; $params[] = (int)$_GET['age_max']; }
+
+        $whereStr = implode(' AND ', $where);
+        $page  = max(1, (int)($_GET['page'] ?? 1));
+        $limit = 12;
+        $offset = ($page - 1) * $limit;
+
+        $countRes = $db->fetch(
+            "SELECT COUNT(*) as total FROM pets p
+             JOIN shelter_profiles sp ON p.shelter_id = sp.shelter_id
+             WHERE $whereStr", $params
+        );
+        $total = $countRes ? (int)$countRes['total'] : 0;
+
+        $pets = $db->fetchAll(
+            "SELECT p.*, sp.shelter_name, sp.city as shelter_city,
+                    (SELECT pp.photo_url FROM pet_photos pp WHERE pp.pet_id = p.pet_id AND pp.is_primary = 1 LIMIT 1) as primary_photo
+             FROM pets p
+             JOIN shelter_profiles sp ON p.shelter_id = sp.shelter_id
+             WHERE $whereStr
+             ORDER BY p.created_at DESC LIMIT $limit OFFSET $offset",
+            $params
+        );
+
+        if ($user['role'] === 'ADOPTER') {
+            $favPetIds = $db->fetchAll("SELECT pet_id FROM favorites WHERE adopter_id = ?", [$user['user_id']]);
+            $favIds = array_column($favPetIds, 'pet_id');
+            foreach ($pets as &$p) {
+                $p['is_favorited'] = in_array($p['pet_id'], $favIds);
+                $p['photo_url']    = $p['primary_photo'] ? APP_URL . '/' . $p['primary_photo'] : APP_URL . '/assets/images/pet-placeholder.png';
+                $p['age_display']  = formatAge($p['age_months']);
+            }
+        }
+        jsonSuccess(['pets' => $pets, 'total' => $total, 'pages' => ceil($total / $limit), 'current_page' => $page]);
+        break;
+
+    case 'get':
+        $petId = (int)($_GET['id'] ?? 0);
+        if (!$petId) { jsonError('Pet ID required.'); break; }
+        $pet = $db->fetch(
+            "SELECT p.*, sp.shelter_name, sp.city as shelter_city, sp.phone as shelter_phone
+             FROM pets p
+             JOIN shelter_profiles sp ON p.shelter_id = sp.shelter_id
+             WHERE p.pet_id = ?",
+            [$petId]
+        );
+        if (!$pet) { jsonError('Pet not found.', 404); break; }
+        $pet['photos'] = $db->fetchAll("SELECT * FROM pet_photos WHERE pet_id = ? ORDER BY is_primary DESC", [$petId]);
+        $pet['age_display'] = formatAge($pet['age_months']);
+        if ($user['role'] === 'ADOPTER') {
+            $fav = $db->fetch("SELECT favorite_id FROM favorites WHERE adopter_id = ? AND pet_id = ?", [$user['user_id'], $petId]);
+            $pet['is_favorited'] = (bool)$fav;
+        }
+        jsonSuccess($pet);
+        break;
+
+    case 'add':
+        if ($user['role'] !== 'SHELTER') { jsonError('Shelter only.', 403); break; }
+        if ($method !== 'POST') { jsonError('POST only.', 405); break; }
+
+        $name = trim($_POST['name'] ?? '');
+        if (!$name) { jsonError('Pet name is required.'); break; }
+
+        // Handle Medical Certificate Upload
+        $certPath = null;
+        if (isset($_FILES['medical_cert']) && $_FILES['medical_cert']['error'] !== UPLOAD_ERR_NO_FILE) {
+            $uploadResult = handleCertificateUpload($_FILES['medical_cert']);
+            if (isset($uploadResult['error'])) {
+                jsonError($uploadResult['error']);
+                exit;
+            }
+            $certPath = $uploadResult['url'];
+        }
+
+        $db->execute(
+            "INSERT INTO pets (shelter_id, name, species, breed, age_months, sex, size, color, temperament, medical_notes, description, medical_certificate)
+             VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+            [
+                $user['user_id'], $name, $_POST['species'] ?? 'Dog', trim($_POST['breed'] ?? ''), 
+                (int)($_POST['age_months'] ?? 0), $_POST['sex'] ?? 'Unknown', $_POST['size'] ?? 'Medium', 
+                trim($_POST['color'] ?? ''), trim($_POST['temperament'] ?? ''), trim($_POST['medical_notes'] ?? ''), 
+                trim($_POST['description'] ?? ''), $certPath
+            ]
+        );
+        $petId = (int)$db->lastInsertId();
+
+        // Handle Photos
+        if (!empty($_FILES['photos'])) {
+            $files = $_FILES['photos']; $isPrimary = 1;
+            for ($i = 0; $i < count($files['name']); $i++) {
+                if ($files['error'][$i] === UPLOAD_ERR_OK) {
+                    $url = uploadImage(['name'=>$files['name'][$i],'type'=>$files['type'][$i],'tmp_name'=>$files['tmp_name'][$i],'error'=>$files['error'][$i],'size'=>$files['size'][$i]], 'pets');
+                    if ($url) {
+                        $db->execute("INSERT INTO pet_photos (pet_id, photo_url, is_primary) VALUES (?,?,?)", [$petId, $url, $isPrimary]);
+                        $isPrimary = 0;
+                    }
+                }
+            }
+        }
+        jsonSuccess(['pet_id' => $petId], 'Pet listing created successfully!');
+        break;
+
+    case 'edit':
+        if ($user['role'] !== 'SHELTER' && $user['role'] !== 'ADMIN') { jsonError('Unauthorized.', 403); break; }
+        $petId = (int)($_POST['pet_id'] ?? 0);
+        if (!$petId) { jsonError('Pet ID required.'); break; }
+
+        if ($user['role'] === 'SHELTER') {
+            $owner = $db->fetch("SELECT pet_id FROM pets WHERE pet_id = ? AND shelter_id = ?", [$petId, $user['user_id']]);
+            if (!$owner) { jsonError('Not your pet listing.', 403); break; }
+        }
+
+        $fields = ['name','species','breed','sex','size','color','temperament','medical_notes','description','status'];
+        $sets = []; $params = [];
+        foreach ($fields as $f) {
+            if (isset($_POST[$f])) { $sets[] = "$f = ?"; $params[] = trim($_POST[$f]); }
+        }
+        if (isset($_POST['age_months'])) { $sets[] = "age_months = ?"; $params[] = (int)$_POST['age_months']; }
+
+        // Handle Medical Certificate Upload for Edit
+        if (isset($_FILES['medical_cert']) && $_FILES['medical_cert']['error'] !== UPLOAD_ERR_NO_FILE) {
+            $uploadResult = handleCertificateUpload($_FILES['medical_cert']);
+            if (isset($uploadResult['error'])) {
+                jsonError($uploadResult['error']);
+                exit;
+            }
+            $sets[] = "medical_certificate = ?";
+            $params[] = $uploadResult['url'];
+        }
+
+        if (empty($sets)) { jsonError('Nothing to update.'); break; }
+        $params[] = $petId;
+        $db->execute("UPDATE pets SET " . implode(',', $sets) . " WHERE pet_id = ?", $params);
+
+        if (!empty($_FILES['photos'])) {
+            $files = $_FILES['photos'];
+            for ($i = 0; $i < count($files['name']); $i++) {
+                if ($files['error'][$i] === UPLOAD_ERR_OK) {
+                    $url = uploadImage(['name'=>$files['name'][$i],'type'=>$files['type'][$i],'tmp_name'=>$files['tmp_name'][$i],'error'=>$files['error'][$i],'size'=>$files['size'][$i]], 'pets');
+                    if ($url) $db->execute("INSERT INTO pet_photos (pet_id, photo_url, is_primary) VALUES (?,?,0)", [$petId, $url]);
+                }
+            }
+        }
+        jsonSuccess([], 'Pet updated successfully!');
+        break;
+
+    case 'delete':
+        if ($user['role'] !== 'SHELTER' && $user['role'] !== 'ADMIN') { jsonError('Unauthorized.', 403); break; }
+        $petId = (int)($_GET['id'] ?? $_POST['pet_id'] ?? 0);
+        if (!$petId) { jsonError('Pet ID required.'); break; }
+
+        if ($user['role'] === 'SHELTER') {
+            $owner = $db->fetch("SELECT pet_id FROM pets WHERE pet_id = ? AND shelter_id = ?", [$petId, $user['user_id']]);
+            if (!$owner) { jsonError('Not your pet listing.', 403); break; }
+        }
+        $db->execute("UPDATE pets SET status = 'Removed' WHERE pet_id = ?", [$petId]);
+        jsonSuccess([], 'Pet listing removed.');
+        break;
+
+    case 'my_pets':
+        if ($user['role'] !== 'SHELTER') { jsonError('Shelter only.', 403); break; }
+        $pets = $db->fetchAll(
+            "SELECT p.*,
+             (SELECT pp.photo_url FROM pet_photos pp WHERE pp.pet_id = p.pet_id AND pp.is_primary = 1 LIMIT 1) as primary_photo,
+             (SELECT COUNT(*) FROM adoption_applications aa WHERE aa.pet_id = p.pet_id) as app_count
+             FROM pets p
+             WHERE p.shelter_id = ?
+             ORDER BY p.created_at DESC",
+            [$user['user_id']]
+        );
+        foreach ($pets as &$p) {
+            $p['age_display'] = formatAge($p['age_months']);
+            $p['photo_url']   = $p['primary_photo'] ? APP_URL . '/' . $p['primary_photo'] : APP_URL . '/assets/images/pet-placeholder.png';
+        }
+        jsonSuccess($pets);
+        break;
+
+    default:
+        jsonError('Unknown action.', 400);
+}
+
+
+?>

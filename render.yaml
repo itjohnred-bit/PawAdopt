@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: paw-adopt
+    env: php
+    buildCommand: composer install --no-dev 2>/dev/null || true
+    startCommand: heroku-php-apache2 public/
+    plan: free
+    envVars:
+      - key: APP_URL
+        fromService:
+          name: paw-adopt
+          type: web
+          envVarKey: RENDER_EXTERNAL_URL
