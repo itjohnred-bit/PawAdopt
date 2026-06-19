@@ -78,21 +78,19 @@ include __DIR__ . '/../../includes/header.php';
 
 <script>
 async function removePet(petId) {
-  
     confirmAction('Remove this pet listing? It will be hidden from adopters.', async () => {
-        const res = await apiRequest('/PawAdopt/api/admin.php', 'POST', new URLSearchParams({
-            action: 'remove_pet', 
+        const res = await apiRequest(window.BASE_URL + '/api/admin.php', 'POST', new URLSearchParams({
+            action: 'remove_pet',
             pet_id: petId
         }));
-        
-        if (res.success) { 
-            showToast('Pet removed.'); 
-            setTimeout(() => location.reload(), 900); 
+
+        if (res.success) {
+            showToast('Pet removed.');
+            setTimeout(() => location.reload(), 900);
         } else {
             showToast(res.message, 'error');
         }
     });
 }
-
 </script>
 <?php include __DIR__ . '/../../includes/footer.php'; ?>
