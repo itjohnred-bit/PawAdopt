@@ -79,9 +79,7 @@ include __DIR__ . '/../../includes/header.php';
 <?php endif; ?>
 
 <script>
-/**
- * Fallback helpers to prevent "is not defined" errors
- */
+
 function safeConfirm(message, callback) {
     if (typeof confirmAction === 'function') {
         confirmAction(message, callback);

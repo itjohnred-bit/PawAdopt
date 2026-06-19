@@ -132,7 +132,7 @@ if ($role === 'ADOPTER') {
             padding: 0 30px;
             border-bottom: 1px solid #eee;
             z-index: 999;
-            box-sizing: border-box; /* Crucial for layout */
+            box-sizing: border-box;
         }
 
         .header-actions { display: flex; align-items: center; gap: 20px; }
@@ -159,12 +159,12 @@ if ($role === 'ADOPTER') {
             margin-left: var(--sidebar-width);
             margin-top: 70px;
             padding: 30px;
-            width: calc(100% - var(--sidebar-width)); /* Fixed width calculation */
+            width: calc(100% - var(--sidebar-width)); 
             min-height: calc(100vh - 70px);
-            box-sizing: border-box; /* Prevents overflow */
+            box-sizing: border-box; 
         }
 
-        /* Dashboard Layout Helper Classes */
+
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));

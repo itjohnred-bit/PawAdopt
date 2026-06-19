@@ -1,6 +1,4 @@
-/* =====================================================
-   PAWAdopt – Auth Page Styles (Login / Register)
-   ===================================================== */
+
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -15,7 +13,6 @@ body.auth-body {
     overflow-y: auto;
 }
 
-/* Background animated paws */
 .bg-paws {
     position: fixed; inset: 0; z-index: 0;
     pointer-events: none; overflow: hidden;
@@ -62,10 +59,10 @@ body.auth-body {
 }
 
 .auth-logo-img {
-    width: 300px; /* Adjust this to your desired size */
-    height: auto; /* Keeps the aspect ratio proportional */
+    width: 300px; 
+    height: auto; 
     display: block;
-    margin: 0 auto 10px auto; /* Centers the image */
+    margin: 0 auto 10px auto;
 }
 
 .auth-logo img {
@@ -289,7 +286,6 @@ body.auth-body {
 .auth-left.dark-mode .auth-divider::before,
 .auth-left.dark-mode .auth-divider::after { background: rgba(255,255,255,.2); }
 .auth-left.dark-mode .auth-divider { color: rgba(255,255,255,.5); }
-/* MOBILE: ensure left panel is above overlays and clickable */
 @media (max-width: 700px) {
   .auth-left {
     position: relative;
@@ -300,7 +296,7 @@ body.auth-body {
   .auth-right {
     position: relative;
     z-index: 1;
-    pointer-events: none; /* prevents it from stealing taps */
+    pointer-events: none; 
   }
 
   .role-toggle, .role-btn, .auth-footer-links, .auth-row, .auth-submit-btn {

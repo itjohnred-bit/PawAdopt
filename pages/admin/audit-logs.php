@@ -1,7 +1,5 @@
 <?php
-/**
- * PAWAdopt - Fixed Audit Logs Dashboard
- */
+
 session_start();
 
 // SECURITY CHECK
