@@ -9,7 +9,7 @@ if ($is_production) {
     define('DB_CHARSET', 'utf8mb4');
 
     define('APP_NAME', 'PawAdopt');
-    define('APP_URL', 'https://paw-adopt.onrender.com'); 
+    define('APP_URL', 'https://pawadopt-xt8a.onrender.com'); 
     define('UPLOAD_PATH', '/opt/render/project/uploads/');
     define('UPLOAD_URL', APP_URL . '/uploads/');
 } else {
