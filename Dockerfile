@@ -9,3 +9,4 @@ COPY . /var/www/html/
 
 # 4. (Optional) Set permissions if needed
 RUN chown -R www-data:www-data /var/www/html/
+

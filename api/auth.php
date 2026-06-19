@@ -1,5 +1,4 @@
 <?php
-/**PAWAdopt - Fixed Authentication System with Audit Logging | */
 
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../config/database.php';
@@ -37,7 +36,6 @@ switch ($action) {
             break;
         }
 
-        // Check password
         if (!password_verify($password, $user['password_hash'])) {
             log_action($user['user_id'], 'failed_login', "Failed login attempt for user: " . $user['username'], strtoupper($user['role']), $user['username']);
             jsonError("Incorrect password."); 
