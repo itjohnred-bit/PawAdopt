@@ -75,7 +75,6 @@ switch ($action) {
         $app = $db->fetch("SELECT * FROM adoption_applications WHERE application_id = ?", [$appId]);
         if (!$app) { jsonError('Application not found.'); exit; }
 
-        // Only the adopter who owns it (or an admin) may cancel
         $isOwner = (int)$app['adopter_id'] === (int)$user['user_id'];
         $isAdmin = strtoupper($user['role']) === 'ADMIN';
         if (!$isOwner && !$isAdmin) { jsonError('Not authorized to cancel this application.'); exit; }
@@ -106,7 +105,6 @@ switch ($action) {
         $appId = (int)($_GET['id'] ?? $_POST['id'] ?? 0);
         if (!$appId) { jsonError('Application ID required.'); exit; }
 
-        // Pull application + pet + adopter (with profile)
         $sql = "SELECT aa.*,
                        p.name     AS pet_name,
                        p.species,
@@ -190,7 +188,6 @@ switch ($action) {
         exit;
 }
 
-// Exit immediately if an API call was made but did not process up top, preventing UI pollution.
 if (!empty($action)) {
     jsonError('Invalid action context endpoint requested.');
     exit;

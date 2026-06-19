@@ -102,7 +102,6 @@ include __DIR__ . '/../../includes/header.php';
 <?php endif; ?>
 
 <script>
-// Provide confirmAction if it isn't already defined globally
 if (typeof window.confirmAction !== 'function') {
     window.confirmAction = function (message, onYes) {
         if (window.confirm(message)) {

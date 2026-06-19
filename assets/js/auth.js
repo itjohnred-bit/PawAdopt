@@ -28,7 +28,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     showPanel(loginPanel);
 
-    // ROLE TOGGLE FIX: Ensure role is injected into the correct hidden input
     document.querySelectorAll('.role-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
@@ -64,7 +63,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const fd = new FormData(loginForm);
         const btn = loginForm.querySelector('[type=submit]');
         
-        // Ensure role is in FormData even if button wasn't clicked (defaulting)
         if (!fd.get('role')) {
             const activeRoleBtn = document.querySelector('.role-btn.active');
             if (activeRoleBtn) fd.set('role', activeRoleBtn.dataset.role);
@@ -78,7 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
             showAlert(loginPanel, 'Logged in! Redirecting…', 'success');
             setTimeout(() => window.location.href = res.data.redirect, 800);
         } else {
-            showAlert(loginPanel, res.message, 'error'); // Uses specific message from PHP
+            showAlert(loginPanel, res.message, 'error'); 
         }
     });
 
@@ -105,7 +103,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function postForm(url, formData) {
     try {
-        // We send as FormData directly; PHP's $_POST handles this best
         const res = await fetch(url, { 
             method: 'POST', 
             body: formData 

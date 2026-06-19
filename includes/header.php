@@ -4,17 +4,14 @@ startSession();
 requireLogin();
 $currentUser = getCurrentUser();
 
-// Standardizing function names to match your DB schema
 $unreadNotifs = getUnreadNotificationCount($currentUser['user_id']);
 $unreadMsgs   = getUnreadMessageCount($currentUser['user_id']);
 
 $role = $currentUser['role'];
 $basePath = APP_URL;
 
-// Detect current page for "active" class
 $current_page = basename($_SERVER['PHP_SELF']);
 
-// Role-specific nav paths
 if ($role === 'ADOPTER') {
     $dashUrl    = "$basePath/pages/adopter/dashboard.php";
     $browseUrl  = "$basePath/pages/adopter/browse.php";

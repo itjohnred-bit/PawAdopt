@@ -5,7 +5,6 @@
  * ============================================================
  */
 
-// 1. ENVIRONMENT & SESSION SETUP
 header('Cache-Control: no-store, no-cache, must-revalidate');
 header('Cache-Control: post-check=0, pre-check=0', false);
 header('Pragma: no-cache');
@@ -14,21 +13,17 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// 2. SECURITY CHECK: Admin only access
 if (!isset($_SESSION['user']) || strtoupper($_SESSION['user']['role'] ?? '') !== 'ADMIN') {
     http_response_code(403);
     die('Access denied. Admin privileges required.');
 }
 
-// 3. INCLUDE CORE FILES
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../../includes/functions.php';
 require_once __DIR__ . '/../../includes/functions_audit.php';
 
-// Bridge the global PDO for the audit functions
 $pdo = $pdo ?? $conn ?? Database::getInstance()->getConnection();
 
-// 4. FPDF LIBRARY INITIALIZATION
 $fpdf_path = __DIR__ . '/../../fpdf/fpdf.php';
 if (!file_exists($fpdf_path)) {
     die('<b>FPDF library not found.</b><br>
@@ -37,7 +32,6 @@ if (!file_exists($fpdf_path)) {
 }
 require_once $fpdf_path;
 
-// 5. DATA PREPARATION & FILTERING
 $limit = isset($_GET['limit']) ? min((int)$_GET['limit'], 1000) : 500;
 
 $filters = [
@@ -47,7 +41,6 @@ $filters = [
     'to'     => !empty($_GET['to'])     ? $_GET['to']     : null
 ];
 
-// Fetch initial data using your library function
 $logs = fetch_recent_audit_logs(
     $limit, 
     $filters['role'],
@@ -56,12 +49,10 @@ $logs = fetch_recent_audit_logs(
     $filters['to']
 );
 
-// CONSTRAINT: EXCLUDE ADMIN FROM THE EXPORT
 $logs = array_filter($logs, function($log) {
     return strtoupper($log['role'] ?? '') !== 'ADMIN';
 });
 
-// 6. PDF CLASS EXTENSION (FPDF)
 class AuditPDF extends FPDF {
     protected $col_widths = [15, 35, 30, 25, 45, 80, 47];
 
@@ -114,7 +105,6 @@ class AuditPDF extends FPDF {
         $this->SetTextColor(51, 65, 85);
         $this->SetFont('Arial', '', 8);
         
-        // Apply professional formatting to Action and Details
         $displayAction = function_exists('format_action_name') ? format_action_name($row['action']) : $row['action'];
         $details = $row['details'] ?: 'No additional details recorded.';
         if (strlen($details) > 65) $details = substr($details, 0, 62) . '...';

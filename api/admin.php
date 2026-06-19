@@ -7,7 +7,7 @@ $db     = Database::getInstance();
 $action = $_GET['action'] ?? $_POST['action'] ?? '';
 $user   = getCurrentUser();
 require_once __DIR__ . '/../includes/functions_audit.php';
-$pdo = Database::getInstance()->getConnection(); // Map your Singleton connection to the global $pdo variable
+$pdo = Database::getInstance()->getConnection(); 
 
 startSession();
 requireRole('ADMIN');

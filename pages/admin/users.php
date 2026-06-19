@@ -77,18 +77,14 @@ include __DIR__ . '/../../includes/header.php';
 </div>
 
 <script>
-/**
- * MISSING HELPERS ADDED BELOW
- */
 
-// 1. Fixed confirmAction to accept a callback
+
 function confirmAction(message, callback) {
     if (window.confirm(message)) {
         callback();
     }
 }
 
-// 2. Fixed apiRequest helper
 async function apiRequest(url, method, body) {
     try {
         const res = await fetch(url, { method, body });
@@ -99,14 +95,11 @@ async function apiRequest(url, method, body) {
     }
 }
 
-// 3. Simple showToast alert
 function showToast(message, type = 'success') {
     alert((type === 'error' ? '❌ ' : '✅ ') + message);
 }
 
-/**
- * ORIGINAL FUNCTIONS
- */
+
 async function toggleUser(userId, isActive) {
     const actionText = isActive ? 'Deactivate' : 'Activate';
     confirmAction(`${actionText} this user?`, async () => {

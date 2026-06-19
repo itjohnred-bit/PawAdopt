@@ -136,7 +136,7 @@ PAWAdopt/
 - **Font**: Nunito (Google Fonts)
 - **Icons**: Font Awesome 6
 - **Style**: Rounded, modern, mobile-responsive
-- **Decorations**: 🦴 pixel bone, 🐟 fish, 🐾 paw prints
+- **Decorations**: 🦴 pixel bone,  🐾 paw prints
 
 ---
 

@@ -14,13 +14,12 @@ require_once "../../config/database.php";
 require_once "../../includes/functions.php";
 require_once "../../includes/functions_audit.php";
 
-// MAP DATABASE VARIABLE (Crucial for functions to work)
 $pdo = $pdo ?? $conn ?? Database::getInstance()->getConnection();
 
 // Fetch Data
 $logs = fetch_recent_audit_logs(50);
 
-// Fetch Statistics - FIXED: The variable name now matches the HTML below
+// Fetch Statistics
 $stats_data = get_audit_statistics(30);
 
 // Log the access safely

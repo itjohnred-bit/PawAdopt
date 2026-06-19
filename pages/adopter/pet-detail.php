@@ -312,7 +312,6 @@ include __DIR__ . '/../../includes/header.php';
 </div>
 
 <script>
-// Use safe window context properties to avoid Duplicate Identifier declaration errors
 window.currentStep = window.currentStep || 1;
 window.totalSteps = 7;
 const petId = <?= $petId ?>;

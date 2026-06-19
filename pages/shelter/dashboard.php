@@ -5,16 +5,12 @@ $pageTitle = 'Shelter Dashboard';
 $user = getCurrentUser();
 $db   = Database::getInstance();
 
-// 1. Fetch Shelter Profile data
 $profile = $db->fetch("SELECT * FROM shelter_profiles WHERE shelter_id = ?", [$user['user_id']]);
 $verif   = $db->fetch("SELECT * FROM shelter_verifications WHERE shelter_id = ?", [$user['user_id']]);
 
-// 2. Fetch Pet Stats (Using your verified 'shelter_id' column)
 $petCount  = $db->fetch("SELECT COUNT(*) as c FROM pets WHERE shelter_id = ? AND status != 'Removed'", [$user['user_id']])['c'] ?? 0;
 $availPets = $db->fetch("SELECT COUNT(*) as c FROM pets WHERE shelter_id = ? AND status = 'Available'", [$user['user_id']])['c'] ?? 0;
 
-// 3. Fetch Application Stats
-// Note: We JOIN with pets because adoption_applications usually doesn't have shelter_id directly
 $appStats = $db->fetch("
     SELECT 
         COUNT(*) as total,
@@ -29,7 +25,6 @@ $appCount = $appStats['total'] ?? 0;
 $pendApps = $appStats['pending'] ?? 0;
 $msgCount = getUnreadMessageCount($user['user_id']);
 
-// 4. Recent Applications
 $recentApps = $db->fetchAll("
     SELECT aa.*, p.name as pet_name, u.username as adopter_username,
         (SELECT pp.photo_url FROM pet_photos pp WHERE pp.pet_id = p.pet_id AND pp.is_primary = 1 LIMIT 1) as pet_photo
@@ -51,7 +46,6 @@ include __DIR__ . '/../../includes/header.php';
     </a>
 </div>
 
-<!-- Verification Warning -->
 <?php if (isset($profile['is_verified']) && !$profile['is_verified']): ?>
 <div style="background:#fffbeb;border:2px solid #f59e0b;border-radius:14px;padding:16px;margin-bottom:24px;display:flex;gap:12px;align-items:center">
     <span style="font-size:1.8rem">⚠️</span>

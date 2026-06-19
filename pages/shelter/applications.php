@@ -118,7 +118,6 @@ include __DIR__ . '/../../includes/header.php';
             </div>
             <?php endif; ?>
 
-            <!-- ✅ THIS IS THE MISSING BUTTON ROW -->
             <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
                 <button onclick="viewApplication(<?= $app['application_id'] ?>)" 
                         class="btn btn-info btn-sm"
@@ -177,7 +176,6 @@ include __DIR__ . '/../../includes/header.php';
     </div>
 </div>
 
-<!-- 📄 APPLICATION DETAIL MODAL (the new popup) -->
 <div class="modal-overlay" id="appDetailModal" 
      style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:2100; overflow-y:auto;">
     <div class="modal" 
@@ -201,14 +199,11 @@ include __DIR__ . '/../../includes/header.php';
 </div>
 
 <script>
-/* ============================================================
-   REVIEW (Approve / Reject / Under Review)
-   ============================================================ */
+
 let reviewAppId   = null;
 let reviewStatus  = null;
 
-// confirmAction is defined in admin/users.php — define a safe fallback here
-// in case this page is loaded without that script.
+
 if (typeof window.confirmAction !== 'function') {
     window.confirmAction = function (message, onYes) {
         if (window.confirm(message)) {
@@ -263,9 +258,7 @@ async function reviewApp(appId, status, note) {
     }
 }
 
-/* ============================================================
-   VIEW APPLICATION — fetches adopter + screening answers
-   ============================================================ */
+
 function escapeHtml(str) {
     if (str === null || str === undefined) return '';
     return String(str)
@@ -294,17 +287,15 @@ async function viewApplication(appId) {
                 escapeHtml(res.message || 'Failed to load application.') + '</div>';
             return;
         }
-        // The first time the shelter opens an application, auto-flag it as
-        // "Under Review" so the adopter sees progress without extra clicks.
+
         try {
             if (res.data && res.data.status === 'Submitted') {
-                reviewApp(appId, 'Under Review', ''); // fire-and-forget
+                reviewApp(appId, 'Under Review', ''); 
             }
         } catch (_) {}
 
         const a = res.data;
 
-        /* ── Decode the saved screening JSON ───────────── */
         let screening = {};
         try {
             screening = a.screening_responses
@@ -350,7 +341,7 @@ async function viewApplication(appId) {
                  ⚠️ No screening form answers recorded for this application.
                </div>`;
 
-        /* ── Adopter card ──────────────────────────────── */
+        /*  Adopter card */
         const adopterName   = a.adopter_name || a.adopter_username || 'Adopter';
         const adopterEmail  = a.adopter_email || '';
         const adopterPhone  = a.adopter_phone || '—';
@@ -418,7 +409,7 @@ async function viewApplication(appId) {
     }
 }
 
-// Close on backdrop click
+
 ['reviewModal','appDetailModal'].forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
@@ -427,7 +418,6 @@ async function viewApplication(appId) {
     });
 });
 
-// ESC closes both modals
 document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
         closeModalEl('reviewModal');
@@ -435,7 +425,6 @@ document.addEventListener('keydown', e => {
     }
 });
 </script>
-<!-- Full Adoption Application Detail Modal -->
 <div class="modal fade" id="applicationModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content" style="border-radius: 15px; border: none; overflow: hidden; box-shadow: 0 15px 35px rgba(0,0,0,0.2);">
@@ -447,7 +436,6 @@ document.addEventListener('keydown', e => {
             </div>
             
             <div class="modal-body p-0">
-                <!-- Summary Header -->
                 <div class="px-4 py-3 border-bottom d-flex justify-content-between align-items-center bg-white">
                     <div>
                         <label class="text-muted small fw-bold text-uppercase d-block" style="letter-spacing: 0.5px;">Adopter</label>
@@ -459,7 +447,6 @@ document.addEventListener('keydown', e => {
                     </div>
                 </div>
 
-                <!-- Responses Container (The 7-Step Grid) -->
                 <div class="p-4 bg-white">
                     <h6 class="fw-bold mb-3 d-flex align-items-center" style="color: #2d5a4c;">
                         <i class="fas fa-tasks me-2"></i> Application Answers
@@ -493,7 +480,6 @@ document.addEventListener('keydown', e => {
 </div>
 
 <style>
-/* Custom Scrollbar for the Responses */
 .custom-scroll::-webkit-scrollbar { width: 6px; }
 .custom-scroll::-webkit-scrollbar-track { background: #f1f1f1; }
 .custom-scroll::-webkit-scrollbar-thumb { background: #d1d1d1; border-radius: 10px; }

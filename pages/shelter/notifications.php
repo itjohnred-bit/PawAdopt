@@ -1,7 +1,6 @@
 <?php
-// Note the double ../../ to reach the root includes folder
 require_once __DIR__ . '/../../includes/functions.php';
-requireRole('SHELTER'); // Ensure only shelters can see this
+requireRole('SHELTER'); 
 $pageTitle = 'Shelter Notifications';
 
 include __DIR__ . '/../../includes/header.php';
@@ -20,7 +19,6 @@ include __DIR__ . '/../../includes/header.php';
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // This calls the same API file you shared earlier
     fetch('<?= APP_URL ?>/api/notifications.php?action=list')
         .then(response => response.json())
         .then(res => {

@@ -114,7 +114,6 @@ function createNotification($userId, $type, $title, $message, $link = '') {
     return $db->query(
         "INSERT INTO notifications (user_id, type, title, message, link, is_read, created_at) VALUES (?, ?, ?, ?, ?, 0, NOW())",
         [$userId, $type, $title, $message, $link]
-// Note: If your database uses 'content', change 'message' above to 'content'
     );
 }
 function getUnreadNotificationCount(int $userId): int {

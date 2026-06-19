@@ -120,7 +120,6 @@ include __DIR__ . '/../../includes/header.php';
 </div>
 
 <script>
-// Logic to show the file name next to the button
 function updateFileName(input) {
     const display = input.parentElement.querySelector('.file-name-display');
     if (input.files && input.files[0]) {
@@ -130,7 +129,6 @@ function updateFileName(input) {
     }
 }
 
-// Logic for photos specifically (shows names + the visual previews)
 function handlePhotoChange(input) {
     updateFileName(input);
     const preview = document.getElementById('photoPreview');
@@ -160,8 +158,7 @@ function handlePhotoChange(input) {
 
 async function submitAddPet(form) {
     const fd  = new FormData(form);
-    // Note: We don't manually append 'action' here because fetch URL has it, 
-    // but the PHP switch(action) needs it.
+
     
     const btn = document.getElementById('submitBtn');
     const originalContent = btn.innerHTML;
@@ -172,7 +169,6 @@ async function submitAddPet(form) {
     try {
         const res = await fetch('/PAWAdopt/api/pets.php?action=add', { method:'POST', body: fd });
         
-        // Safety check if server crashes
         const text = await res.text();
         let data;
         try {

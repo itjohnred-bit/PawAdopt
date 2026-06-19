@@ -1,13 +1,11 @@
 <?php
-/**
- * PAWAdopt - Fixed Authentication System with Audit Logging
- */
+/**PAWAdopt - Fixed Authentication System with Audit Logging | */
+
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../includes/functions_audit.php';
 startSession();
 
-// BRIDGE: Connect the global $pdo variable for audit functions
 $pdo = Database::getInstance()->getConnection();
 
 $action = $_GET['action'] ?? $_POST['action'] ?? '';
@@ -41,7 +39,6 @@ switch ($action) {
 
         // Check password
         if (!password_verify($password, $user['password_hash'])) {
-            // LOG FAILED ATTEMPT for security auditing
             log_action($user['user_id'], 'failed_login', "Failed login attempt for user: " . $user['username'], strtoupper($user['role']), $user['username']);
             jsonError("Incorrect password."); 
             break;
@@ -54,7 +51,6 @@ switch ($action) {
             break;
         }
 
-        // SET SESSION DATA (Correcting the "Guest/System" display issue)
         $_SESSION['user_id']  = $user['user_id'];
         $_SESSION['username'] = $user['username']; 
         $_SESSION['role']     = strtoupper($user['role']);
@@ -128,7 +124,6 @@ switch ($action) {
 
     // ─────────────────────────── LOGOUT ────────────────────────────
     case 'logout':
-        // LOG LOGOUT (Before destroying session)
         if (isset($_SESSION['user_id'])) {
             log_action($_SESSION['user_id'], 'logout', 'User logged out');
         }

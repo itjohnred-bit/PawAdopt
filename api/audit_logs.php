@@ -1,19 +1,5 @@
 <?php
-/**
- * ============================================================
- * PAWAdopt Audit Logs API
- * ============================================================
- * 
- * API endpoint for fetching audit logs (admin only)
- * 
- * ENDPOINTS:
- *   GET /api/audit_logs.php?action=fetch
- *   GET /api/audit_logs.php?action=stats
- *   GET /api/audit_logs.php?action=quick_stats
- *   GET /api/audit_logs.php?action=export_data
- * 
- * ============================================================
- */
+
 
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
@@ -60,13 +46,15 @@ if ($action === 'fetch') {
     // Fetch logs
     $result = fetch_paginated_audit_logs($page, $per_page, $filters);
     
-    // Add formatting to each log safely using index keys
-    foreach ($result['logs'] as $index => $log) {
-        $result['logs'][$index]['action_formatted'] = function_exists('format_action_name') ? format_action_name($log['action']) : $log['action'];
-        $result['logs'][$index]['action_icon'] = function_exists('get_action_icon') ? get_action_icon($log['action']) : '';
-        $result['logs'][$index]['role_badge'] = function_exists('get_role_badge_class') ? get_role_badge_class($log['role']) : '';
-        $result['logs'][$index]['timestamp_formatted'] = date('M d, Y g:i A', strtotime($log['created_at']));
-    }
+
+    foreach ($result['logs'] as &$log) {
+    $log['action_formatted'] = function_exists('format_action_name') ? format_action_name($log['action']) : ucfirst($log['action']);
+    $log['action_icon'] = function_exists('get_action_icon') ? get_action_icon($log['action']) : '';
+    $log['role_badge'] = function_exists('get_role_badge_class') ? get_role_badge_class($log['role']) : '';
+    $log['timestamp_formatted'] = date('M d, Y g:i A', strtotime($log['created_at']));
+}
+unset($log); 
+    
     echo json_encode([
         'success' => true,
         'logs' => $result['logs'],

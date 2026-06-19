@@ -144,7 +144,6 @@ include __DIR__ . '/../../includes/header.php';
 </div>
 
 <script>
-// Helper to update file names on display
 function updateFileName(input) {
     const display = input.parentElement.querySelector('.file-name-display');
     if (input.files && input.files.length > 0) {

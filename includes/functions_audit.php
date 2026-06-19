@@ -57,7 +57,7 @@ if (!function_exists('log_action')) {
         // --- ADMIN EXCLUSION GUARD ---
         $checkRole = $role ?? $_SESSION['role'] ?? $_SESSION['user']['role'] ?? '';
         if (strtoupper($checkRole) === 'ADMIN') {
-            return true; // Silently skip logging for Admin accounts
+            return true;
         }
 
         if (empty($action)) {
@@ -111,7 +111,6 @@ if (!function_exists('fetch_paginated_audit_logs')) {
         ];
         
         try {
-            // Always exclude ADMIN role
             $conditions = ["role != 'ADMIN'"];
             $params = [];
             
@@ -134,7 +133,6 @@ if (!function_exists('fetch_paginated_audit_logs')) {
             
             $where_clause = 'WHERE ' . implode(' AND ', $conditions);
             
-            // Count total matching records
             $count_sql = 'SELECT COUNT(*) as total FROM audit_logs ' . $where_clause;
             $count_stmt = $pdo->prepare($count_sql);
             foreach ($params as $key => $value) {

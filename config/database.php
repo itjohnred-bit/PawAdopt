@@ -1,9 +1,7 @@
 <?php
-// Production detection environment check
 $is_production = isset($_ENV['RENDER']) || getenv('RENDER') || strpos($_SERVER['HTTP_HOST'], 'onrender') !== false;
 
 if ($is_production) {
-    // Render Cloud Production Settings
     define('DB_HOST', getenv('DB_HOST'));
     define('DB_NAME', getenv('DB_NAME'));
     define('DB_USER', getenv('DB_USER'));
@@ -11,11 +9,10 @@ if ($is_production) {
     define('DB_CHARSET', 'utf8mb4');
 
     define('APP_NAME', 'PawAdopt');
-    define('APP_URL', 'https://paw-adopt.onrender.com'); // We will verify this on Render later
+    define('APP_URL', 'https://paw-adopt.onrender.com'); 
     define('UPLOAD_PATH', '/opt/render/project/uploads/');
     define('UPLOAD_URL', APP_URL . '/uploads/');
 } else {
-    // Your Local XAMPP Development Settings
     define('DB_HOST', '127.0.0.1:3307');
     define('DB_NAME', 'pawadopt');
     define('DB_USER', 'root');
@@ -83,6 +80,5 @@ class Database {
     }
 }
 
-// Initialize global $pdo for backward compatibility with existing code
 $pdo = Database::getInstance()->getConnection();
 ?>

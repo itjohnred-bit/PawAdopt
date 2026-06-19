@@ -4,10 +4,9 @@ require_once __DIR__ . '/config/database.php';
 startSession();
 startSession();
 
-// Already logged in → redirect to dashboard
 if (isLoggedIn()) {
     $user = getCurrentUser();
-    $role = strtoupper($user['role']); // Ensure uppercase for comparison
+    $role = strtoupper($user['role']);
     
     if ($role === 'ADOPTER') {
         header('Location: /PawAdopt/pages/adopter/dashboard.php');
@@ -16,13 +15,12 @@ if (isLoggedIn()) {
     } else if ($role === 'ADMIN') {
         header('Location: /PawAdopt/pages/admin/dashboard.php');
     } else {
-        // Fallback for safety
+
         header('Location: /PawAdopt/pages/' . strtolower($role) . '/dashboard.php');
     }
     exit;
 }
 
-// Get about/terms content safely
 $db = Database::getInstance();
 $aboutContent = $db->fetch("SELECT content_value FROM site_content WHERE content_key = 'about_text'");
 $aboutText = $aboutContent ? $aboutContent['content_value'] : 'Paw-Adopt connects loving adopters with shelters. Browse, apply, and change a life today!';
@@ -69,14 +67,12 @@ $urlError = $_GET['error'] ?? '';
 
             <div class="auth-role-label">Sign in as</div>
             <div class="role-toggle">
-                <!-- DATA-ROLE MUST BE UPPERCASE TO MATCH THE DB -->
                 <button type="button" class="role-btn active" data-role="ADOPTER">🐶 Adopter</button>
                 <button type="button" class="role-btn"        data-role="SHELTER">🏠 Veterinary</button>
                 <button type="button" class="role-btn"        data-role="ADMIN">🛡️ Admin</button>
             </div>
 
             <form id="loginForm" autocomplete="on" style="width:100%;display:flex;flex-direction:column;align-items:center;">
-                <!-- ID ADDED HERE SO JS CAN FIND IT -->
                 <input type="hidden" name="role" id="loginRole" value="ADOPTER">
                 
                 <div class="auth-input-group">

@@ -1,6 +1,5 @@
 <?php
 require_once __DIR__ . '/../../includes/header.php';
-// The header already handles session and role check
 ?>
 
 <div class="page-header">
@@ -10,7 +9,6 @@ require_once __DIR__ . '/../../includes/header.php';
 
 <div class="card">
     <div id="notif-container">
-        <!-- Notifications will load here -->
         <div style="padding: 40px; text-align: center;">Loading notifications...</div>
     </div>
 </div>

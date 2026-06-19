@@ -9,20 +9,15 @@ $action = $_GET['action'] ?? $_POST['action'] ?? '';
 $method = $_SERVER['REQUEST_METHOD'];
 $user   = getCurrentUser();
 
-/**
- * FIXED: Changed path from /../../ to /../ 
- * because api/ is a direct child of the root.
- */
+
 function handleCertificateUpload($file) {
     if (!$file || $file['error'] === UPLOAD_ERR_NO_FILE) return null;
     
-    // 1. Get the ABSOLUTE path to your PAWADOPT root folder
-    // If this file is in PAWADOPT/api/pets.php, dirname(__DIR__) is C:/xampp/htdocs/PawAdopt/
+  
     $basePath = dirname(__DIR__); 
     
     $uploadDir = $basePath . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . 'certificates' . DIRECTORY_SEPARATOR;
 
-    // 2. Create directory if it doesn't exist
     if (!is_dir($uploadDir)) {
         mkdir($uploadDir, 0777, true);
     }
@@ -30,9 +25,7 @@ function handleCertificateUpload($file) {
     $newName = 'cert_' . bin2hex(random_bytes(8)) . '.pdf';
     $destPath = $uploadDir . $newName;
 
-    // 3. Move the file
     if (move_uploaded_file($file['tmp_name'], $destPath)) {
-        // We store the path relative to the project root for the URL to work
         return ['url' => 'uploads/certificates/' . $newName];
     }
 
@@ -176,7 +169,6 @@ switch ($action) {
         }
         if (isset($_POST['age_months'])) { $sets[] = "age_months = ?"; $params[] = (int)$_POST['age_months']; }
 
-        // Handle Medical Certificate Upload for Edit
         if (isset($_FILES['medical_cert']) && $_FILES['medical_cert']['error'] !== UPLOAD_ERR_NO_FILE) {
             $uploadResult = handleCertificateUpload($_FILES['medical_cert']);
             if (isset($uploadResult['error'])) {

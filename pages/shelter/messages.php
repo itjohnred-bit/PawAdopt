@@ -1,25 +1,17 @@
 <?php
-/**
- * Shelter Messages Page
- * Corrected pathing and SQL logic
- */
-// 1. Corrected Path to includes
+
 require_once __DIR__ . '/../../includes/functions.php';
 
-startSession(); // Added startSession if not in functions.php
-
-// Ensure only Shelters/Veterinaries can access this page
+startSession();
 requireRole('SHELTER');
 
 $pageTitle = 'Shelter Messages';
 $user = getCurrentUser();
 $db   = Database::getInstance();
 
-// 2. FIXED: Corrected column name from user_id to shelter_id to match your database schema
 $shelter = $db->fetch("SELECT shelter_id, shelter_name FROM shelter_profiles WHERE shelter_id = ?", [$user['user_id']]);
 $shelterId = $shelter['shelter_id'] ?? 0;
 
-// 3. Fetch all conversations involving this shelter
 $convs = $db->fetchAll(
     "SELECT c.*, u.username as other_name, u.email as adopter_email,
      (SELECT m.message_text FROM messages m WHERE m.conversation_id = c.conversation_id ORDER BY m.created_at DESC LIMIT 1) as last_message,
@@ -33,15 +25,12 @@ $convs = $db->fetchAll(
     [$user['user_id'], $shelterId]
 );
 
-// Determine which conversation is currently open
 $activeConvId = (int)($_GET['conv'] ?? ($convs[0]['conversation_id'] ?? 0));
 $activeConv   = $activeConvId ? current(array_filter($convs, fn($c) => $c['conversation_id'] == $activeConvId)) : null;
 
-// 4. FIXED: Corrected path for includes (going up two levels to root)
 include __DIR__ . '/../../includes/header.php';
 ?>
 
-<!-- 5. FIXED: Corrected path for JS asset (going up two levels to root) -->
 <script src="../../assets/js/app.js?v=<?= time() ?>"></script>
 
 <div class="page-header">
@@ -95,7 +84,6 @@ include __DIR__ . '/../../includes/header.php';
         </div>
     </div>
 
-    <!-- Right Column: Chat Content -->
     <div class="chat-pane" style="flex: 1; display: flex; flex-direction: column; background: #fcfcfc;">
         <?php if ($activeConvId && $activeConv): ?>
             <div class="chat-header" style="padding: 15px 25px; border-bottom: 1px solid #ddd; background: #fff; display: flex; align-items: center; gap: 15px;">
@@ -140,7 +128,6 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 
 <?php 
-// 6. FIXED: Corrected path for footer (two levels up)
 include __DIR__ . '/../../includes/footer.php';
 
 ?>
