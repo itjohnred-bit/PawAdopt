@@ -46,7 +46,7 @@ if ($role === 'ADOPTER') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= isset($pageTitle) ? sanitize($pageTitle) . ' – ' . APP_NAME : APP_NAME ?></title>
-    <link rel="stylesheet" href="/PawAdopt/assets/css/main.css">
+    <link rel="stylesheet" href="/assets/css/main.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
