@@ -29,12 +29,20 @@ class Database {
     private $pdo;
 
     private function __construct() {
-        $dsn = "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=" . DB_CHARSET;
+        $dsn = "mysql:host=" . DB_HOST . ";port=" . DB_PORT . ";dbname=" . DB_NAME . ";charset=" . DB_CHARSET;
+        
         $options = [
             PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
             PDO::ATTR_EMULATE_PREPARES   => false,
         ];
+
+        // IMPORTANT: Aiven requires SSL
+        if (SSL_CA && file_exists(SSL_CA)) {
+            $options[PDO::MYSQL_ATTR_SSL_CA] = SSL_CA;
+            $options[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = false;
+        }
+
         try {
             $this->pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
         } catch (PDOException $e) {
@@ -49,10 +57,7 @@ class Database {
         return self::$instance;
     }
 
-    public function getConnection(): PDO {
-        return $this->pdo;
-    }
-
+    public function getConnection(): PDO { return $this->pdo; }
     public function query(string $sql, array $params = []): PDOStatement {
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($params);
