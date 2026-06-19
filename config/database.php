@@ -13,10 +13,10 @@ if ($is_production) {
     define('UPLOAD_PATH', '/opt/render/project/uploads/');
     define('UPLOAD_URL', APP_URL . '/uploads/');
 } else {
-    define('DB_HOST', '127.0.0.1:3307');
-    define('DB_NAME', 'pawadopt');
-    define('DB_USER', 'root');
-    define('DB_PASS', '');
+    define('DB_HOST', 'pawadopt-db-itjohnred-7d65.i.aivencloud.com');
+    define('DB_NAME', 'defaultdb');
+    define('DB_USER', 'avnadmin');
+    define('DB_PASS', 'AVNS_1UWsIrYi4MSF7Y2EQse');
     define('DB_CHARSET', 'utf8mb4');
 
     define('APP_NAME', 'PawAdopt');
