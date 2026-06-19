@@ -12,11 +12,11 @@ if ($is_production) {
     define('APP_URL', 'https://pawadopt-xt8a.onrender.com');
 } else {
 
-    define('DB_HOST', '127.0.0.1');
+    define('DB_HOST', getenv('DB_HOST'));;
     define('DB_PORT', '3307');
     define('DB_NAME', 'pawadopt');
-    define('DB_USER', 'root');
-    define('DB_PASS', '');
+    define('DB_USER', getenv('DB_USER'));
+    define('DB_PASS', getenv('DB_PASS'));
     define('SSL_CA', null);
     define('APP_URL', 'http://localhost:8080/PawAdopt');
 }
