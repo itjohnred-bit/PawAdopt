@@ -34,7 +34,7 @@ $urlError = $_GET['error'] ?? '';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PAWAdopt – Find Your Forever Friend</title>
     <link rel="stylesheet" href="/PawAdopt/assets/css/auth.css">
-
+    <link rel="stylesheet" href="assets/css/auth.css">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 </head>
 <body class="auth-body">
@@ -58,7 +58,9 @@ $urlError = $_GET['error'] ?? '';
         <!-- ── LOGIN PANEL ── -->
         <div class="auth-panel active" id="loginPanel">
             <div class="auth-logo">
-                <img src="assets/images/Paw-Adopt Logo.png" alt="Paw-Adopt Logo">
+            <img src="assets/images/Paw-Adopt Logo.png" alt="Paw-Adopt Logo">
+
+            <img src="./assets/images/Paw-Adopt Logo.png" alt="Paw-Adopt Logo">
             </div>
 
             <?php if ($urlError === 'unauthorized'): ?>
@@ -187,7 +189,7 @@ $urlError = $_GET['error'] ?? '';
 
 <script src="/PawAdopt/assets/js/auth.js" defer></script>
 
-
+<script src="assets/js/auth.js" defer></script>
 <script>
 function showTerms() {
     document.getElementById('termsModal').style.display = 'flex';
