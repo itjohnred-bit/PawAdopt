@@ -59,7 +59,8 @@ $urlError = $_GET['error'] ?? '';
         <div class="auth-panel active" id="loginPanel">
             <div class="auth-logo">
                 <img src="assets/images/Paw-Adopt Logo.png" alt="Paw-Adopt Logo">
-                <img src="./assets/images/Paw-Adopt Logo.png" alt="Paw-Adopt Logo">
+
+
             </div>
 
             <?php if ($urlError === 'unauthorized'): ?>
@@ -188,7 +189,7 @@ $urlError = $_GET['error'] ?? '';
 
 <script src="/PawAdopt/assets/js/auth.js" defer></script>
 
-<script src="assets/js/auth.js" defer></script>
+
 <script>
 function showTerms() {
     document.getElementById('termsModal').style.display = 'flex';
