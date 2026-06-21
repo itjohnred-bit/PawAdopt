@@ -6,9 +6,29 @@ error_reporting(E_ALL);
 require_once __DIR__ . '/../../includes/functions.php';
 
 if (!defined('APP_URL')) {
-    $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+    // Detect protocol: check Render's reverse proxy header FIRST
+    $protocol = 'http';
+    if (
+        (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ||          // Direct HTTPS
+        (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) &&                          // Behind Render/Vercel/etc.
+         $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') ||
+        (!empty($_SERVER['HTTP_X_FORWARDED_SSL']) &&                            // Some proxies
+         $_SERVER['HTTP_X_FORWARDED_SSL'] === 'on')
+    ) {
+        $protocol = 'https';
+    }
+    
     $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
-    define('APP_URL', $scheme . '://' . $host);
+    $scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
+    
+    // Detect app subfolder (local XAMPP uses /PawAdopt, Render deploys at root)
+    if (preg_match('#(/[Pp][Aa][Ww][Aa]dopt)#', $scriptName, $m)) {
+        $appRoot = $m[1];
+    } else {
+        $appRoot = '';  // Production: deployed at domain root
+    }
+    
+    define('APP_URL', "$protocol://$host$appRoot");
 }
 
 if (function_exists('requireRole')) {
