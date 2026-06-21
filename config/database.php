@@ -1,48 +1,68 @@
 <?php
-$is_production = isset($_ENV['RENDER']) || getenv('RENDER') || strpos($_SERVER['HTTP_HOST'], 'onrender') !== false;
-// Auto-detect base URL for the current environment
-$protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-$host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+$is_production = isset($_ENV['RENDER']) || getenv('RENDER') || (strpos($_SERVER['HTTP_HOST'] ?? '', 'onrender') !== false);
 
-// Strip any subfolder path from SCRIPT_NAME (e.g., /pages/adopter/browse.php -> /pages)
-$scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
-// We want the "APP_ROOT" — the directory where index.php lives.
-// If the current script is /pages/adopter/browse.php, app root is "" (root) on Render,
-// or "/PawAdopt" on local XAMPP if deployed at htdocs/PawAdopt/.
+function detectProtocol(): string {
 
-// Heuristic: find "PAWAdopt" or "PawAdopt" in path, else use root
-if (preg_match('#(/[Pp][Aa][Ww][Aa]dopt)#', $scriptName, $m)) {
-    $appRoot = $m[1];
-} else {
-    $appRoot = '';  // Production: app at domain root
+    if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') return 'https';
+    
+
+    if (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && 
+        strtolower($_SERVER['HTTP_X_FORWARDED_PROTO']) === 'https') {
+        return 'https';
+    }
+    if (!empty($_SERVER['HTTP_X_FORWARDED_SSL']) && 
+        strtolower($_SERVER['HTTP_X_FORWARDED_SSL']) === 'on') {
+        return 'https';
+    }
+    
+    if (($_SERVER['SERVER_PORT'] ?? 80) == 443) return 'https';
+    
+    return 'http';
 }
 
-if ($is_production) {
+$protocol = detectProtocol();
+$host = $_SERVER['HTTP_HOST'] ?? 'localhost';
 
+$scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
+if (preg_match('#^/(PawAdopt|PAWAdopt|pawadopt)(/|$)#', $scriptName, $m)) {
+    $appRoot = '/' . $m[1];  // Local XAMPP
+} else {
+    $appRoot = ''; 
+}
+
+if (!function_exists('app_url')) {
+    function app_url(string $path = ''): string {
+        $base = (defined('APP_URL') ? APP_URL : '') ?? '';
+        return $base . '/' . ltrim($path, '/');
+    }
+}
+
+if (!defined('APP_URL')) {
+    define('APP_URL', "$protocol://$host$appRoot");
+}
+
+
+if ($is_production) {
     define('DB_HOST', getenv('DB_HOST'));
     define('DB_PORT', getenv('DB_PORT') ?: '13404');
     define('DB_NAME', getenv('DB_NAME'));
     define('DB_USER', getenv('DB_USER'));
     define('DB_PASS', getenv('DB_PASS'));
-    define('SSL_CA', __DIR__ . '/../ca.pem'); 
-    define('APP_URL', "$protocol://$host$appRoot");
+    define('SSL_CA', __DIR__ . '/../ca.pem');
 } else {
-
-    define('DB_HOST', getenv('DB_HOST'));;
+    define('DB_HOST', getenv('DB_HOST') ?: 'localhost');
     define('DB_PORT', '3307');
     define('DB_NAME', 'pawadopt');
-    define('DB_USER', getenv('DB_USER'));
-    define('DB_PASS', getenv('DB_PASS'));
+    define('DB_USER', getenv('DB_USER') ?: 'root');
+    define('DB_PASS', getenv('DB_PASS') ?: '');
     define('SSL_CA', null);
-    
 }
-
-
-
 
 define('DB_CHARSET', 'utf8mb4');
 define('UPLOAD_PATH', $is_production ? '/opt/render/project/uploads/' : __DIR__ . '/../uploads/');
 define('UPLOAD_URL', APP_URL . '/uploads/');
+
+
 class Database {
     private static $instance = null;
     private $pdo;
