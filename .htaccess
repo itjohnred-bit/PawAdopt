@@ -5,6 +5,10 @@ ServerSignature Off
 <FilesMatch "^database\.php$">
     Order Deny,Allow
     Deny from all
+
+    RewriteEngine On
+    RewriteCond %{REQUEST_URI} ^/favicon\.ico$ [NC]
+    RewriteRule .* /assets/images/Paw-Adopt%20Logo.png [L]
 </FilesMatch>
 
 # PHP error handling for production
