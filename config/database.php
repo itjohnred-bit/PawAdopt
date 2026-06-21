@@ -18,8 +18,28 @@ if ($is_production) {
     define('DB_USER', getenv('DB_USER'));
     define('DB_PASS', getenv('DB_PASS'));
     define('SSL_CA', null);
-    define('APP_URL', 'http://localhost:8080/PawAdopt');
+    
 }
+
+// Auto-detect base URL for the current environment
+$protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+$host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+
+// Strip any subfolder path from SCRIPT_NAME (e.g., /pages/adopter/browse.php -> /pages)
+$scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
+// We want the "APP_ROOT" — the directory where index.php lives.
+// If the current script is /pages/adopter/browse.php, app root is "" (root) on Render,
+// or "/PawAdopt" on local XAMPP if deployed at htdocs/PawAdopt/.
+
+// Heuristic: find "PAWAdopt" or "PawAdopt" in path, else use root
+if (preg_match('#(/[Pp][Aa][Ww][Aa]dopt)#', $scriptName, $m)) {
+    $appRoot = $m[1];
+} else {
+    $appRoot = '';  // Production: app at domain root
+}
+
+define('APP_URL', "$protocol://$host$appRoot");
+
 
 define('DB_CHARSET', 'utf8mb4');
 define('UPLOAD_PATH', $is_production ? '/opt/render/project/uploads/' : __DIR__ . '/../uploads/');

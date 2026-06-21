@@ -3,7 +3,10 @@
 (function () {
     'use strict';
 
-    window.BASE_URL = window.location.origin + '/PawAdopt';
+    window.BASE_URL = (window.location.hostname.includes('onrender.com') || 
+                   window.location.protocol === 'https:')
+    ? window.location.origin                       // Production → no subfolder
+    : window.location.origin + '/PawAdopt';        // Local XAMPP → with subfolder
 
     async function apiRequest(url, method = 'GET', data = null) {
         const opts = { method, credentials: 'same-origin', headers: {} };
