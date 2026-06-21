@@ -9,7 +9,7 @@ if ($is_production) {
     define('DB_USER', getenv('DB_USER'));
     define('DB_PASS', getenv('DB_PASS'));
     define('SSL_CA', __DIR__ . '/../ca.pem'); 
-    define('APP_URL', 'https://pawadopt-xt8a.onrender.com');
+    define('APP_URL', "$protocol://$host$appRoot");
 } else {
 
     define('DB_HOST', getenv('DB_HOST'));;
@@ -38,7 +38,6 @@ if (preg_match('#(/[Pp][Aa][Ww][Aa]dopt)#', $scriptName, $m)) {
     $appRoot = '';  // Production: app at domain root
 }
 
-define('APP_URL', "$protocol://$host$appRoot");
 
 
 define('DB_CHARSET', 'utf8mb4');
