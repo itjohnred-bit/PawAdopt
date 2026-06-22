@@ -1,8 +1,6 @@
+'use strict';                                          // 1. MUST be the first statement
+
 const API_BASE = window.location.origin + '/api/';
-
-
-
-'use strict';
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -28,69 +26,88 @@ document.addEventListener('DOMContentLoaded', () => {
 
     showPanel(loginPanel);
 
+    // ---- role selector ----
     document.querySelectorAll('.role-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            
-            const role = btn.getAttribute('data-role'); 
+
+            const role = btn.dataset.role;
             const activePanel = document.querySelector('.auth-panel.active');
-            const roleInput = activePanel.querySelector('input[name="role"]');
-            
+            const roleInput = activePanel?.querySelector('input[name="role"]'); // 2. added ?.
+
             if (roleInput) {
                 roleInput.value = role;
-                console.log("Role changed to:", role); 
+                console.log("Role changed to:", role);
             }
         });
     });
 
+    // ---- eye toggle (SINGLE listener — removed the duplicate block at the bottom) ----
     document.querySelectorAll('.eye-toggle').forEach(btn => {
         btn.addEventListener('click', () => {
             const target = document.getElementById(btn.dataset.target);
             if (!target) return;
+            const icon = btn.querySelector('i');
+
             if (target.type === 'password') {
-                target.type = 'text'; btn.innerHTML = '<i class="fas fa-eye-slash"></i>';
+                target.type = 'text';
+                icon?.classList.remove('fa-eye');
+                icon?.classList.add('fa-eye-slash');
             } else {
-                target.type = 'password'; btn.innerHTML = '<i class="fas fa-eye"></i>';
+                target.type = 'password';
+                icon?.classList.remove('fa-eye-slash');
+                icon?.classList.add('fa-eye');
             }
         });
     });
 
+    // ---- login ----
     const loginForm = document.getElementById('loginForm');
     loginForm?.addEventListener('submit', async (e) => {
         e.preventDefault();
         clearErrors();
+
         const fd = new FormData(loginForm);
         const btn = loginForm.querySelector('[type=submit]');
-        
+
         if (!fd.get('role')) {
             const activeRoleBtn = document.querySelector('.role-btn.active');
             if (activeRoleBtn) fd.set('role', activeRoleBtn.dataset.role);
         }
 
-        btn.disabled = true; btn.textContent = 'Signing in…';
-        const res = await postForm('api/auth.php?action=login', fd);
-        btn.disabled = false; btn.textContent = 'Sign In';
+        btn.disabled = true;
+        btn.textContent = 'Signing in…';
+
+        const res = await postForm(API_BASE + 'auth.php?action=login', fd);  // 3. consistent URL
+
+        btn.disabled = false;
+        btn.textContent = 'Sign In';
 
         if (res.success) {
             showAlert(loginPanel, 'Logged in! Redirecting…', 'success');
             setTimeout(() => window.location.href = res.data.redirect, 800);
         } else {
-            showAlert(loginPanel, res.message, 'error'); 
+            showAlert(loginPanel, res.message, 'error');
         }
     });
 
+    // ---- register ----
     const registerForm = document.getElementById('registerForm');
     registerForm?.addEventListener('submit', async (e) => {
         e.preventDefault();
         clearErrors();
+
         const fd = new FormData(registerForm);
-
         const btn = registerForm.querySelector('[type=submit]');
-        btn.disabled = true; btn.textContent = 'Creating account…';
 
-        const res = await postForm('api/auth.php?action=register', fd);
-        btn.disabled = false; btn.textContent = 'Sign Up';
+        btn.disabled = true;
+        btn.textContent = 'Creating account…';
+
+        const res = await postForm(API_BASE + 'auth.php?action=register', fd);  // 3. consistent URL
+
+        btn.disabled = false;
+        btn.textContent = 'Sign Up';
 
         if (res.success) {
             showAlert(registerPanel, 'Account created!', 'success');
@@ -103,15 +120,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function postForm(url, formData) {
     try {
-        const res = await fetch(url, { 
-            method: 'POST', 
-            body: formData 
-        });
+        const res = await fetch(url, { method: 'POST', body: formData });
         const text = await res.text();
         try {
             return JSON.parse(text);
-        } catch(e) {
-            console.error("Invalid JSON from server:", text);
+        } catch (e) {
+            console.error('Invalid JSON from server:', text);
             return { success: false, message: 'Server error. Please check console.' };
         }
     } catch (err) {

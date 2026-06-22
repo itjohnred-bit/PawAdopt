@@ -229,6 +229,28 @@ switch ($action) {
                 }
             }
         }
+
+        // --- AUTOMATIC PRIMARY PHOTO RECOVERY ---
+        // If the pet has photos but none are flagged as primary, promote the first one
+        $hasPrimary = $db->fetch(
+            "SELECT photo_id FROM pet_photos WHERE pet_id = ? AND is_primary = 1 LIMIT 1",
+            [$petId]
+        );
+
+        if (!$hasPrimary) {
+            $fallbackPhoto = $db->fetch(
+                "SELECT photo_id FROM pet_photos WHERE pet_id = ? ORDER BY photo_id ASC LIMIT 1",
+                [$petId]
+            );
+            if ($fallbackPhoto) {
+                $db->execute(
+                    "UPDATE pet_photos SET is_primary = 1 WHERE photo_id = ?",
+                    [$fallbackPhoto['photo_id']]
+                );
+            }
+        }
+        // ----------------------------------------
+
         jsonSuccess([], 'Pet updated successfully!');
         break;
 
@@ -246,34 +268,52 @@ switch ($action) {
         break;
 
     case 'delete_photo':
-            if ($user['role'] !== 'SHELTER' && $user['role'] !== 'ADMIN') { 
-                jsonError('Unauthorized.', 403); 
+        if ($user['role'] !== 'SHELTER' && $user['role'] !== 'ADMIN') { 
+            jsonError('Unauthorized.', 403); 
+            break; 
+        }
+
+        $photoId = (int)($_POST['photo_id'] ?? 0);
+        if (!$photoId) { 
+            jsonError('Photo ID required.'); 
+            break; 
+        }
+
+        if ($user['role'] === 'SHELTER') {
+            $check = $db->fetch(
+                "SELECT pp.photo_id, pp.pet_id FROM pet_photos pp
+                 JOIN pets p ON pp.pet_id = p.pet_id
+                 WHERE pp.photo_id = ? AND p.shelter_id = ?", 
+                [$photoId, $user['user_id']]
+            );
+            if (!$check) { 
+                jsonError('Unauthorized: This photo does not belong to your shelter listings.', 403); 
                 break; 
             }
+            $petId = $check['pet_id'];
+        } else {
+            $check = $db->fetch("SELECT pet_id FROM pet_photos WHERE photo_id = ?", [$photoId]);
+            $petId = $check ? $check['pet_id'] : 0;
+        }
 
-            $photoId = (int)($_POST['photo_id'] ?? 0);
-            if (!$photoId) { 
-                jsonError('Photo ID required.'); 
-                break; 
-            }
-
-            if ($user['role'] === 'SHELTER') {
-                $check = $db->fetch(
-                    "SELECT pp.photo_id FROM pet_photos pp
-                    JOIN pets p ON pp.pet_id = p.pet_id
-                    WHERE pp.photo_id = ? AND p.shelter_id = ?", 
-                    [$photoId, $user['user_id']]
-                );
-                if (!$check) { 
-                    jsonError('Unauthorized: This photo does not belong to your shelter listings.', 403); 
-                    break; 
+        // Delete the requested photo row
+        $db->execute("DELETE FROM pet_photos WHERE photo_id = ?", [$photoId]);
+        
+        // Also safeguard 'delete_photo' so that if the user deletes the active primary image, 
+        // it auto-assigns primary status to the next picture in line immediately
+        if ($petId) {
+            $hasPrimary = $db->fetch("SELECT photo_id FROM pet_photos WHERE pet_id = ? AND is_primary = 1 LIMIT 1", [$petId]);
+            if (!$hasPrimary) {
+                $nextPhoto = $db->fetch("SELECT photo_id FROM pet_photos WHERE pet_id = ? ORDER BY photo_id ASC LIMIT 1", [$petId]);
+                if ($nextPhoto) {
+                    $db->execute("UPDATE pet_photos SET is_primary = 1 WHERE photo_id = ?", [$nextPhoto['photo_id']]);
                 }
             }
+        }
 
-            $db->execute("DELETE FROM pet_photos WHERE photo_id = ?", [$photoId]);
-            
-            jsonSuccess([], 'Photo removed successfully!');
-            break;
+        jsonSuccess([], 'Photo removed successfully!');
+        break;
+
     case 'my_pets':
         if ($user['role'] !== 'SHELTER') { jsonError('Shelter only.', 403); break; }
         $pets = $db->fetchAll(

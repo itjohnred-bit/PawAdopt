@@ -116,7 +116,7 @@ switch ($action) {
             
             jsonSuccess(['redirect' => APP_URL . "/pages/{$roleDir}/dashboard.php"], 'Account created!');
         } catch (Exception $e) {
-            jsonError('Registration failed.');
+            jsonError('Registration failed: ' . $e->getMessage());
         }
         break;
 

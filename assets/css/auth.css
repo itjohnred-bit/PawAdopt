@@ -131,12 +131,21 @@ body.auth-body {
     transform: translateY(-50%); color: #0d9488;
     font-size: .95rem;
 }
-.auth-left.dark-mode .auth-input-icon { color: #a7f3d0; }
+.auth-input-group {
+    position: relative; 
+    margin-bottom: 15px;
+}
+
 .eye-toggle {
-    position: absolute; right: 16px; top: 50%;
-    transform: translateY(-50%); cursor: pointer;
-    color: #9ca3af; font-size: .9rem;
-    background: none; border: none;
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #6b7280;
+    font-size: 1rem;
 }
 
 /* Remember / Forgot row */

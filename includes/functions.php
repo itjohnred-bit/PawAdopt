@@ -86,13 +86,16 @@ function jsonSuccess(array $data = [], string $message = 'Success'): void {
     jsonResponse(['success' => true, 'message' => $message, 'data' => $data]);
 }
 
-function jsonError(string $message, int $code = 400): void {
-    jsonResponse(['success' => false, 'message' => $message], $code);
+function jsonError($message, $code = 400) {
+    header('Content-Type: application/json');
+    http_response_code($code);
+    echo json_encode(['success' => false, 'message' => $message]);
+    exit;
 }
-
 if (!defined('MAX_FILE_SIZE')) {
     define('MAX_FILE_SIZE', 5242880); 
 }
+
 
 // ─── File Upload ────────────────────────────────────────────────────
 function uploadImage(array $file, string $subdir = 'pets'): ?string {
