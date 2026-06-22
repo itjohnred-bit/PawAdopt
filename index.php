@@ -1,6 +1,11 @@
 <?php
-require_once __DIR__ . '/config/database.php';
-require_once __DIR__ . '/includes/functions.php';
+$BASE = dirname(__DIR__);
+require $BASE . '/config/email.php';
+require $BASE . '/config/database.php';
+require $BASE . '/includes/functions.php';
+require $BASE . '/includes/functions_audit.php';
+require $BASE . '/includes/mailer.php';
+startSession();
 
 startSession();
 

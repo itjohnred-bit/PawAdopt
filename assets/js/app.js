@@ -1,16 +1,18 @@
 (function () {
     'use strict';
 
-    window.BASE_URL = (window.location.hostname.includes('onrender.com') || 
-                       window.location.protocol === 'https:')
-    ? window.location.origin                       // Production → no subfolder
-    : window.location.origin + '/PawAdopt';        // Local XAMPP → with subfolder
+    window.BASE_URL = (
+        window.location.hostname.includes('onrender.com') ||
+        window.location.protocol === 'https:'
+    ) ? window.location.origin
+      : window.location.origin + '/PawAdopt';
 
     async function apiRequest(url, method = 'GET', data = null) {
-        const opts = { method, credentials: 'same-origin', headers: {} };
+        const opts = { method: method, credentials: 'same-origin', headers: {} };
         if (data) {
-            if (data instanceof FormData) opts.body = data;
-            else if (data instanceof URLSearchParams) {
+            if (data instanceof FormData) {
+                opts.body = data;
+            } else if (data instanceof URLSearchParams) {
                 opts.headers['Content-Type'] = 'application/x-www-form-urlencoded; charset=UTF-8';
                 opts.body = data.toString();
             } else {
@@ -20,8 +22,8 @@
         }
         try {
             const res = await fetch(url, opts);
-            const ct = res.headers.get('content-type');
-            if (ct && ct.indexOf('application/json') !== -1) return await res.json();
+            const ct  = res.headers.get('content-type') || '';
+            if (ct.indexOf('application/json') !== -1) return await res.json();
             const text = await res.text();
             console.error('Server returned non-JSON response:', text);
             return { success: false, message: 'Server Error: Check console/network tab.' };
@@ -32,39 +34,27 @@
     }
 
     async function submitAddPet(form) {
-        const fd = new FormData(form);
+        const fd  = new FormData(form);
         fd.append('action', 'add');
-        const btn = form.querySelector('[type=submit]');
-        const original = btn.textContent;
-        btn.disabled = true;
-        btn.textContent = 'Posting...';
+        const btn      = form.querySelector('[type=submit]');
+        const original = btn ? btn.textContent : '';
+        if (btn) { btn.disabled = true; btn.textContent = 'Posting...'; }
         try {
             const res = await apiRequest(window.BASE_URL + '/api/pets.php', 'POST', fd);
-            if (res.success) {
+            if (res && res.success) {
                 showToast(res.message);
-                // Dynamically prefixes the correct base path ensuring no 404s
-                setTimeout(() => window.location.href = window.BASE_URL + '/pages/shelter/pets.php', 2000);
+                setTimeout(function () {
+                    window.location.href = window.BASE_URL + '/pages/shelter/pets.php';
+                }, 2000);
             } else {
-                showToast(res.message, 'error');
+                showToast((res && res.message) || 'Failed to add pet', 'error');
             }
-        } catch {
+        } catch (e) {
+            console.error(e);
             showToast('An unexpected error occurred', 'error');
         } finally {
-            btn.disabled = false;
-            btn.textContent = original;
+            if (btn) { btn.disabled = false; btn.textContent = original; }
         }
-    }
-
-    function showToast(message, type = 'success', duration = 3500) {
-        const toast = document.createElement('div');
-        const icon = type === 'success' ? '✓' : type === 'error' ? '✕' : 'ℹ';
-        toast.className = 'flash-message flash-' + type;
-        toast.style.cssText = 'position:fixed;top:72px;right:20px;z-index:9999;';
-        toast.innerHTML = '<span>' + icon + '</span> ' + escapeHtml(message) +
-            '<button type="button" class="flash-close">&times;</button>';
-        toast.querySelector('.flash-close').addEventListener('click', () => toast.remove());
-        document.body.appendChild(toast);
-        setTimeout(() => toast.remove(), duration);
     }
 
     function escapeHtml(str) {
@@ -77,14 +67,35 @@
             .replace(/'/g, '&#39;');
     }
 
+    function showToast(message, type = 'success', duration = 3500) {
+        const toast = document.createElement('div');
+        const icon  = type === 'success' ? '✓' : type === 'error' ? '✕' : 'ℹ';
+        toast.className = 'flash-message flash-' + type;
+        toast.style.cssText = 'position:fixed;top:72px;right:20px;z-index:9999;';
+        toast.innerHTML =
+            '<span>' + icon + '</span> ' + escapeHtml(message) +
+            '<button type="button" class="flash-close">&times;</button>';
+        toast.querySelector('.flash-close').addEventListener('click', function () { toast.remove(); });
+        document.body.appendChild(toast);
+        setTimeout(function () { toast.remove(); }, duration);
+    }
+
+    function cssEscape(value) {
+        if (window.CSS && typeof CSS.escape === 'function') {
+            return CSS.escape(String(value));
+        }
+        return String(value).replace(/[^a-zA-Z0-9_-]/g, function (c) { return '\\' + c; });
+    }
+
     async function loadNotifications() {
         const list = document.getElementById('notifList');
         if (!list) return;
         list.innerHTML = '<div class="notif-loading"><i class="fas fa-spinner fa-spin"></i></div>';
+        list.onclick = notifClickDelegator;
         try {
             const data = await apiRequest(window.BASE_URL + '/api/notifications.php?action=list');
-            if (data.success && data.data && data.data.length > 0) {
-                list.innerHTML = data.data.map(n => {
+            if (data && data.success && data.data && data.data.length > 0) {
+                list.innerHTML = data.data.map(function (n) {
                     const body = n.message || n.content || n.body || '';
                     const link = n.link || '';
                     return '<div class="notif-item ' + (n.is_read == 0 ? 'unread' : '') + '"'
@@ -94,11 +105,11 @@
                          + '<div class="notif-body">'  + escapeHtml(body)   + '</div>'
                          + '</div>';
                 }).join('');
-                list.addEventListener('click', notifClickDelegator);
             } else {
                 list.innerHTML = '<div class="notif-empty">🐾 No notifications yet!</div>';
             }
-        } catch {
+        } catch (e) {
+            console.error(e);
             list.innerHTML = '<div class="notif-empty">Failed to load.</div>';
         }
     }
@@ -120,7 +131,7 @@
         data.append('pet_id', petId);
         data.append('action', 'toggle');
         const res = await apiRequest(window.BASE_URL + '/api/favorites.php', 'POST', data);
-        if (res.success) {
+        if (res && res.success) {
             btn.classList.toggle('active', !!res.data.favorited);
             btn.innerHTML = res.data.favorited ? '<i class="fas fa-heart"></i>' : '<i class="far fa-heart"></i>';
             showToast(res.message);
@@ -128,7 +139,10 @@
         btn.disabled = false;
     }
 
-    function openModal(id) { document.getElementById(id)?.classList.add('show'); }
+    function openModal(id) {
+        document.getElementById(id)?.classList.add('show');
+    }
+
     function closeModal(event, modalId) {
         if (event) { event.preventDefault(); event.stopPropagation(); }
         const modal = document.getElementById(modalId);
@@ -141,12 +155,21 @@
 
     async function viewApplication(appId) {
         try {
-            const res = await fetch(window.BASE_URL + '/api/applications.php?action=get_detail&id=' + encodeURIComponent(appId), { credentials: 'same-origin' });
+            const res = await fetch(
+                window.BASE_URL + '/api/applications.php?action=get_detail&id=' + encodeURIComponent(appId),
+                { credentials: 'same-origin' }
+            );
             const result = await res.json();
-            if (!result.success) { showToast(result.message || 'Could not load data', 'error'); return; }
+            if (!result.success) {
+                showToast(result.message || 'Could not load data', 'error');
+                return;
+            }
             const d = result.data;
 
-            const setText = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v || 'N/A'; };
+            const setText = function (id, v) {
+                const el = document.getElementById(id);
+                if (el) el.textContent = v || 'N/A';
+            };
             setText('modal_adopter_name', d.adopter_name || d.adopter_username);
             setText('modal_pet_name',     d.pet_name);
             setText('modal_message',      d.message_to_shelter || 'No extra message provided.');
@@ -163,9 +186,9 @@
                         let grid = '<div class="row g-0" style="background:#fff;">';
                         for (const [key, value] of Object.entries(responses)) {
                             if (key === 'pet_id' || key === 'action') continue;
-                            const label = key.replace(/_/g, ' ').toUpperCase();
-                            const isLong = key.includes('address') || String(value).length > 40;
-                            const col = isLong ? 'col-12' : 'col-6';
+                            const label   = key.replace(/_/g, ' ').toUpperCase();
+                            const isLong  = key.includes('address') || String(value).length > 40;
+                            const col     = isLong ? 'col-12' : 'col-6';
                             grid += '<div class="' + col + ' border-bottom py-3 px-2">'
                                   + '<label class="text-muted fw-bold d-block" style="font-size:10px;letter-spacing:.5px;">' + escapeHtml(label) + '</label>'
                                   + '<div class="text-dark fw-semibold" style="font-size:14px;">' + escapeHtml(value || '—') + '</div>'
@@ -173,7 +196,8 @@
                         }
                         grid += '</div>';
                         container.innerHTML = grid;
-                    } catch {
+                    } catch (e) {
+                        console.error(e);
                         container.innerHTML = '<div class="p-3 text-danger">Error: Could not parse form data.</div>';
                     }
                 } else {
@@ -197,36 +221,36 @@
     }
 
     let currentConvId = null;
-    let pollInterval = null;
+    let pollInterval  = null;
 
     function selectConversation(convId, otherName) {
         currentConvId = convId;
-        document.querySelectorAll('.conv-item').forEach(i => i.classList.remove('active'));
+        document.querySelectorAll('.conv-item').forEach(function (i) { i.classList.remove('active'); });
         document.querySelector('.conv-item[data-conv="' + cssEscape(convId) + '"]')?.classList.add('active');
         const header = document.getElementById('chatPartnerName');
         if (header) header.textContent = otherName;
         loadMessages(convId);
         if (pollInterval) clearInterval(pollInterval);
-        pollInterval = setInterval(() => {
+        pollInterval = setInterval(function () {
             if (document.visibilityState !== 'visible') return;
             loadMessages(convId);
         }, 5000);
     }
 
-    function cssEscape(value) {
-        if (window.CSS && CSS.escape) return CSS.escape(String(value));
-        return String(value).replace(/[^a-zA-Z0-9_-]/g, c => '\\' + c);
-    }
-
     async function loadMessages(convId) {
         const container = document.getElementById('chatMessages');
         if (!container) return;
-        const res = await apiRequest(window.BASE_URL + '/api/messages.php?action=get_messages&conv_id=' + encodeURIComponent(convId));
-        if (!res.success) { container.innerHTML = '<div class="text-danger text-center mt-3">⚠️ ' + escapeHtml(res.message || 'Failed') + '</div>'; return; }
+        const res = await apiRequest(
+            window.BASE_URL + '/api/messages.php?action=get_messages&conv_id=' + encodeURIComponent(convId)
+        );
+        if (!res.success) {
+            container.innerHTML = '<div class="text-danger text-center mt-3">⚠️ ' + escapeHtml(res.message || 'Failed') + '</div>';
+            return;
+        }
 
         const meId = document.body.dataset.userId || '';
         const msgs = res.data || [];
-        container.innerHTML = msgs.map(m => {
+        container.innerHTML = msgs.map(function (m) {
             const isMine = String(m.sender_user_id) === String(meId);
             return '<div class="chat-bubble-wrap ' + (isMine ? 'mine' : 'theirs') + '">'
                  + '<div class="chat-bubble">'
@@ -240,7 +264,7 @@
     async function sendMessage() {
         if (!currentConvId) return;
         const input = document.getElementById('messageInput');
-        const text = (input?.value || '').trim();
+        const text  = (input?.value || '').trim();
         if (!text) return;
         input.value = '';
         const res = await apiRequest(window.BASE_URL + '/api/messages.php', 'POST', {
@@ -253,7 +277,7 @@
     function wireKeydownDelegator() {
         if (keydownDelegated) return;
         keydownDelegated = true;
-        document.addEventListener('keydown', e => {
+        document.addEventListener('keydown', function (e) {
             if (e.key !== 'Enter') return;
             const a = document.activeElement;
             if (a && a.id === 'messageInput') { e.preventDefault(); sendMessage(); }
@@ -271,7 +295,7 @@
             const res = await apiRequest(window.BASE_URL + '/api/applications.php', 'POST', data);
             if (res.success) {
                 showToast('Application ' + status + ' successfully! 🐾');
-                setTimeout(() => window.location.reload(), 1500);
+                setTimeout(function () { window.location.reload(); }, 1500);
             } else {
                 showToast(res.message || 'Failed to update status', 'error');
             }
@@ -300,7 +324,7 @@
         updateProgress();
         const prevBtn = document.getElementById('prevBtn');
         const nextBtn = document.getElementById('nextBtn');
-        if (prevBtn) prevBtn.style.display = window.currentStep === 1 ? 'none' : 'block';
+        if (prevBtn) prevBtn.style.display = window.currentStep <= 1 ? 'none' : 'BLOCK';
         if (nextBtn) nextBtn.textContent = window.currentStep === totalSteps ? 'Submit Application' : 'Next Section';
     }
 
@@ -327,70 +351,64 @@
                 showToast('Application Submitted! 🐾');
                 const petId = fd.get('pet_id');
                 if (petId) localStorage.removeItem('screening_progress_' + petId);
-                setTimeout(() => window.location.reload(), 2000);
+                setTimeout(function () { window.location.reload(); }, 2000);
             } else {
                 showToast(res.message, 'error');
                 window.currentStep = Math.max(1, window.currentStep - 1);
             }
-        } catch {
+        } catch (e) {
+            console.error(e);
             showToast('System Error', 'error');
         } finally {
-            if (btn) { btn.disabled = false; }
+            if (btn) btn.disabled = false;
         }
     }
 
     function confirmAction(message, callback) {
         if (confirm(message)) callback();
     }
+
     function deletePhoto(buttonElement) {
         const photoId = buttonElement.getAttribute('data-photo-id');
-        
         if (!photoId) {
-            alert("Error: Photo ID not found.");
+            alert('Error: Photo ID not found.');
             return;
         }
+        if (!confirm('Are you sure you want to remove this picture?')) return;
 
-        if (confirm("Are you sure you want to remove this picture?")) {
-            const fd = new FormData();
-            fd.append('action', 'delete_photo');
-            fd.append('photo_id', photoId);
+        const fd = new FormData();
+        fd.append('action', 'delete_photo');
+        fd.append('photo_id', photoId);
 
-            fetch(window.BASE_URL + '/api/pets.php', {
-                method: 'POST',
-                body: fd,
-                credentials: 'same-origin'
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.success) {
-                    const wrapper = buttonElement.closest('div[style*="position:relative"]') || buttonElement.parentElement;
-                    wrapper.remove();
-                    
-                    if (typeof showToast === 'function') {
-                        showToast('Photo removed successfully! 🐾');
-                    } else {
-                        alert("Photo removed successfully!");
-                    }
-                } else {
-                    alert("Failed to delete photo: " + (data.message || "Unknown error"));
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert("A network error occurred while trying to delete the photo.");
-            });
-        }
+        fetch(window.BASE_URL + '/api/pets.php', {
+            method: 'POST',
+            body: fd,
+            credentials: 'same-origin'
+        })
+        .then(function (response) {
+            if (!response.ok) throw new Error('Network response was not ok');
+            return response.json();
+        })
+        .then(function (data) {
+            if (data.success) {
+                const wrapper = buttonElement.closest('div[style*="position:relative"]') || buttonElement.parentElement;
+                if (wrapper) wrapper.remove();
+                showToast('Photo removed successfully! 🐾');
+            } else {
+                alert('Failed to delete photo: ' + (data.message || 'Unknown error'));
+            }
+        })
+        .catch(function (error) {
+            console.error('Error:', error);
+            alert('A network error occurred while trying to delete the photo.');
+        });
     }
+
     function bootstrapUI() {
         const userMenuToggle = document.getElementById('userMenuToggle');
         const userDropdown   = document.getElementById('userDropdown');
         if (userMenuToggle && userDropdown) {
-            userMenuToggle.addEventListener('click', e => {
+            userMenuToggle.addEventListener('click', function (e) {
                 e.stopPropagation();
                 userDropdown.classList.toggle('show');
                 document.getElementById('notifDropdown')?.classList.remove('show');
@@ -399,31 +417,33 @@
         const notifToggle   = document.getElementById('notifToggle');
         const notifDropdown = document.getElementById('notifDropdown');
         if (notifToggle && notifDropdown) {
-            notifToggle.addEventListener('click', e => {
+            notifToggle.addEventListener('click', function (e) {
                 e.stopPropagation();
                 const isOpen = notifDropdown.classList.toggle('show');
                 document.getElementById('userDropdown')?.classList.remove('show');
                 if (isOpen) loadNotifications();
             });
         }
-        document.addEventListener('click', () => {
+        document.addEventListener('click', function () {
             document.getElementById('userDropdown')?.classList.remove('show');
             document.getElementById('notifDropdown')?.classList.remove('show');
         });
+
         const hamburger     = document.getElementById('hamburger');
         const mobileDrawer  = document.getElementById('mobileDrawer');
         const mobileOverlay = document.getElementById('mobileOverlay');
         const drawerClose   = document.getElementById('drawerClose');
-        const openDrawer  = () => { mobileDrawer?.classList.add('open'); mobileOverlay?.classList.add('show'); };
-        const closeDrawer = () => { mobileDrawer?.classList.remove('open'); mobileOverlay?.classList.remove('show'); };
-        hamburger?.addEventListener('click', openDrawer);
-        drawerClose?.addEventListener('click', closeDrawer);
-        mobileOverlay?.addEventListener('click', closeDrawer);
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
+        const openDrawer    = function () { mobileDrawer?.classList.add('open'); mobileOverlay?.classList.add('show'); };
+        const closeDrawer   = function () { mobileDrawer?.classList.remove('open'); mobileOverlay?.classList.remove('show'); };
+        if (hamburger)    hamburger.addEventListener('click', openDrawer);
+        if (drawerClose)  drawerClose.addEventListener('click', closeDrawer);
+        if (mobileOverlay) mobileOverlay.addEventListener('click', closeDrawer);
+
+        document.querySelectorAll('.tab-btn').forEach(function (btn) {
+            btn.addEventListener('click', function () {
                 const target = btn.dataset.tab;
-                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-                document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+                document.querySelectorAll('.tab-btn').forEach(function (b) { b.classList.remove('active'); });
+                document.querySelectorAll('.tab-panel').forEach(function (p) { p.classList.remove('active'); });
                 btn.classList.add('active');
                 document.getElementById(target)?.classList.add('active');
             });
@@ -437,24 +457,24 @@
     }
     wireKeydownDelegator();
 
-    window.BASE_URL      = window.BASE_URL;
-    window.apiRequest    = apiRequest;
-    window.submitAddPet  = submitAddPet;
-    window.showToast     = showToast;
-    window.escapeHtml    = escapeHtml;
+    window.BASE_URL          = window.BASE_URL;
+    window.apiRequest        = apiRequest;
+    window.submitAddPet      = submitAddPet;
+    window.showToast         = showToast;
+    window.escapeHtml        = escapeHtml;
     window.loadNotifications = loadNotifications;
-    window.markRead      = markRead;
-    window.toggleFavorite = toggleFavorite;
-    window.openModal     = openModal;
-    window.closeModal    = closeModal;
-    window.viewApplication = viewApplication;
+    window.markRead          = markRead;
+    window.toggleFavorite    = toggleFavorite;
+    window.openModal         = openModal;
+    window.closeModal        = closeModal;
+    window.viewApplication   = viewApplication;
     window.selectConversation = selectConversation;
-    window.loadMessages     = loadMessages;
-    window.sendMessage      = sendMessage;
+    window.loadMessages      = loadMessages;
+    window.sendMessage       = sendMessage;
     window.reviewApplication = reviewApplication;
-    window.changeStep       = changeStep;
-    window.updateProgress   = updateProgress;
-    window.submitWizard     = submitWizard;
-    window.confirmAction    = confirmAction;
-    window.deletePhoto      = deletePhoto;
+    window.changeStep        = changeStep;
+    window.updateProgress    = updateProgress;
+    window.submitWizard      = submitWizard;
+    window.confirmAction     = confirmAction;
+    window.deletePhoto       = deletePhoto;
 })();
