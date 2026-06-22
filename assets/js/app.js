@@ -342,44 +342,53 @@
     function confirmAction(message, callback) {
         if (confirm(message)) callback();
     }
-function deletePhoto(buttonElement) {
-    const photoId = buttonElement.getAttribute('data-photo-id');
-    
-    if (!photoId) {
-        alert("Error: Photo ID not found.");
-        return;
-    }
+    function deletePhoto(buttonElement) {
+        const photoId = buttonElement.getAttribute('data-photo-id');
+        
+        if (!photoId) {
+            alert("Error: Photo ID not found.");
+            return;
+        }
 
-    if (confirm("Are you sure you want to remove this picture?")) {
-        fetch(`/api/pets.php?action=delete_photo&photo_id=${encodeURIComponent(photoId)}`, {
-            method: 'POST' 
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.success) {
-                const wrapper = buttonElement.closest('div[style*="position:relative"]') || buttonElement.parentElement;
-                wrapper.remove();
-                
-                if (typeof showToast === 'function') {
-                    showToast('Photo removed successfully! 🐾');
-                } else {
-                    alert("Photo removed successfully!");
+        if (confirm("Are you sure you want to remove this picture?")) {
+            // Construct standard URL encoded parameters for the POST payload
+            const params = new URLSearchParams();
+            params.append('action', 'delete_photo');
+            params.append('photo_id', photoId);
+
+            fetch(`/api/pets.php`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+                },
+                body: params
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
                 }
-            } else {
-                alert("Failed to delete photo: " + (data.message || "Unknown error"));
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert("A network error occurred while trying to delete the photo.");
-        });
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    const wrapper = buttonElement.closest('div[style*="position:relative"]') || buttonElement.parentElement;
+                    wrapper.remove();
+                    
+                    if (typeof showToast === 'function') {
+                        showToast('Photo removed successfully! 🐾');
+                    } else {
+                        alert("Photo removed successfully!");
+                    }
+                } else {
+                    alert("Failed to delete photo: " + (data.message || "Unknown error"));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert("A network error occurred while trying to delete the photo.");
+            });
+        }
     }
-}
     function bootstrapUI() {
         const userMenuToggle = document.getElementById('userMenuToggle');
         const userDropdown   = document.getElementById('userDropdown');
