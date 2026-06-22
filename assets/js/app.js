@@ -450,4 +450,5 @@ function deletePhoto(buttonElement) {
     window.updateProgress   = updateProgress;
     window.submitWizard     = submitWizard;
     window.confirmAction    = confirmAction;
+    window.deletePhoto      = deletePhoto;
 })();
