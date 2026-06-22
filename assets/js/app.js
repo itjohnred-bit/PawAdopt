@@ -342,7 +342,42 @@
     function confirmAction(message, callback) {
         if (confirm(message)) callback();
     }
+function deletePhoto(buttonElement) {
+    const photoId = buttonElement.getAttribute('data-photo-id');
+    
+    if (!photoId) {
+        alert("Error: Photo ID not found.");
+        return;
+    }
 
+    if (confirm("Are you sure you want to remove this picture?")) {
+        fetch(`/api/pets.php?action=delete_photo`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `photo_id=${encodeURIComponent(photoId)}`
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                buttonElement.parentElement.remove();
+                alert("Photo removed successfully!");
+            } else {
+                alert("Failed to delete photo: " + (data.message || "Unknown error"));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert("A network error occurred while trying to delete the photo.");
+        });
+    }
+}
     function bootstrapUI() {
         const userMenuToggle = document.getElementById('userMenuToggle');
         const userDropdown   = document.getElementById('userDropdown');

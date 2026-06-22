@@ -120,8 +120,17 @@ include __DIR__ . '/../../includes/header.php';
                     : 'data:image/jpeg;base64,' . base64_encode($ph['photo_url']) ?>" 
                     style="width:80px;height:80px;object-fit:cover;border-radius:10px;border:2px solid <?= $ph['is_primary']?'var(--teal)':'var(--gray-light)' ?>" 
                     onerror="this.onerror=null; this.src='<?= APP_URL ?>/assets/images/pet-placeholder.png';">
-                <?php if ($ph['is_primary']): ?><div style="text-align:center;font-size:.65rem;color:var(--teal);font-weight:700">Primary</div><?php endif; ?>
-                <button type="button" onclick="deletePhoto(<?= $ph['photo_id'] ?>,this)" style="position:absolute;top:-6px;right:-6px;background:var(--danger);color:#fff;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:.7rem;display:flex;align-items:center;justify-content:center">×</button>
+                
+                <?php if ($ph['is_primary']): ?>
+                    <div style="text-align:center;font-size:.65rem;color:var(--teal);font-weight:700">Primary</div>
+                <?php endif; ?>
+                
+                <button type="button" 
+                        data-photo-id="<?= htmlspecialchars($ph['photo_id'] ?? '') ?>" 
+                        onclick="deletePhoto(this)" 
+                        style="position:absolute;top:-6px;right:-6px;background:var(--danger);color:#fff;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:.7rem;display:flex;align-items:center;justify-content:center">
+                    ×
+                </button>
             </div>
             <?php endforeach; ?>
         </div>
