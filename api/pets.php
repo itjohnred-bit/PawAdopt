@@ -13,7 +13,6 @@ $user   = getCurrentUser();
 function handleCertificateUpload($file) {
     if (!$file || $file['error'] === UPLOAD_ERR_NO_FILE) return null;
     
-  
     $basePath = dirname(__DIR__); 
     
     $uploadDir = $basePath . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . 'certificates' . DIRECTORY_SEPARATOR;
@@ -110,8 +109,24 @@ switch ($action) {
         if ($user['role'] !== 'SHELTER') { jsonError('Shelter only.', 403); break; }
         if ($method !== 'POST') { jsonError('POST only.', 405); break; }
 
-        $name = trim($_POST['name'] ?? '');
+        $name    = trim($_POST['name'] ?? '');
+        $species = $_POST['species'] ?? 'Dog';
+        $breed   = trim($_POST['breed'] ?? '');
+
         if (!$name) { jsonError('Pet name is required.'); break; }
+
+        // ─── DUPLICATE CHECK ───────────────────────────────────────────
+        $duplicate = $db->fetch(
+            "SELECT pet_id FROM pets 
+             WHERE name = ? AND species = ? AND breed = ? AND shelter_id = ? AND status != 'Removed' LIMIT 1",
+            [$name, $species, $breed, $user['user_id']]
+        );
+
+        if ($duplicate) { 
+            jsonError('You have already listed a pet with this exact name, species, and breed.'); 
+            break; 
+        }
+        // ───────────────────────────────────────────────────────────────
 
         // Handle Medical Certificate Upload
         $certPath = null;
@@ -128,7 +143,7 @@ switch ($action) {
             "INSERT INTO pets (shelter_id, name, species, breed, age_months, sex, size, color, temperament, medical_notes, description, medical_certificate)
              VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
             [
-                $user['user_id'], $name, $_POST['species'] ?? 'Dog', trim($_POST['breed'] ?? ''), 
+                $user['user_id'], $name, $species, $breed, 
                 (int)($_POST['age_months'] ?? 0), $_POST['sex'] ?? 'Unknown', $_POST['size'] ?? 'Medium', 
                 trim($_POST['color'] ?? ''), trim($_POST['temperament'] ?? ''), trim($_POST['medical_notes'] ?? ''), 
                 trim($_POST['description'] ?? ''), $certPath
@@ -229,6 +244,4 @@ switch ($action) {
     default:
         jsonError('Unknown action.', 400);
 }
-
-
 ?>

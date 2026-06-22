@@ -10,10 +10,12 @@ RUN a2enmod rewrite
 # 3. Copy your local files into the container's web directory
 COPY . /var/www/html/
 
-# 4. Create the external upload directories and grant Apache full access
+# 4. Create production upload directory and grant Apache write access
 RUN mkdir -p /opt/render/project/uploads/pets \
     && chown -R www-data:www-data /var/www/html/ \
-    && chown -R www-data:www-data /opt/render/project/uploads/
+    && chown -R www-data:www-data /opt/render/project/uploads/ \
+    && chmod -R 775 /opt/render/project/uploads/
 
-# (Optional) Ensure correct read/write permissions for directory modifications
-RUN chmod -R 775 /opt/render/project/uploads/
+# 5. Create a symbolic link so Apache can serve files from the external directory
+RUN ln -s /opt/render/project/uploads /var/www/html/uploads \
+    && chown -h www-data:www-data /var/www/html/uploads

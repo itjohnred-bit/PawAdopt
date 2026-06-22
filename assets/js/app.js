@@ -1,10 +1,8 @@
-
-
 (function () {
     'use strict';
 
     window.BASE_URL = (window.location.hostname.includes('onrender.com') || 
-                   window.location.protocol === 'https:')
+                       window.location.protocol === 'https:')
     ? window.location.origin                       // Production → no subfolder
     : window.location.origin + '/PawAdopt';        // Local XAMPP → with subfolder
 
@@ -44,7 +42,8 @@
             const res = await apiRequest(window.BASE_URL + '/api/pets.php', 'POST', fd);
             if (res.success) {
                 showToast(res.message);
-                setTimeout(() => window.location.href = window.BASE_URL + '/pets.php', 1500);
+                // Dynamically prefixes the correct base path ensuring no 404s
+                setTimeout(() => window.location.href = window.BASE_URL + '/pages/shelter/pets.php', 2000);
             } else {
                 showToast(res.message, 'error');
             }
