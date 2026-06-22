@@ -90,6 +90,10 @@ function jsonError(string $message, int $code = 400): void {
     jsonResponse(['success' => false, 'message' => $message], $code);
 }
 
+if (!defined('MAX_FILE_SIZE')) {
+    define('MAX_FILE_SIZE', 5242880); 
+}
+
 // ─── File Upload ────────────────────────────────────────────────────
 function uploadImage(array $file, string $subdir = 'pets'): ?string {
     $allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
@@ -107,7 +111,6 @@ function uploadImage(array $file, string $subdir = 'pets'): ?string {
     }
     return null;
 }
-
 // ─── Notifications ──────────────────────────────────────────────────
 function createNotification($userId, $type, $title, $message, $link = '') {
     $db = Database::getInstance();
