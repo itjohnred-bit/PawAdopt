@@ -351,12 +351,8 @@ function deletePhoto(buttonElement) {
     }
 
     if (confirm("Are you sure you want to remove this picture?")) {
-        fetch(`/api/pets.php?action=delete_photo`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: `photo_id=${encodeURIComponent(photoId)}`
+        fetch(`/api/pets.php?action=delete_photo&photo_id=${encodeURIComponent(photoId)}`, {
+            method: 'POST' 
         })
         .then(response => {
             if (!response.ok) {
@@ -366,8 +362,14 @@ function deletePhoto(buttonElement) {
         })
         .then(data => {
             if (data.success) {
-                buttonElement.parentElement.remove();
-                alert("Photo removed successfully!");
+                const wrapper = buttonElement.closest('div[style*="position:relative"]') || buttonElement.parentElement;
+                wrapper.remove();
+                
+                if (typeof showToast === 'function') {
+                    showToast('Photo removed successfully! 🐾');
+                } else {
+                    alert("Photo removed successfully!");
+                }
             } else {
                 alert("Failed to delete photo: " + (data.message || "Unknown error"));
             }
