@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+
 require __DIR__ . '/../../config/email.php';
 require __DIR__ . '/../../config/database.php';
 require __DIR__ . '/../../includes/functions.php';
@@ -30,7 +31,8 @@ function redirectForRole(string $role): string {
 
 function fail(string $msg, int $code = 400): never {
     jsonError($msg, $code);
-    exit; 
+    exit;
+}
 
 if ($method !== 'POST') {
     fail('Method not allowed', 405);
@@ -58,7 +60,6 @@ switch ($action) {
         fail('Unknown action.', 400);
 }
 
-
 function handleLogin(Database $db, PDO $pdo): void {
     $username  = trim((string)($_POST['username'] ?? ''));
     $password  = (string)($_POST['password'] ?? '');
@@ -70,7 +71,7 @@ function handleLogin(Database $db, PDO $pdo): void {
 
     try {
         $user = $db->fetch(
-            "SELECT user_id, username, role, password_hash
+            "SELECT user_id, username, role, password_hash, is_active
                FROM users
               WHERE (username = ? OR email = ?)
                 AND is_active = 1
@@ -132,7 +133,7 @@ function handleRegister(Database $db, PDO $pdo): void {
             "SELECT user_id FROM users WHERE username = ? OR email = ? LIMIT 1",
             [$username, $email]
         );
-        if ($exists) {
+        if (is_array($exists) && !empty($exists)) {
             $pdo->rollBack();
             fail('That username or email is already taken.', 409);
         }
@@ -140,7 +141,7 @@ function handleRegister(Database $db, PDO $pdo): void {
         $hash   = password_hash($password, PASSWORD_BCRYPT);
         $insert = $pdo->prepare(
             "INSERT INTO users (role, username, email, password_hash, is_active, created_at)
-                  VALUES (?, ?, ?, ?, 1, NOW())"
+                  VALUES (?, ?, ?, ?, 1, CURRENT_TIMESTAMP)"
         );
         $insert->execute([$role, $username, $email, $hash]);
         $userId = (int)$pdo->lastInsertId();
@@ -174,9 +175,10 @@ function handleRegister(Database $db, PDO $pdo): void {
         );
 
     } catch (Throwable $e) {
-        if ($pdo->inTransaction()) $pdo->rollBack();
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
         error_log('Registration failed: ' . $e->getMessage());
-
         fail('Registration failed. Please try again later.', 500);
     }
 }
@@ -198,8 +200,8 @@ function handleLogout(): void {
                 'expires'  => time() - 42000,
                 'path'     => $params['path'],
                 'domain'   => $params['domain'],
-                'secure'   => $params['secure'],
-                'httponly' => $params['httponly'],
+                'secure'   => $params['secure'] ?? false,
+                'httponly' => $params['httponly'] ?? true,
                 'samesite' => $params['samesite'] ?? 'Lax',
             ]
         );
@@ -219,7 +221,7 @@ function handleForgot(Database $db): void {
         [$email]
     );
 
-    if ($user) {
+    if (is_array($user) && !empty($user)) {
         try {
             $token   = bin2hex(random_bytes(32));
             $expires = date('Y-m-d H:i:s', time() + 3600);
@@ -232,7 +234,9 @@ function handleForgot(Database $db): void {
             mailer_send(
                 $email,
                 'Reset your PawAdopt password',
-                "Hi {$user['username']},\n\nClick here to reset (expires in 1 hour):\n{$link}\n\nIf you didn't request this, ignore this email."
+                "Hi {$user['username']},\n\n"
+                . "Click here to reset (expires in 1 hour):\n{$link}\n\n"
+                . "If you didn't request this, ignore this email."
             );
         } catch (Throwable $e) {
             error_log('Forgot-password email failed: ' . $e->getMessage());
@@ -240,5 +244,4 @@ function handleForgot(Database $db): void {
     }
 
     jsonSuccess([], 'If that address exists, a reset link has been sent.');
-}
 }

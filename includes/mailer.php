@@ -15,7 +15,7 @@ declare(strict_types=1);
 if (!function_exists('mailer_send')) {
 
     function mailer_send($to, string $subject, string $body, array $opts = []): bool {
-        $from     = $opts['from']     ?? (defined('MAIL_FROM')     ? MAIL_FROM     : 'pawadopt.pup@gmail.com');
+        $from     = $opts['from']     ?? (defined('MAIL_FROM')     ? MAIL_FROM     : 'pawsadopt.pup@gmail.com');
         $fromName = $opts['fromName'] ?? (defined('MAIL_FROM_NAME') ? MAIL_FROM_NAME : 'PawAdopt');
         $replyTo  = $opts['replyTo']  ?? null;
 
@@ -39,7 +39,7 @@ if (!function_exists('mailer_send')) {
 
     function mailer_config(): ?array {
         $host = getenv('SMTP_HOST') ?: (defined('SMTP_HOST') ? SMTP_HOST : 'smtp.gmail.com');
-        $user = getenv('SMTP_USER') ?: (defined('SMTP_USER') ? SMTP_USER : 'pawadopt.pup@gmail.com');
+        $user = getenv('SMTP_USER') ?: (defined('SMTP_USER') ? SMTP_USER : 'pawsadopt.pup@gmail.com');
         $pass = getenv('SMTP_PASS') ?: (defined('SMTP_PASS') ? SMTP_PASS : null);
 
         if (!$host || !$user || !$pass) return null;
