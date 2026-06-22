@@ -351,17 +351,17 @@
         }
 
         if (confirm("Are you sure you want to remove this picture?")) {
-            // Construct standard URL encoded parameters for the POST payload
             const params = new URLSearchParams();
             params.append('action', 'delete_photo');
             params.append('photo_id', photoId);
 
-            fetch(`/api/pets.php`, {
+            fetch(window.BASE_URL + '/api/pets.php', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
                 },
-                body: params
+                body: params,
+                credentials: 'same-origin'
             })
             .then(response => {
                 if (!response.ok) {

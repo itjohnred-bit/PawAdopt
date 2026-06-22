@@ -155,7 +155,6 @@ include __DIR__ . '/../../includes/header.php';
 </form>
 </div>
 </div>
-
 <script>
 function updateFileName(input) {
     const display = input.parentElement.querySelector('.file-name-display');
@@ -166,43 +165,39 @@ function updateFileName(input) {
     }
 }
 
-
-    confirmAction('Remove this photo?', async () => {
-   
-        const res = await apiRequest('/api/pets.php?action=delete_photo&photo_id=' + photoId);
-        if (res.success) { 
-            btn.parentElement.remove();
-            showToast('Photo removed.'); 
-        } else { 
-            showToast(res.message, 'error'); 
-        }
-    });
-}
-
 async function submitEditPet(form, petId) {
     const fd = new FormData(form);
     fd.append('action', 'edit');
     fd.append('pet_id', petId);
     
     const btn = document.getElementById('editBtn');
+    if (!btn) return;
+    
     const originalContent = btn.innerHTML;
     btn.disabled = true; 
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving…';
 
     try {
-        const res = await fetch(`${APP_URL}/api/pets.php?action=edit`, { 
+        const res = await fetch(window.BASE_URL + '/api/pets.php', { 
             method: 'POST', 
-            body: fd 
+            body: fd,
+            credentials: 'same-origin'
         });
         const data = await res.json();
         if (data.success) { 
-            showToast('Pet updated! 🐾'); 
-            setTimeout(() => window.location.href = '/pages/shelter/pets.php', 1000); 
+            if (typeof showToast === 'function') {
+                showToast('Pet updated! 🐾'); 
+            } else {
+                alert('Pet updated!');
+            }
+            setTimeout(() => window.location.href = window.BASE_URL + '/pages/shelter/pets.php', 1000); 
         } else {
-            showToast(data.message || 'Update failed.', 'error');
+            if (typeof showToast === 'function') showToast(data.message || 'Update failed.', 'error');
+            else alert(data.message || 'Update failed.');
         }
     } catch (err) {
-        showToast("Network error occurred.", "error");
+        if (typeof showToast === 'function') showToast("Network error occurred.", "error");
+        else alert("Network error occurred.");
     } finally {
         btn.disabled = false; 
         btn.innerHTML = originalContent;
