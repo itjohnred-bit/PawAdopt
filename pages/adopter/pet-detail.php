@@ -19,7 +19,12 @@ $pet = $db->fetch(
 if (!$pet) { flashMessage('error', 'Pet not found.'); redirect(APP_URL . '/pages/adopter/browse.php'); }
 
 $photos = $db->fetchAll("SELECT * FROM pet_photos WHERE pet_id = ? ORDER BY is_primary DESC", [$petId]);
-$mainPhoto = !empty($photos) ? APP_URL.'/'.$photos[0]['photo_url'] : APP_URL.'/assets/images/pet-placeholder.png';
+
+if (!empty($photos) && !empty($photos[0]['photo_url'])) {
+    $mainPhoto = 'data:image/jpeg;base64,' . base64_encode($photos[0]['photo_url']);
+} else {
+    $mainPhoto = APP_URL . '/assets/images/pet-placeholder.png';
+}
 
 $isFav = (bool)$db->fetch("SELECT favorite_id FROM favorites WHERE adopter_id = ? AND pet_id = ?", [$user['user_id'], $petId]);
 
@@ -45,7 +50,7 @@ include __DIR__ . '/../../includes/header.php';
             <?php if (count($photos) > 1): ?>
             <div class="pet-gallery-thumbs">
                 <?php foreach ($photos as $i => $ph):
-                    $url = APP_URL.'/'.$ph['photo_url'];
+                    $url = !empty($ph['photo_url']) ? 'data:image/jpeg;base64,' . base64_encode($ph['photo_url']) : APP_URL . '/assets/images/pet-placeholder.png';
                 ?>
                 <img src="<?= $url ?>" alt="" class="<?= $i === 0 ? 'active' : '' ?>"
                      onclick="switchGalleryImage('<?= $url ?>',this)" loading="lazy"

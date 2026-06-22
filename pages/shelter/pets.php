@@ -50,7 +50,11 @@ include __DIR__ . '/../../includes/header.php';
         </thead>
         <tbody>
         <?php foreach ($pets as $pet):
-            $photo = $pet['primary_photo'] ? APP_URL.'/'.$pet['primary_photo'] : APP_URL.'/assets/images/pet-placeholder.png';
+            if (!empty($pet['primary_photo'])) {
+                $photo = 'data:image/jpeg;base64,' . base64_encode($pet['primary_photo']);
+            } else {
+                $photo = APP_URL . '/assets/images/pet-placeholder.png';
+            }
         ?>
         <tr>
             <td><img src="<?= $photo ?>" class="pet-thumb" alt="" onerror="this.src='<?= APP_URL ?>/assets/images/pet-placeholder.png'"></td>

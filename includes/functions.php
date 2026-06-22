@@ -111,6 +111,16 @@ function uploadImage(array $file, string $subdir = 'pets'): ?string {
     }
     return null;
 }
+
+function uploadImageToAiven($fileField) {
+    if (!isset($_FILES[$fileField]) || $_FILES[$fileField]['error'] !== UPLOAD_ERR_OK) {
+        return null;
+    }
+
+    $imgBinaryData = file_get_contents($_FILES[$fileField]['tmp_name']);
+    
+    return $imgBinaryData;
+}
 // ─── Notifications ──────────────────────────────────────────────────
 function createNotification($userId, $type, $title, $message, $link = '') {
     $db = Database::getInstance();

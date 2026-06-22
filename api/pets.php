@@ -9,12 +9,10 @@ $action = $_GET['action'] ?? $_POST['action'] ?? '';
 $method = $_SERVER['REQUEST_METHOD'];
 $user   = getCurrentUser();
 
-
 function handleCertificateUpload($file) {
     if (!$file || $file['error'] === UPLOAD_ERR_NO_FILE) return null;
     
     $basePath = dirname(__DIR__); 
-    
     $uploadDir = $basePath . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . 'certificates' . DIRECTORY_SEPARATOR;
 
     if (!is_dir($uploadDir)) {
@@ -30,7 +28,6 @@ function handleCertificateUpload($file) {
 
     return ['error' => 'Could not save the certificate. Check folder permissions.'];
 }
-
 
 switch ($action) {
 
@@ -73,13 +70,19 @@ switch ($action) {
             $params
         );
 
+        foreach ($pets as &$p) {
+            $p['age_display']  = formatAge($p['age_months']);
+            if (!empty($p['primary_photo'])) {
+                $p['photo_url'] = 'data:image/jpeg;base64,' . base64_encode($p['primary_photo']);
+            } else {
+                $p['photo_url'] = APP_URL . '/assets/images/pet-placeholder.png';
+            }
+        }
         if ($user['role'] === 'ADOPTER') {
             $favPetIds = $db->fetchAll("SELECT pet_id FROM favorites WHERE adopter_id = ?", [$user['user_id']]);
             $favIds = array_column($favPetIds, 'pet_id');
             foreach ($pets as &$p) {
                 $p['is_favorited'] = in_array($p['pet_id'], $favIds);
-                $p['photo_url']    = $p['primary_photo'] ? APP_URL . '/' . $p['primary_photo'] : APP_URL . '/assets/images/pet-placeholder.png';
-                $p['age_display']  = formatAge($p['age_months']);
             }
         }
         jsonSuccess(['pets' => $pets, 'total' => $total, 'pages' => ceil($total / $limit), 'current_page' => $page]);
@@ -96,7 +99,14 @@ switch ($action) {
             [$petId]
         );
         if (!$pet) { jsonError('Pet not found.', 404); break; }
-        $pet['photos'] = $db->fetchAll("SELECT * FROM pet_photos WHERE pet_id = ? ORDER BY is_primary DESC", [$petId]);
+        
+        $rawPhotos = $db->fetchAll("SELECT * FROM pet_photos WHERE pet_id = ? ORDER BY is_primary DESC", [$petId]);
+        foreach ($rawPhotos as &$rp) {
+            if (!empty($rp['photo_url'])) {
+                $rp['photo_url'] = 'data:image/jpeg;base64,' . base64_encode($rp['photo_url']);
+            }
+        }
+        $pet['photos'] = $rawPhotos;
         $pet['age_display'] = formatAge($pet['age_months']);
         if ($user['role'] === 'ADOPTER') {
             $fav = $db->fetch("SELECT favorite_id FROM favorites WHERE adopter_id = ? AND pet_id = ?", [$user['user_id'], $petId]);
@@ -115,7 +125,6 @@ switch ($action) {
 
         if (!$name) { jsonError('Pet name is required.'); break; }
 
-        // ─── DUPLICATE CHECK ───────────────────────────────────────────
         $duplicate = $db->fetch(
             "SELECT pet_id FROM pets 
              WHERE name = ? AND species = ? AND breed = ? AND shelter_id = ? AND status != 'Removed' LIMIT 1",
@@ -126,9 +135,7 @@ switch ($action) {
             jsonError('You have already listed a pet with this exact name, species, and breed.'); 
             break; 
         }
-        // ───────────────────────────────────────────────────────────────
 
-        // Handle Medical Certificate Upload
         $certPath = null;
         if (isset($_FILES['medical_cert']) && $_FILES['medical_cert']['error'] !== UPLOAD_ERR_NO_FILE) {
             $uploadResult = handleCertificateUpload($_FILES['medical_cert']);
@@ -151,16 +158,23 @@ switch ($action) {
         );
         $petId = (int)$db->lastInsertId();
 
-        // Handle Photos
-        if (!empty($_FILES['photos'])) {
-            $files = $_FILES['photos']; $isPrimary = 1;
-            for ($i = 0; $i < count($files['name']); $i++) {
+        // BLOB Photo Storage Handler
+        if (!empty($_FILES['photos']) && is_array($_FILES['photos']['tmp_name'])) {
+            $files = $_FILES['photos']; 
+            $isPrimary = 1;
+            $conn = $db->getConnection();
+            
+            for ($i = 0; $i < count($files['tmp_name']); $i++) {
                 if ($files['error'][$i] === UPLOAD_ERR_OK) {
-                    $url = uploadImage(['name'=>$files['name'][$i],'type'=>$files['type'][$i],'tmp_name'=>$files['tmp_name'][$i],'error'=>$files['error'][$i],'size'=>$files['size'][$i]], 'pets');
-                    if ($url) {
-                        $db->execute("INSERT INTO pet_photos (pet_id, photo_url, is_primary) VALUES (?,?,?)", [$petId, $url, $isPrimary]);
-                        $isPrimary = 0;
-                    }
+                    $imgBinaryData = file_get_contents($files['tmp_name'][$i]);
+                    
+                    $stmt = $conn->prepare("INSERT INTO pet_photos (pet_id, photo_url, is_primary) VALUES (?, ?, ?)");
+                    $stmt->bindParam(1, $petId, PDO::PARAM_INT);
+                    $stmt->bindParam(2, $imgBinaryData, PDO::PARAM_LOB);
+                    $stmt->bindParam(3, $isPrimary, PDO::PARAM_INT);
+                    $stmt->execute();
+                    
+                    $isPrimary = 0;
                 }
             }
         }
@@ -194,16 +208,24 @@ switch ($action) {
             $params[] = $uploadResult['url'];
         }
 
-        if (empty($sets)) { jsonError('Nothing to update.'); break; }
-        $params[] = $petId;
-        $db->execute("UPDATE pets SET " . implode(',', $sets) . " WHERE pet_id = ?", $params);
+        if (!empty($sets)) {
+            $params[] = $petId;
+            $db->execute("UPDATE pets SET " . implode(',', $sets) . " WHERE pet_id = ?", $params);
+        }
 
-        if (!empty($_FILES['photos'])) {
+        // BLOB Edit Photo Storage Handler
+        if (!empty($_FILES['photos']) && is_array($_FILES['photos']['tmp_name'])) {
             $files = $_FILES['photos'];
-            for ($i = 0; $i < count($files['name']); $i++) {
+            $conn = $db->getConnection();
+            
+            for ($i = 0; $i < count($files['tmp_name']); $i++) {
                 if ($files['error'][$i] === UPLOAD_ERR_OK) {
-                    $url = uploadImage(['name'=>$files['name'][$i],'type'=>$files['type'][$i],'tmp_name'=>$files['tmp_name'][$i],'error'=>$files['error'][$i],'size'=>$files['size'][$i]], 'pets');
-                    if ($url) $db->execute("INSERT INTO pet_photos (pet_id, photo_url, is_primary) VALUES (?,?,0)", [$petId, $url]);
+                    $imgBinaryData = file_get_contents($files['tmp_name'][$i]);
+                    
+                    $stmt = $conn->prepare("INSERT INTO pet_photos (pet_id, photo_url, is_primary) VALUES (?, ?, 0)");
+                    $stmt->bindParam(1, $petId, PDO::PARAM_INT);
+                    $stmt->bindParam(2, $imgBinaryData, PDO::PARAM_LOB);
+                    $stmt->execute();
                 }
             }
         }
@@ -230,13 +252,17 @@ switch ($action) {
              (SELECT pp.photo_url FROM pet_photos pp WHERE pp.pet_id = p.pet_id AND pp.is_primary = 1 LIMIT 1) as primary_photo,
              (SELECT COUNT(*) FROM adoption_applications aa WHERE aa.pet_id = p.pet_id) as app_count
              FROM pets p
-             WHERE p.shelter_id = ?
+             WHERE p.shelter_id = ? AND p.status != 'Removed'
              ORDER BY p.created_at DESC",
             [$user['user_id']]
         );
         foreach ($pets as &$p) {
             $p['age_display'] = formatAge($p['age_months']);
-            $p['photo_url']   = $p['primary_photo'] ? APP_URL . '/' . $p['primary_photo'] : APP_URL . '/assets/images/pet-placeholder.png';
+            if (!empty($p['primary_photo'])) {
+                $p['photo_url'] = 'data:image/jpeg;base64,' . base64_encode($p['primary_photo']);
+            } else {
+                $p['photo_url'] = APP_URL . '/assets/images/pet-placeholder.png';
+            }
         }
         jsonSuccess($pets);
         break;

@@ -94,7 +94,6 @@ include __DIR__ . '/../../includes/header.php';
         </div>
     </div>
 
-    <!-- UPDATED: Photos Upload -->
     <div class="form-group">
         <label class="form-label">Photos <span class="form-hint">(First image will be primary)</span></label>
         <div class="upload-wrapper">
