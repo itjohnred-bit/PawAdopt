@@ -166,12 +166,6 @@ function updateFileName(input) {
     }
 }
 
-async function deletePhoto(btn) {
-    const photoId = btn.getAttribute('data-photo-id');
-    if (!photoId) {
-        showToast('Invalid photo selection.', 'error');
-        return;
-    }
 
     confirmAction('Remove this photo?', async () => {
    
