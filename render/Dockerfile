@@ -13,6 +13,7 @@ COPY ./public/                   /var/www/html/
 COPY ./render/000-default.conf   /etc/apache2/sites-available/000-default.conf
 COPY ./render/php.ini            /usr/local/etc/php/conf.d/zz-pawadopt.ini
 
+
 RUN a2enmod rewrite headers expires \
  && a2dissite 000-default \
  && a2ensite 000-default \
