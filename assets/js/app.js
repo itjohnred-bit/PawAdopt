@@ -351,16 +351,13 @@
         }
 
         if (confirm("Are you sure you want to remove this picture?")) {
-            const params = new URLSearchParams();
-            params.append('action', 'delete_photo');
-            params.append('photo_id', photoId);
+            const fd = new FormData();
+            fd.append('action', 'delete_photo');
+            fd.append('photo_id', photoId);
 
             fetch(window.BASE_URL + '/api/pets.php', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
-                },
-                body: params,
+                body: fd,
                 credentials: 'same-origin'
             })
             .then(response => {

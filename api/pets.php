@@ -245,6 +245,35 @@ switch ($action) {
         jsonSuccess([], 'Pet listing removed.');
         break;
 
+    case 'delete_photo':
+            if ($user['role'] !== 'SHELTER' && $user['role'] !== 'ADMIN') { 
+                jsonError('Unauthorized.', 403); 
+                break; 
+            }
+
+            $photoId = (int)($_POST['photo_id'] ?? 0);
+            if (!$photoId) { 
+                jsonError('Photo ID required.'); 
+                break; 
+            }
+
+            if ($user['role'] === 'SHELTER') {
+                $check = $db->fetch(
+                    "SELECT pp.photo_id FROM pet_photos pp
+                    JOIN pets p ON pp.pet_id = p.pet_id
+                    WHERE pp.photo_id = ? AND p.shelter_id = ?", 
+                    [$photoId, $user['user_id']]
+                );
+                if (!$check) { 
+                    jsonError('Unauthorized: This photo does not belong to your shelter listings.', 403); 
+                    break; 
+                }
+            }
+
+            $db->execute("DELETE FROM pet_photos WHERE photo_id = ?", [$photoId]);
+            
+            jsonSuccess([], 'Photo removed successfully!');
+            break;
     case 'my_pets':
         if ($user['role'] !== 'SHELTER') { jsonError('Shelter only.', 403); break; }
         $pets = $db->fetchAll(
