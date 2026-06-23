@@ -1,6 +1,4 @@
-Options -Indexes
-ServerSignature Off
-ServerTokens Prod
+
 
 <FilesMatch "^(database|email)\.php$">
     Require all denied
@@ -23,16 +21,15 @@ ServerTokens Prod
 </IfModule>
 
 <IfModule mod_rewrite.c>
-RewriteEngine On
-# If accessing api/ folder directly
-RewriteCond %{REQUEST_URI} !^/api/
-RewriteCond %{REQUEST_URI} !^/assets/
-RewriteCond %{REQUEST_URI} !^/includes/
-RewriteCond %{REQUEST_URI} !^/config/
-RewriteCond %{REQUEST_URI} !^/uploads/
-# Default: route everything else through index.php
-RewriteRule ^ index.php [L]
+    RewriteEngine On
 
+    RewriteCond %{REQUEST_URI} ^/favicon\.ico$ [NC]
+    RewriteRule .* /assets/images/Paw-Adopt%20Logo.png [L]
+
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME}.php -f
+    RewriteRule ^([^\.]+)$ $1.php [L]
 </IfModule>
 
 <IfModule mod_mime.c>
