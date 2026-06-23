@@ -17,6 +17,6 @@ RUN a2enmod rewrite
 
 # 4. Set permissions
 RUN chown -R www-data:www-data /var/www/html/public
-
+COPY api /var/www/html/api
 RUN ln -s /var/www/html/assets /var/www/html/public/assets
 RUN ln -s /var/www/html/uploads /var/www/html/public/uploads
