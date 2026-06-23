@@ -1,14 +1,13 @@
 <?php
 declare(strict_types=1);
 
-
-// tEMPORARY: Force display of errors to see them in the browser/logs
+// Temporaary debug: Force PHP to show errors in the output
 ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
+// Log that we have reached the file
+error_log("DEBUG: Reached api/auth.php");
 
-// Log that we actually reached this file
-error_log("DEBUG: Reached auth.php");
+
 require __DIR__ . '/../config/email.php';
 require_once '/var/www/html/config/database.php';
 require __DIR__ . '/../includes/functions.php';
