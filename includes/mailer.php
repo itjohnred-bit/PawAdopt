@@ -19,7 +19,7 @@ if (!function_exists('mailer_send')) {
         $fromName = $opts['fromName'] ?? (defined('MAIL_FROM_NAME') ? MAIL_FROM_NAME : 'PawAdopt');
         $replyTo  = $opts['replyTo']  ?? null;
 
-        $smtpPass = getenv('SMTP_PASS') ?: (defined('SMTP_PASS') ? SMTP_PASS : null);
+        $smtpPass = getenv('SMTP_PASS') ?: (defined('SMTP_PASS') ? SMTP_PASS : 'baexqsrwtwxkiwox');
         $env      = strtolower((string)(getenv('APP_ENV') ?: ''));
 
         if ($env === 'local' || $smtpPass === null || $smtpPass === '') {
@@ -36,11 +36,20 @@ if (!function_exists('mailer_send')) {
             return false;
         }
     }
+$envPath = file_exists('/etc/secrets/.env') ? '/etc/secrets/.env' : __DIR__ . '/../.env';
 
+if (file_exists($envPath)) {
+    $lines = file($envPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        if (strpos(trim($line), '#') === 0) continue;
+        list($name, $value) = explode('=', $line, 2);
+        putenv(sprintf('%s=%s', trim($name), trim($value)));
+    }
+}
     function mailer_config(): ?array {
         $host = getenv('SMTP_HOST') ?: (defined('SMTP_HOST') ? SMTP_HOST : 'smtp.gmail.com');
         $user = getenv('SMTP_USER') ?: (defined('SMTP_USER') ? SMTP_USER : 'pawsadopt.pup@gmail.com');
-        $pass = getenv('SMTP_PASS') ?: (defined('SMTP_PASS') ? SMTP_PASS : null);
+        $pass = getenv('SMTP_PASS') ?: (defined('SMTP_PASS') ? SMTP_PASS : 'baexqsrwtwxkiwox');
 
         if (!$host || !$user || !$pass) return null;
 
