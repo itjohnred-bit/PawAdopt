@@ -1,11 +1,11 @@
 <?php
 declare(strict_types=1);
 
-require __DIR__ . '/../../config/email.php';
-require __DIR__ . '/../../config/database.php';
-require __DIR__ . '/../../includes/functions.php';
-require __DIR__ . '/../../includes/functions_audit.php';
-require __DIR__ . '/../../includes/mailer.php';
+require __DIR__ . '/../config/email.php';
+require __DIR__ . '/../config/database.php';
+require __DIR__ . '/../includes/functions.php';
+require __DIR__ . '/../includes/functions_audit.php';
+require __DIR__ . '/../includes/mailer.php';
 startSession();
 
 $db     = Database::getInstance();

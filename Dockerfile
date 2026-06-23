@@ -2,23 +2,48 @@ FROM php:8.2-apache
 
 ARG DEBIAN_FRONTEND=noninteractive
 
+# Install all required system libraries including those needed by gd and intl
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
-        libzip-dev unzip git \
+        libzip-dev \
+        unzip \
+        git \
+        libpng-dev \
+        libjpeg-dev \
+        libfreetype6-dev \
+        libicu-dev \
+ && docker-php-ext-configure gd --with-freetype --with-jpeg \
  && docker-php-ext-install -j$(nproc) \
-        pdo pdo_mysql zip bcmath gd intl opcache \
+        pdo \
+        pdo_mysql \
+        zip \
+        bcmath \
+        gd \
+        intl \
+        opcache \
  && rm -rf /var/lib/apt/lists/*
 
-COPY ./public/                   /var/www/html/
-COPY ./render/000-default.conf   /etc/apache2/sites-available/000-default.conf
-COPY ./render/php.ini            /usr/local/etc/php/conf.d/zz-pawadopt.ini
+# Copy public folder (web root)
+COPY ./public/ /var/www/html/
 
+# ALSO copy api folder so /api/auth.php is accessible
+COPY ./api/ /var/www/html/api/
+
+# Copy assets, includes, config (needed by api/auth.php)
+COPY ./assets/ /var/www/html/assets/
+COPY ./includes/ /var/www/html/includes/
+COPY ./config/ /var/www/html/config/
+
+# Apache and PHP configs
+COPY ./render/000-default.conf /etc/apache2/sites-available/000-default.conf
+COPY ./render/php.ini /usr/local/etc/php/conf.d/zz-pawadopt.ini
 
 RUN a2enmod rewrite headers expires \
  && a2dissite 000-default \
  && a2ensite 000-default \
- && chown -R www-data:www-data /var/www/html
+ && chown -R www-data:www-data /var/www/html /var/www/html/api /var/www/html/assets /var/www/html/includes /var/www/html/config
 
+# Storage directories
 RUN mkdir -p /opt/render/project/storage/uploads/avatars \
              /opt/render/project/storage/uploads/pets \
              /opt/render/project/storage/uploads/certificates \
