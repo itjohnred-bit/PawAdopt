@@ -10,7 +10,7 @@ error_reporting(E_ALL);
 // Log that we actually reached this file
 error_log("DEBUG: Reached auth.php");
 require __DIR__ . '/../config/email.php';
-require __DIR__ . '/../config/database.php';
+require_once '/var/www/html/config/database.php';
 require __DIR__ . '/../includes/functions.php';
 require __DIR__ . '/../includes/functions_audit.php';
 require __DIR__ . '/../includes/mailer.php';
