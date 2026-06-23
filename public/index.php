@@ -154,17 +154,18 @@ $urlError = $_GET['error'] ?? '';
             <p style="text-align:center;color:#6b7280;margin-bottom:20px;font-size:.9rem;">
                 Enter your email and we'll send a reset link.
             </p>
-            <form id="forgotForm" style="width:100%;display:flex;flex-direction:column;align-items:center;">
+            <form id="forgotForm" method="POST" style="width:100%;display:flex;flex-direction:column;align-items:center;">
                 <div class="auth-input-group">
                     <i class="fas fa-envelope auth-input-icon"></i>
-                    <input type="email" name="email" class="auth-input" placeholder="Your email address" required>
+                    <input type="email" name="email" id="forgotEmail" class="auth-input" placeholder="Your email address" required>
                 </div>
-                <button type="submit" class="auth-submit-btn">Send Reset Link</button>
+                <button type="submit" class="auth-submit-btn" id="forgotSubmitBtn">Send Reset Link</button>
             </form>
             <div class="auth-footer-links">
                 <a href="#" id="forgotBack">← Back to Sign In</a>
             </div>
         </div>
+
 
     </div>
 
@@ -193,7 +194,27 @@ $urlError = $_GET['error'] ?? '';
         </button>
     </div>
 </div>
+<div id="successModal" class="paw-modal-overlay" style="display:none;">
+    <div class="paw-modal-box">
+        <div class="paw-modal-icon">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <h3>Check Your Email!</h3>
+        <p id="modalMessage">A password reset link has been sent to your email address.</p>
+        <button class="paw-modal-btn" id="closeModal">Got it!</button>
+    </div>
+</div>
 
+<div id="errorModal" class="paw-modal-overlay" style="display:none;">
+    <div class="paw-modal-box">
+        <div class="paw-modal-icon paw-modal-error">
+            <i class="fas fa-exclamation-circle"></i>
+        </div>
+        <h3>Oops!</h3>
+        <p id="errorMessage">Something went wrong. Please try again.</p>
+        <button class="paw-modal-btn" id="closeErrorModal">Close</button>
+    </div>
+</div>
 <script src="<?= htmlspecialchars(APP_URL) ?>/assets/js/auth.js" defer></script>
 </body>
 </html>

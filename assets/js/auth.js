@@ -194,3 +194,123 @@
     }
 
 })();
+// ============================================
+// FORGOT PASSWORD HANDLER
+// Add this to the END of assets/js/auth.js
+// ============================================
+document.addEventListener('DOMContentLoaded', function() {
+    const forgotForm = document.getElementById('forgotForm');
+    if (!forgotForm) return; // Exit if form not on this page
+    
+    forgotForm.addEventListener('submit', async function(e) {
+        e.preventDefault(); // ⭐ CRITICAL: prevents the GET to current page
+        
+        const emailField = document.getElementById('forgotEmail');
+        const email = emailField.value.trim();
+        const submitBtn = document.getElementById('forgotSubmitBtn');
+        
+        // Validate email
+        if (!email) {
+            showErrorModal('Please enter your email address.');
+            return;
+        }
+        
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            showErrorModal('Please enter a valid email address.');
+            return;
+        }
+        
+        // Loading state
+        submitBtn.disabled = true;
+        const originalText = submitBtn.textContent;
+        submitBtn.textContent = 'Sending...';
+        
+        try {
+            const formData = new FormData();
+            formData.append('action', 'forgot_password');
+            formData.append('email', email);
+            
+            // ⭐ Use relative path 'api/auth.php' - browser resolves from page URL
+            // Since your auth.js is at /assets/js/auth.js loaded from root URL,
+            // browser baseURL is the page URL, so 'api/auth.php' works
+            const response = await fetch('api/auth.php', {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (!response.ok) {
+                throw new Error('Server returned status ' + response.status);
+            }
+            
+            const text = await response.text();
+            console.log('Raw response:', text); // Debug log
+            
+            let data;
+            try {
+                data = JSON.parse(text);
+            } catch (parseErr) {
+                throw new Error('Invalid JSON response. Server said: ' + text.substring(0, 200));
+            }
+            
+            if (data.success) {
+                forgotForm.reset();
+                const msgEl = document.getElementById('modalMessage');
+                if (msgEl) {
+                    msgEl.textContent = 'A password reset link has been sent to ' + email + '. Please check your inbox and spam folder.';
+                }
+                showSuccessModal();
+            } else {
+                showErrorModal(data.message || 'Failed to send reset link. Please try again.');
+            }
+        } catch (err) {
+            console.error('Forgot password error:', err);
+            showErrorModal('Network error: ' + err.message + '. Please try again.');
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalText;
+        }
+    });
+    
+    // Modal close handlers
+    document.getElementById('closeModal')?.addEventListener('click', hideSuccessModal);
+    document.getElementById('closeErrorModal')?.addEventListener('click', hideErrorModal);
+    
+    // Close on outside click
+    document.getElementById('successModal')?.addEventListener('click', function(e) {
+        if (e.target === this) hideSuccessModal();
+    });
+    document.getElementById('errorModal')?.addEventListener('click', function(e) {
+        if (e.target === this) hideErrorModal();
+    });
+    
+    // Close on Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            hideSuccessModal();
+            hideErrorModal();
+        }
+    });
+});
+
+function showSuccessModal() {
+    const modal = document.getElementById('successModal');
+    if (modal) modal.style.display = 'flex';
+}
+
+function hideSuccessModal() {
+    const modal = document.getElementById('successModal');
+    if (modal) modal.style.display = 'none';
+}
+
+function showErrorModal(message) {
+    const modal = document.getElementById('errorModal');
+    const msgEl = document.getElementById('errorMessage');
+    if (msgEl) msgEl.textContent = message;
+    if (modal) modal.style.display = 'flex';
+}
+
+function hideErrorModal() {
+    const modal = document.getElementById('errorModal');
+    if (modal) modal.style.display = 'none';
+}

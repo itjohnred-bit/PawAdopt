@@ -209,39 +209,106 @@ function handleLogout(): void {
     session_destroy();
     jsonSuccess([], 'Logged out.');
 }
-
 function handleForgot(Database $db): void {
     $email = strtolower(trim((string)($_POST['email'] ?? '')));
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        fail('Invalid email format.', 400);
+        fail('Please enter a valid email address.', 400);
     }
 
     $user = $db->fetch(
-        "SELECT user_id, username FROM users WHERE email = ? AND is_active = 1",
+        "SELECT user_id, username, email FROM users WHERE email = ? AND is_active = 1 LIMIT 1",
         [$email]
     );
 
-    if (is_array($user) && !empty($user)) {
-        try {
-            $token   = bin2hex(random_bytes(32));
-            $expires = date('Y-m-d H:i:s', time() + 3600);
-            $db->execute(
-                "INSERT INTO password_resets (user_id, token_hash, expires_at)
-                      VALUES (?, ?, ?)",
-                [(int)$user['user_id'], hash('sha256', $token), $expires]
-            );
-            $link = APP_URL . '/pages/reset.php?token=' . $token;
-            mailer_send(
-                $email,
-                'Reset your PawAdopt password',
-                "Hi {$user['username']},\n\n"
-                . "Click here to reset (expires in 1 hour):\n{$link}\n\n"
-                . "If you didn't request this, ignore this email."
-            );
-        } catch (Throwable $e) {
-            error_log('Forgot-password email failed: ' . $e->getMessage());
+    if (!is_array($user) || empty($user)) {
+        jsonSuccess([
+            'state'     => 'unknown',
+            'message'   => 'No account is registered with that email.',
+        ], 'No account found.');
+        return;
+    }
+
+    $throttleSeconds = 60;
+    $lastReset = $db->fetch(
+        "SELECT created_at, expires_at, used_at
+           FROM password_resets
+          WHERE user_id = ?
+          ORDER BY created_at DESC
+          LIMIT 1",
+        [(int)$user['user_id']]
+    );
+
+    if (is_array($lastReset) && !empty($lastReset)) {
+        $createdTs  = strtotime((string)$lastReset['created_at']);
+        $now        = time();
+        $alreadyUsed = !empty($lastReset['used_at']);
+
+        if (!$alreadyUsed
+            && (int)$lastReset['expires_at'] > $now
+            && ($now - $createdTs) < $throttleSeconds
+        ) {
+            $remaining = max(1, $throttleSeconds - ($now - $createdTs));
+            jsonSuccess([
+                'state'     => 'throttled',
+                'message'   => 'A reset link was already sent recently. Please check your inbox (and spam folder).',
+                'retry_in'  => $remaining,
+            ], 'Reset link recently sent.');
+            return;
         }
     }
 
-    jsonSuccess([], 'If that address exists, a reset link has been sent.');
+    $token  = bin2hex(random_bytes(32));
+    $hash   = hash('sha256', $token);
+    $now    = date('Y-m-d H:i:s');
+    $expiry = date('Y-m-d H:i:s', time() + 3600);
+    $ip     = clientIp();
+    $agent  = substr((string)($_SERVER['HTTP_USER_AGENT'] ?? ''), 0, 255);
+
+    try {
+        $db->execute(
+            "INSERT INTO password_resets (user_id, token_hash, expires_at, ip_address, user_agent, created_at)
+                  VALUES (?, ?, ?, ?, ?, ?)",
+            [(int)$user['user_id'], $hash, $expiry, $ip, $agent, $now]
+        );
+
+        $link = APP_URL . '/pages/reset.php?token=' . urlencode($token);
+        $sent = mailer_send(
+            (string)$user['email'],
+            'Reset your PawAdopt password',
+            "Hi {$user['username']},\n\n"
+            . "We received a request to reset the password for your PawAdopt account.\n\n"
+            . "Click here within the next hour to choose a new password:\n"
+            . "{$link}\n\n"
+            . "If you didn't request this, you can safely ignore this email and your password will remain unchanged.\n\n"
+            . "— The PawAdopt team"
+        );
+
+        $resp = [
+            'state'   => 'sent',
+            'message' => "We've sent a reset link to " . $user['email'] . ". Check your inbox (and spam folder).",
+            'sent_ok' => $sent,
+        ];
+
+        if (!$sent) {
+            $resp['message'] .= " If it doesn't arrive in a few minutes, please contact support.";
+        }
+
+        jsonSuccess($resp, $sent ? 'Reset link sent.' : 'Reset requested.');
+
+    } catch (Throwable $e) {
+        error_log('handleForgot persistence failed: ' . $e->getMessage());
+        fail('Could not process request. Please try again.', 500);
+    }
+}
+
+function clientIp(): ?string {
+    foreach (['HTTP_CF_CONNECTING_IP', 'HTTP_X_FORWARDED_FOR', 'REMOTE_ADDR'] as $key) {
+        if (!empty($_SERVER[$key])) {
+            $ip = trim(explode(',', (string)$_SERVER[$key])[0]);
+            if (filter_var($ip, FILTER_VALIDATE_IP)) {
+                return $ip;
+            }
+        }
+    }
+    return null;
 }
