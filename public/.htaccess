@@ -23,7 +23,6 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
-    RewriteCond %{REQUEST_URI} ^/favicon\.ico$ [NC]
     RewriteRule .* /assets/images/Paw-Adopt%20Logo.png [L]
 
     RewriteCond %{REQUEST_FILENAME} !-f
