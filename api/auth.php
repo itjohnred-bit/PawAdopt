@@ -1,6 +1,14 @@
 <?php
 declare(strict_types=1);
 
+
+// tEMPORARY: Force display of errors to see them in the browser/logs
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+// Log that we actually reached this file
+error_log("DEBUG: Reached auth.php");
 require __DIR__ . '/../config/email.php';
 require __DIR__ . '/../config/database.php';
 require __DIR__ . '/../includes/functions.php';
