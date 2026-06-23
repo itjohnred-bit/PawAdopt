@@ -1,4 +1,13 @@
 <?php
+require_once __DIR__ . '/../vendor/autoload.php';
+
+use Dotenv\Dotenv;
+
+// This replaces your entire previous Dotenv logic
+$envPath = file_exists('/etc/secrets/.env') ? '/etc/secrets/' : __DIR__ . '/../';
+$dotenv = Dotenv::createImmutable($envPath);
+$dotenv->safeLoad();
+
 $is_production = isset($_ENV['RENDER']) || getenv('RENDER') || (strpos($_SERVER['HTTP_HOST'] ?? '', 'onrender') !== false);
 
 function detectProtocol(): string {
@@ -19,7 +28,6 @@ function detectProtocol(): string {
     
     return 'http';
 }
-$envPath = file_exists('/etc/secrets/.env') ? '/etc/secrets/.env' : __DIR__ . '/../.env';
 
 if (file_exists($envPath)) {
     $lines = file($envPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);

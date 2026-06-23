@@ -1,43 +1,35 @@
 <?php
 declare(strict_types=1);
 
-/**
- * Email helper for PawAdopt.
- *
- * Public API:
- *   - mailer_send($to, $subject, $body, $opts = [])
- *   - mailer_log_only($to, $subject, $body, $opts = [])
- *
- * Reads SMTP credentials from environment / config/email.php so credentials
- * never end up in source control.  Falls back log-only in local dev.
- */
+
+require_once __DIR__ . '/../vendor/autoload.php';
+
+use Dotenv\Dotenv;
+
+$envPath = file_exists('/etc/secrets/.env') ? '/etc/secrets/' : __DIR__ . '/../';
+$dotenv = Dotenv::createImmutable($envPath);
+$dotenv->safeLoad();
 
 if (!function_exists('mailer_send')) {
-
     function mailer_send($to, string $subject, string $body, array $opts = []): bool {
-        $from     = $opts['from']     ?? (defined('MAIL_FROM')     ? MAIL_FROM     : 'pawsadopt.pup@gmail.com');
-        $fromName = $opts['fromName'] ?? (defined('MAIL_FROM_NAME') ? MAIL_FROM_NAME : 'PawAdopt');
-        $replyTo  = $opts['replyTo']  ?? null;
-
         $smtpPass = getenv('SMTP_PASS') ?: (defined('SMTP_PASS') ? SMTP_PASS : 'baexqsrwtwxkiwox');
-        $env      = strtolower((string)(getenv('APP_ENV') ?: ''));
+        $env = strtolower((string)(getenv('APP_ENV') ?: ''));
 
         if ($env === 'local' || $smtpPass === null || $smtpPass === '') {
             return mailer_log_only($to, $subject, $body, $opts);
         }
-
+        
         try {
             $smtp = mailer_config();
             return $smtp
-                ? mailer_send_smtp($to, $subject, $body, $from, $fromName, $replyTo, $smtp, $opts)
-                : mailer_send_native($to, $subject, $body, $from, $fromName, $replyTo);
+                ? mailer_send_smtp($to, $subject, $body, $opts['from'] ?? 'pawsadopt.pup@gmail.com', $opts['fromName'] ?? 'PawAdopt', $opts['replyTo'] ?? null, $smtp, $opts)
+                : mailer_send_native($to, $subject, $body, $opts['from'] ?? 'pawsadopt.pup@gmail.com', $opts['fromName'] ?? 'PawAdopt', $opts['replyTo'] ?? null);
         } catch (Throwable $e) {
             error_log('mailer_send failed: ' . $e->getMessage());
             return false;
         }
     }
-$envPath = file_exists('/etc/secrets/.env') ? '/etc/secrets/.env' : __DIR__ . '/../.env';
-
+}
 if (file_exists($envPath)) {
     $lines = file($envPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
     foreach ($lines as $line) {
@@ -185,7 +177,7 @@ if (file_exists($envPath)) {
         }
         throw new RuntimeException('SMTP connection closed unexpectedly.');
     }
-}
+
 
 if (!function_exists('mailer_log_only')) {
     function mailer_log_only($to, string $subject, string $body, array $opts = []): bool {

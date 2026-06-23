@@ -1,0 +1,12 @@
+{
+    "name": "paw-adopt/project",
+    "description": "Paw Adopt Web Application",
+    "require": {
+        "vlucas/phpdotenv": "^5.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "src/"
+        }
+    }
+}
