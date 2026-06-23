@@ -14,10 +14,42 @@ $whereStr = implode(' AND ', $where);
 $pets = $db->fetchAll(
     "SELECT p.*,
      (SELECT pp.photo_url FROM pet_photos pp WHERE pp.pet_id = p.pet_id AND pp.is_primary = 1 LIMIT 1) as primary_photo,
+     (SELECT pp.mime      FROM pet_photos pp WHERE pp.pet_id = p.pet_id AND pp.is_primary = 1 LIMIT 1) as primary_mime,
      (SELECT COUNT(*) FROM adoption_applications aa WHERE aa.pet_id = p.pet_id) as app_count
      FROM pets p WHERE $whereStr ORDER BY p.created_at DESC",
     $params
 );
+
+
+function petImageUrl(array $pet): string {
+    $placeholder = APP_URL . '/assets/images/pet-placeholder.png';
+
+    $candidate = trim((string)($pet['primary_photo'] ?? ''));
+    if ($candidate === '') {
+        return $placeholder;
+    }
+
+    if (preg_match('#^(https?:|/)#i', $candidate)) {
+        if ($candidate[0] === '/' && defined('APP_URL')) {
+            return rtrim(APP_URL, '/') . $candidate;
+        }
+        return $candidate;
+    }
+
+    if (strlen($candidate) > 256 && preg_match('#^[A-Za-z0-9+/=\s]+$#', $candidate)) {
+        $mime = (string)($pet['primary_mime'] ?? 'image/jpeg');
+        if (!in_array($mime, ['image/jpeg', 'image/png', 'image/webp', 'image/gif'], true)) {
+            $mime = 'image/jpeg';
+        }
+        return 'data:' . $mime . ';base64,' . $candidate;
+    }
+
+    if (defined('APP_URL')) {
+        return rtrim(APP_URL, '/') . '/uploads/pets/' . basename($candidate);
+    }
+
+    return $placeholder;
+}
 
 include __DIR__ . '/../../includes/header.php';
 ?>
@@ -50,14 +82,13 @@ include __DIR__ . '/../../includes/header.php';
         </thead>
         <tbody>
         <?php foreach ($pets as $pet):
-            if (!empty($pet['primary_photo'])) {
-                $photo = 'data:image/jpeg;base64,' . base64_encode($pet['primary_photo']);
-            } else {
-                $photo = APP_URL . '/assets/images/pet-placeholder.png';
-            }
+            $photoUrl = petImageUrl($pet);
         ?>
         <tr>
-            <td><img src="<?= $photo ?>" class="pet-thumb" alt="" onerror="this.src='<?= APP_URL ?>/assets/images/pet-placeholder.png'"></td>
+            <td><img
+                src="<?= htmlspecialchars($photoUrl, ENT_QUOTES) ?>"
+                class="pet-thumb" alt="<?= htmlspecialchars($pet['name'], ENT_QUOTES) ?>"
+                onerror="this.onerror=null;this.src='<?= htmlspecialchars(APP_URL . '/assets/images/pet-placeholder.png', ENT_QUOTES) ?>'"></td>
             <td class="fw-bold"><?= sanitize($pet['name']) ?></td>
             <td><?= htmlspecialchars($pet['species']) ?><?= $pet['breed'] ? ' / '.sanitize($pet['breed']) : '' ?></td>
             <td><?= formatAge($pet['age_months']) ?></td>
@@ -71,7 +102,7 @@ include __DIR__ . '/../../includes/header.php';
                 <div style="display:flex;gap:6px">
                     <a href="<?= APP_URL ?>/pages/shelter/edit-pet.php?id=<?= $pet['pet_id'] ?>" class="btn btn-outline btn-sm">Edit</a>
                     <?php if ($pet['status'] !== 'Removed'): ?>
-                    <button onclick="deletePet(<?= $pet['pet_id'] ?>)" class="btn btn-danger btn-sm">Remove</button>
+                    <button onclick="deletePet(<?= (int)$pet['pet_id'] ?>)" class="btn btn-danger btn-sm">Remove</button>
                     <?php endif; ?>
                 </div>
             </td>
@@ -83,7 +114,6 @@ include __DIR__ . '/../../includes/header.php';
 <?php endif; ?>
 
 <script>
-
 function safeConfirm(message, callback) {
     if (typeof confirmAction === 'function') {
         confirmAction(message, callback);
@@ -103,21 +133,32 @@ function safeToast(message, type = 'success') {
 async function deletePet(petId) {
     safeConfirm('Remove this pet listing? Adopters will no longer see it.', async () => {
         try {
-            // Using standard fetch instead of apiRequest for maximum compatibility
-            const res = await fetch('/PAWAdopt/api/pets.php?action=delete&id=' + petId);
-            const data = await res.json();
-            
-            if (data.success) { 
-                safeToast('Pet removed.'); 
-                setTimeout(() => location.reload(), 900); 
-            } else { 
-                safeToast(data.message || 'Error removing pet.', 'error'); 
+            const endpoint = (typeof APP_URL !== 'undefined' && APP_URL
+                ? APP_URL.replace(/\/+$/,'') + '/api/pets.php?action=delete&id=' + petId
+                : '/api/pets.php?action=delete&id=' + petId);
+
+            const res = await fetch(endpoint, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            });
+            const data = await res.json().catch(() => ({ success:false, message:'Bad response' }));
+
+            if (data.success) {
+                safeToast('Pet removed.');
+                setTimeout(() => location.reload(), 900);
+            } else {
+                safeToast(data.message || 'Error removing pet.', 'error');
             }
         } catch (err) {
-            safeToast("Network error or server failed to respond.", "error");
+            safeToast('Network error or server failed to respond.', 'error');
         }
     });
 }
+
 </script>
 
 <?php include __DIR__ . '/../../includes/footer.php'; ?>
