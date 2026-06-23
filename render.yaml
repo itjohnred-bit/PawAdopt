@@ -1,13 +1,24 @@
 services:
   - type: web
     name: paw-adopt
-    env: php
+    runtime: python
     plan: free
-    buildCommand: ""
-    startCommand: "apache2-foreground"
+    region: singapore
+    buildCommand: "pip install -r requirements.txt && flask db upgrade || true"
+    startCommand: "gunicorn run:app --workers 2 --threads 4 --timeout 120"
+    healthCheckPath: /healthz
     envVars:
-      - key: APP_URL
-        fromService:
-          name: paw-adopt
-          type: web
-          envVarKey: RENDER_EXTERNAL_URL
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: SECRET_KEY
+        generateValue: true
+      - key: WTF_CSRF_SECRET_KEY
+        generateValue: true
+      - key: SESSION_COOKIE_SECURE
+        value: "True"
+      - key: DATABASE_URL
+        sync: false
+      - key: GOOGLE_FORM_URL
+        sync: false
+
+databases: []   
