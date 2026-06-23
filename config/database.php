@@ -57,7 +57,7 @@ if ($is_production) {
     define('DB_NAME', getenv('DB_NAME'));
     define('DB_USER', getenv('DB_USER'));
     define('DB_PASS', getenv('DB_PASS'));
-    define('SSL_CA', __DIR__ . '/../ca.pem');
+    define('SSL_CA', '/var/www/html/ca.pem');
 } else {
     define('DB_HOST', getenv('DB_HOST') ?: 'localhost');
     define('DB_PORT', '3307');
@@ -70,7 +70,9 @@ if ($is_production) {
 define('DB_CHARSET', 'utf8mb4');
 define('UPLOAD_PATH', $is_production ? '/opt/render/project/uploads/' : __DIR__ . '/../uploads/');
 define('UPLOAD_URL', APP_URL . '/uploads/');
-
+if (!file_exists(SSL_CA)) {
+    error_log("CRITICAL: SSL_CA file not found at: " . SSL_CA);
+}
 
 class Database {
     private static $instance = null;
