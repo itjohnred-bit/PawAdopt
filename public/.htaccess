@@ -1,5 +1,4 @@
-
-
+Apache
 <FilesMatch "^(database|email)\.php$">
     Require all denied
 </FilesMatch>
@@ -23,9 +22,14 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
+    # FIX: Handle API requests first and stop processing (the [L] flag)
+    RewriteRule ^api/ - [L]
+
+    # Rule for favicon
     RewriteCond %{REQUEST_URI} ^/favicon\.ico$ [NC]
     RewriteRule .* /assets/images/Paw-Adopt%20Logo.png [L]
 
+    # Existing rules for "pretty URLs" (e.g., /pets -> /pets.php)
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_FILENAME}.php -f
@@ -46,7 +50,3 @@
     ExpiresByType text/css   "access plus 1 month"
     ExpiresByType application/javascript "access plus 1 month"
 </IfModule>
-RewriteRule ^api/(.*)$ /api/$1 [L]
-php_flag display_errors Off
-php_value error_reporting 0
-php_flag log_errors On
