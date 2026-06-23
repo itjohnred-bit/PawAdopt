@@ -27,8 +27,6 @@
     # 2. Favicon rewrite: ONLY trigger if the requested URI is exactly /favicon.ico
     RewriteCond %{REQUEST_URI} ^/favicon\.ico$ [NC]
     RewriteRule .* /assets/images/Paw-Adopt%20Logo.png [L]
-
-    # 3. Pretty URLs: Convert /name to /name.php
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_FILENAME}.php -f
