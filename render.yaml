@@ -2,9 +2,9 @@ services:
   - type: web
     name: paw-adopt
     env: php
-    buildCommand: composer install --no-dev 2>/dev/null || true
-    startCommand: heroku-php-apache2 public/
     plan: free
+    buildCommand: ""
+    startCommand: "apache2-foreground"
     envVars:
       - key: APP_URL
         fromService:
