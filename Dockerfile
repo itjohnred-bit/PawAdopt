@@ -1,39 +1,43 @@
 FROM php:8.2-apache
 
-# 1. Install dependencies
-RUN docker-php-ext-install pdo pdo_mysql
+RUN apt-get update && apt-get install -y \
+        libzip-dev \
+        zip unzip git \
+        ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 
-# 2. Configure Apache DocumentRoot
-ENV APACHE_DOCUMENT_ROOT /var/www/html/public
-RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
-RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
-RUN sed -i '/<Directory \/var\/www\/>/,/<\/Directory>/ s/AllowOverride None/AllowOverride All/' /etc/apache2/apache2.conf
+RUN docker-php-ext-install pdo_mysql
 
-# 3. Enable rewrite module
-RUN a2enmod rewrite
+ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
+RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf \
+ && sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf \
+ && sed -i '/<Directory \/var\/www\/>/,/<\/Directory>/ s/AllowOverride None/AllowOverride All/' /etc/apache2/apache2.conf
+RUN a2enmod rewrite headers
 
-# 4. Install Composer
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# 5. Copy project files and install dependencies
 WORKDIR /var/www/html
-COPY composer.json ./
-# Install dependencies BEFORE copying the rest of the code to cache layers
-RUN composer install --no-dev --optimize-autoloader
+
+COPY composer.json composer.lock ./
+
+
+RUN composer install \
+        --no-dev \
+        --no-scripts \
+        --no-interaction \
+        --prefer-dist \
+        --optimize-autoloader
 
 COPY . .
 
-# 6. Set Permissions
-# Ensure www-data owns the entire directory including the new vendor folder
-RUN chown -R www-data:www-data /var/www/html && \
-    chmod -R 755 /var/www/html/public
+RUN chown -R www-data:www-data /var/www/html \
+ && chmod -R 755 /var/www/html/public \
+ && mkdir -p /var/www/html/uploads \
+ && chown -R www-data:www-data /var/www/html/uploads
 
-# 7. Symlinks
-RUN ln -sf /var/www/html/assets /var/www/html/public/assets && \
-    ln -sf /var/www/html/uploads /var/www/html/public/uploads
+RUN ln -sfn /var/www/html/assets /var/www/html/public/assets \
+ && ln -sfn /var/www/html/uploads /var/www/html/public/uploads
 
-# 8. Handle Secrets
 RUN if [ -d "/etc/secrets" ]; then \
-    chown -R www-data:www-data /etc/secrets && \
-    chmod -R 644 /etc/secrets; \
+        chown -R www-data:www-data /etc/secrets && chmod -R 644 /etc/secrets; \
     fi
