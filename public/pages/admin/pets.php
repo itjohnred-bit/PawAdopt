@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../../includes/functions.php';
+require_once __DIR__ . '/../../../includes/functions.php';
 requireRole('ADMIN');
 $pageTitle = 'Pet Listings';
 $user = getCurrentUser();
@@ -21,7 +21,7 @@ $pets = $db->fetchAll(
     $params
 );
 
-include __DIR__ . '/../../includes/header.php';
+include __DIR__ . '/../../../includes/header.php';
 ?>
 
 <div class="page-header">
@@ -93,4 +93,4 @@ async function removePet(petId) {
     });
 }
 </script>
-<?php include __DIR__ . '/../../includes/footer.php'; ?>
+<?php include __DIR__ . '/../../../includes/footer.php'; ?>

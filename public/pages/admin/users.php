@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../../includes/functions.php';
+require_once __DIR__ . '/../../../includes/functions.php';
 requireRole('ADMIN');
 $pageTitle = 'User Management';
 $user = getCurrentUser();
@@ -124,4 +124,4 @@ async function deleteUser(userId) {
 }
 </script>
 
-<?php include __DIR__ . '/../../includes/footer.php'; ?>
+<?php include __DIR__ . '/../../../includes/footer.php'; ?>

@@ -8,9 +8,9 @@ if (!isset($_SESSION['user']) || strtoupper($_SESSION['user']['role'] ?? '') !==
     exit();
 }
 
-require_once "../../config/database.php";
-require_once "../../includes/functions.php";
-require_once "../../includes/functions_audit.php";
+require_once "../../../config/database.php";
+require_once "../../../includes/functions.php";
+require_once "../../../includes/functions_audit.php";
 
 $pdo = $pdo ?? $conn ?? Database::getInstance()->getConnection();
 

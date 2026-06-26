@@ -14,13 +14,13 @@ if (!isset($_SESSION['user']) || strtoupper($_SESSION['user']['role'] ?? '') !==
     die('Access denied. Admin privileges required.');
 }
 
-require_once __DIR__ . '/../../config/database.php';
-require_once __DIR__ . '/../../includes/functions.php';
-require_once __DIR__ . '/../../includes/functions_audit.php';
+require_once __DIR__ . '/../../../config/database.php';
+require_once __DIR__ . '/../../../includes/functions.php';
+require_once __DIR__ . '/../../../includes/functions_audit.php';
 
 $pdo = $pdo ?? $conn ?? Database::getInstance()->getConnection();
 
-$fpdf_path = __DIR__ . '/../../fpdf/fpdf.php';
+$fpdf_path = __DIR__ . '/../../../fpdf/fpdf.php';
 if (!file_exists($fpdf_path)) {
     die('<b>FPDF library not found.</b><br>
          Expected at: ' . htmlspecialchars($fpdf_path) . '<br><br>
