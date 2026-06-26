@@ -1,7 +1,6 @@
 <?php
 require_once __DIR__ . '/../config/database.php';
 
-// ─── Session & Auth ─────────────────────────────────────────────────
 function startSession(): void {
     if (session_status() === PHP_SESSION_NONE) {
         session_start();
@@ -20,7 +19,8 @@ function getCurrentUser(): ?array {
 
 function requireLogin(): void {
     if (!isLoggedIn()) {
-        header('Location: ' . APP_URL . '/index.php');
+        $baseUrl = rtrim(APP_URL, '/');
+        header('Location: ' . $baseUrl . '/index.php');
         exit;
     }
 }
@@ -29,7 +29,8 @@ function requireRole(string $role): void {
     requireLogin();
     $user = getCurrentUser();
     if (!$user || $user['role'] !== $role) {
-        header('Location: ' . APP_URL . '/index.php?error=unauthorized');
+        $baseUrl = rtrim(APP_URL, '/');
+        header('Location: ' . $baseUrl . '/index.php?error=unauthorized');
         exit;
     }
 }
@@ -38,7 +39,8 @@ function requireAnyRole(array $roles): void {
     requireLogin();
     $user = getCurrentUser();
     if (!$user || !in_array($user['role'], $roles)) {
-        header('Location: ' . APP_URL . '/index.php?error=unauthorized');
+        $baseUrl = rtrim(APP_URL, '/');
+        header('Location: ' . $baseUrl . '/index.php?error=unauthorized');
         exit;
     }
 }
@@ -51,12 +53,12 @@ function logout(): void {
         setcookie(session_name(), '', time() - 42000, $p["path"], $p["domain"], $p["secure"], $p["httponly"]);
     }
     session_destroy();
-    header('Location: ' . APP_URL . '/index.php');
+    $baseUrl = rtrim(APP_URL, '/');
+    header('Location: ' . $baseUrl . '/index.php');
     exit;
 }
 
 date_default_timezone_set('Asia/Manila'); 
-// ─── Security ───────────────────────────────────────────────────────
 function sanitize(string $input): string {
     return htmlspecialchars(trim($input), ENT_QUOTES, 'UTF-8');
 }
@@ -74,7 +76,6 @@ function verifyCsrfToken(string $token): bool {
     return isset($_SESSION['csrf_token']) && hash_equals($_SESSION['csrf_token'], $token);
 }
 
-// ─── JSON Response ──────────────────────────────────────────────────
 function jsonResponse(array $data, int $code = 200): void {
     http_response_code($code);
     header('Content-Type: application/json');
@@ -97,7 +98,6 @@ if (!defined('MAX_FILE_SIZE')) {
 }
 
 
-// ─── File Upload ────────────────────────────────────────────────────
 function uploadImage(array $file, string $subdir = 'pets'): ?string {
     $allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
     if (!in_array($file['type'], $allowed)) return null;
@@ -124,7 +124,6 @@ function uploadImageToAiven($fileField) {
     
     return $imgBinaryData;
 }
-// ─── Notifications ──────────────────────────────────────────────────
 function createNotification($userId, $type, $title, $message, $link = '') {
     $db = Database::getInstance();
     return $db->query(
@@ -151,7 +150,6 @@ function getUnreadMessageCount(int $userId): int {
     return $result ? (int)$result['cnt'] : 0;
 }
 
-// ─── Helpers ────────────────────────────────────────────────────────
 function formatAge(int $months): string {
     if ($months < 12) return $months . ' month' . ($months !== 1 ? 's' : '');
     $years = floor($months / 12);
@@ -164,10 +162,11 @@ function formatAge(int $months): string {
 function getPetPrimaryPhoto(int $petId): string {
     $db = Database::getInstance();
     $photo = $db->fetch("SELECT photo_url FROM pet_photos WHERE pet_id = ? AND is_primary = 1 LIMIT 1", [$petId]);
-    if ($photo) return APP_URL . '/' . $photo['photo_url'];
+    $baseUrl = rtrim(APP_URL, '/');
+    if ($photo) return $baseUrl . '/' . $photo['photo_url'];
     $any = $db->fetch("SELECT photo_url FROM pet_photos WHERE pet_id = ? LIMIT 1", [$petId]);
-    if ($any) return APP_URL . '/' . $any['photo_url'];
-    return APP_URL . '/assets/images/pet-placeholder.png';
+    if ($any) return $baseUrl . '/' . $any['photo_url'];
+    return $baseUrl . '/assets/images/pet-placeholder.png';
 }
 
 function timeAgo(string $datetime): string {
