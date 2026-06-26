@@ -160,16 +160,16 @@ function handleRegister(PDO $pdo, Database $db): void {
         if ($userId <= 0) throw new RuntimeException('Insert returned no ID.');
 
         if ($role === 'ADOPTER') {
-            $pdo->prepare("INSERT INTO adopter_profiles (adopter_id) VALUES (?)")
-                ->execute([$userId]);
+            $pdo->prepare("INSERT INTO adopter_profiles (adopter_id, full_name) VALUES (?, ?)")
+                ->execute([$userId, $username]);
         } elseif ($role === 'SHELTER') {
-            $defaultName = $username . "'s Shelter";
+            $defaultName = $username . " Shelter";
             $pdo->prepare("INSERT INTO shelter_profiles (shelter_id, shelter_name) VALUES (?, ?)")
                 ->execute([$userId, $defaultName]);
             $pdo->prepare("INSERT INTO shelter_verifications (shelter_id, status) VALUES (?, 'PENDING')")
                 ->execute([$userId]);
         } elseif ($role === 'VETERINARY') {
-            $defaultName = $username . "'s Clinic";
+            $defaultName = $username . " Clinic";
             $pdo->prepare("INSERT INTO shelter_profiles (shelter_id, shelter_name) VALUES (?, ?)")
                 ->execute([$userId, $defaultName]);
             $pdo->prepare("INSERT INTO shelter_verifications (shelter_id, status) VALUES (?, 'PENDING')")
