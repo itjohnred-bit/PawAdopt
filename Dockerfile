@@ -14,30 +14,38 @@ RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-av
  && sed -i '/<Directory \/var\/www\/>/,/<\/Directory>/ s/AllowOverride None/AllowOverride All/' /etc/apache2/apache2.conf
 RUN a2enmod rewrite headers
 
+
+
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
 
-COPY composer.json composer.lock ./
+COPY composer.json composer.lock* ./
 
-
-RUN composer install \
-        --no-dev \
-        --no-scripts \
-        --no-interaction \
-        --prefer-dist \
-        --optimize-autoloader
+RUN if [ -f composer.lock ]; then \
+        echo "[build] composer.lock present — running install"; \
+        composer install \
+            --no-dev \
+            --no-scripts \
+            --no-interaction \
+            --prefer-dist \
+            --optimize-autoloader; \
+    else \
+        echo "[build] composer.lock missing — running update"; \
+        composer update \
+            --no-dev \
+            --no-scripts \
+            --no-interaction \
+            --prefer-dist \
+            --optimize-autoloader; \
+    fi
 
 COPY . .
 
-RUN chown -R www-data:www-data /var/www/html \
- && chmod -R 755 /var/www/html/public \
- && mkdir -p /var/www/html/uploads \
- && chown -R www-data:www-data /var/www/html/uploads
+RUN mkdir -p /var/www/html/uploads \
+ && chown -R www-data:www-data /var/www/html/uploads \
+ && chmod -R 755 /var/www/html/public
 
-RUN ln -sfn /var/www/html/assets /var/www/html/public/assets \
+RUN ln -sfn /var/www/html/assets  /var/www/html/public/assets \
  && ln -sfn /var/www/html/uploads /var/www/html/public/uploads
 
-RUN if [ -d "/etc/secrets" ]; then \
-        chown -R www-data:www-data /etc/secrets && chmod -R 644 /etc/secrets; \
-    fi
