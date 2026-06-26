@@ -29,7 +29,7 @@ function redirectForRole(string $role): string {
     ];
     $dir = $map[$role] ?? 'adopter';
     
-    $baseUrl = rtrim((string)getenv('APP_URL'), '/');
+    $baseUrl = rtrim(defined('APP_URL') ? APP_URL : (string)getenv('APP_URL'), '/');
     return $baseUrl . "/pages/{$dir}/dashboard.php";
 }
 
@@ -294,7 +294,8 @@ function handleForgot(Database $db): void {
         return;
     }
 
-    $link = APP_URL . '/pages/reset.php?token=' . urlencode($token);
+    $baseUrl = rtrim(defined('APP_URL') ? APP_URL : (string)getenv('APP_URL'), '/');
+    $link = $baseUrl . '/pages/reset.php?token=' . urlencode($token);
     $sent = mailer_send(
         (string)$user['email'],
         'Reset your PawAdopt password',
