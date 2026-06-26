@@ -28,7 +28,9 @@ function redirectForRole(string $role): string {
         'ADOPTER'    => 'adopter',
     ];
     $dir = $map[$role] ?? 'adopter';
-    return APP_URL . "/pages/{$dir}/dashboard.php";
+    
+    $baseUrl = rtrim((string)getenv('APP_URL'), '/');
+    return $baseUrl . "/pages/{$dir}/dashboard.php";
 }
 
 function fail(string $msg, int $code = 400): never {
@@ -41,7 +43,6 @@ if ($method !== 'POST') {
 }
 
 switch ($action) {
-
     case 'login':
         handleLogin($pdo, $db);
         break;
