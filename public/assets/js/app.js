@@ -1,11 +1,7 @@
 (function () {
     'use strict';
 
-    window.BASE_URL = (
-        window.location.hostname.includes('onrender.com') ||
-        window.location.protocol === 'https:'
-    ) ? window.location.origin
-      : window.location.origin + '/PawAdopt';
+    window.BASE_URL = window.location.origin;
 
     async function apiRequest(url, method = 'GET', data = null) {
         const opts = { method: method, credentials: 'same-origin', headers: {} };

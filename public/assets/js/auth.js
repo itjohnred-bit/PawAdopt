@@ -95,8 +95,16 @@
                 if (res && res.success && res.data && res.data.redirect) {
                     showAlert(loginPanel, 'Logged in! Redirecting…', 'success');
                     
-                    let cleanRedirect = res.data.redirect.replace(/([^:]\/)\/+/g, "$1");
-                    setTimeout(() => { window.location.href = cleanRedirect; }, 800);
+                    let originalPath = res.data.redirect;
+                    
+                    let cleanPath = originalPath.replace(/^(\.\.\/)+/, '').replace(/\/+/g, '/');
+                    if (cleanPath.startsWith('/')) {
+                        cleanPath = cleanPath.substring(1);
+                    }
+                    
+                    let absoluteTarget = window.location.origin + '/' + cleanPath;
+                    
+                    setTimeout(() => { window.location.href = absoluteTarget; }, 800);
                 } else if (res && res.success) {
                     showAlert(loginPanel, 'Logged in, but no redirect target was provided.', 'error');
                 } else {
@@ -125,8 +133,15 @@
                 if (res && res.success && res.data && res.data.redirect) {
                     showAlert(registerPanel, 'Account created!', 'success');
                     
-                    let cleanRedirect = res.data.redirect.replace(/([^:]\/)\/+/g, "$1");
-                    setTimeout(() => { window.location.href = cleanRedirect; }, 1000);
+                    let originalPath = res.data.redirect;
+                    let cleanPath = originalPath.replace(/^(\.\.\/)+/, '').replace(/\/+/g, '/');
+                    if (cleanPath.startsWith('/')) {
+                        cleanPath = cleanPath.substring(1);
+                    }
+                    
+                    let absoluteTarget = window.location.origin + '/' + cleanPath;
+                    
+                    setTimeout(() => { window.location.href = absoluteTarget; }, 1000);
                 } else if (res && res.success) {
                     showAlert(registerPanel, 'Account created, but no redirect target was provided.', 'error');
                 } else {

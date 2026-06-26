@@ -2,9 +2,8 @@
 
 session_start();
 
-// SECURITY CHECK
 if (!isset($_SESSION['user']) || strtoupper($_SESSION['user']['role'] ?? '') !== 'ADMIN') {
-    header("Location: ../../login.php");
+    header("Location: /login.php");
     exit();
 }
 
@@ -14,13 +13,10 @@ require_once "../../../includes/functions_audit.php";
 
 $pdo = $pdo ?? $conn ?? Database::getInstance()->getConnection();
 
-// Fetch Data
 $logs = fetch_recent_audit_logs(50);
 
-// Fetch Statistics
 $stats_data = get_audit_statistics(30);
 
-// Log the access safely
 $u_id = $_SESSION['user']['user_id'] ?? $_SESSION['user']['id'] ?? 0;
 log_action($u_id, 'view_dashboard', 'Accessed Audit Logs Dashboard');
 ?>
@@ -35,29 +31,26 @@ log_action($u_id, 'view_dashboard', 'Accessed Audit Logs Dashboard');
 </head>
 <body class="bg-slate-50 flex text-slate-800">
 
-    <!-- Sidebar -->
     <aside class="w-64 bg-white border-r h-screen sticky top-0 hidden md:block">
         <div class="p-6 border-b">
             <h1 class="text-teal-600 font-bold text-xl"><i class="fas fa-paw mr-2"></i>Paw-Adopt</h1>
         </div>
         <nav class="p-4 space-y-2">
-            <a href="dashboard.php" class="flex items-center p-3 text-slate-600 hover:bg-slate-50 rounded-lg"><i class="fas fa-th-large w-8"></i> Dashboard</a>
-            <a href="users.php" class="flex items-center p-3 text-slate-600 hover:bg-slate-50 rounded-lg"><i class="fas fa-users w-8"></i> Users</a>
-            <a href="pets.php" class="flex items-center p-3 text-slate-600 hover:bg-slate-50 rounded-lg"><i class="fas fa-dog w-8"></i> Pets</a>
-            <a href="audit-logs.php" class="flex items-center p-3 bg-teal-50 text-teal-700 font-medium rounded-lg"><i class="fas fa-history w-8"></i> Audit Logs</a>
+            <a href="/pages/admin/dashboard.php" class="flex items-center p-3 text-slate-600 hover:bg-slate-50 rounded-lg"><i class="fas fa-th-large w-8"></i> Dashboard</a>
+            <a href="/pages/admin/users.php" class="flex items-center p-3 text-slate-600 hover:bg-slate-50 rounded-lg"><i class="fas fa-users w-8"></i> Users</a>
+            <a href="/pages/admin/pets.php" class="flex items-center p-3 text-slate-600 hover:bg-slate-50 rounded-lg"><i class="fas fa-dog w-8"></i> Pets</a>
+            <a href="/pages/admin/audit-logs.php" class="flex items-center p-3 bg-teal-50 text-teal-700 font-medium rounded-lg"><i class="fas fa-history w-8"></i> Audit Logs</a>
         </nav>
     </aside>
 
-    <!-- Main Content -->
     <main class="flex-1 p-8">
         <div class="flex justify-between items-center mb-8">
             <h2 class="text-2xl font-bold">System Activity Logs</h2>
-            <a href="export-audit-pdf.php" class="bg-teal-600 hover:bg-teal-700 text-white px-6 py-2 rounded-lg font-semibold transition">
+            <a href="/api/export-audit-pdf.php" class="bg-teal-600 hover:bg-teal-700 text-white px-6 py-2 rounded-lg font-semibold transition">
                 <i class="fas fa-file-pdf mr-2"></i> Export PDF Report
             </a>
         </div>
 
-        <!-- Stats Cards -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div class="bg-white p-6 rounded-xl border border-slate-100 shadow-sm flex items-center">
                 <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center mr-4 text-xl"><i class="fas fa-list"></i></div>
@@ -82,7 +75,6 @@ log_action($u_id, 'view_dashboard', 'Accessed Audit Logs Dashboard');
             </div>
         </div>
 
-        <!-- Table -->
         <div class="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden">
             <table class="w-full text-left">
                 <thead class="bg-slate-50 border-b">
@@ -106,7 +98,7 @@ log_action($u_id, 'view_dashboard', 'Accessed Audit Logs Dashboard');
                                 <?= function_exists('format_action_name') ? format_action_name($log['action']) : htmlspecialchars($log['action']) ?>
                             </td>
                             <td class="px-6 py-4 text-sm text-slate-500"><?= date('M d, Y H:i', strtotime($log['created_at'])) ?></td>
-                            <td class="px-6 py-4 text-sm text-slate-400 font-mono"><?= $log['ip_address'] ?></td>
+                            <td class="px-6 py-4 text-sm text-slate-400 font-mono"><?= htmlspecialchars($log['ip_address'] ?? '0.0.0.0') ?></td>
                         </tr>
                         <?php endforeach; ?>
                     <?php else: ?>
