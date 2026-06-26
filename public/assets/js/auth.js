@@ -96,7 +96,6 @@
                     showAlert(loginPanel, 'Logged in! Redirecting…', 'success');
                     
                     let originalPath = res.data.redirect;
-                    
                     let cleanPath = originalPath.replace(/^(\.\.\/)+/, '').replace(/\/+/g, '/');
                     if (cleanPath.startsWith('/')) {
                         cleanPath = cleanPath.substring(1);
@@ -180,6 +179,12 @@
         try {
             const res  = await fetch(url, { method: 'POST', body: formData, credentials: 'same-origin' });
             const text = await res.text();
+            
+            if (res.status === 500) {
+                console.error('Server Internal Error Context:', text);
+                return { success: false, message: 'Server database configuration error.' };
+            }
+
             try {
                 return JSON.parse(text);
             } catch (err) {
@@ -201,7 +206,7 @@
         icon.className = 'auth-alert-icon';
         icon.textContent = type === 'success' ? '✓' : '⚠';
         const txt = document.createElement('span');
-        txt.className   = 'auth-alert-text';
+        txt.className    = 'auth-alert-text';
         txt.textContent = message || '';
         el.appendChild(icon);
         el.appendChild(txt);
