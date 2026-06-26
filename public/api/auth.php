@@ -22,7 +22,7 @@ function refreshSession(): void {
 function redirectForRole(string $role): string {
     $role = strtoupper(trim($role));
     $map  = [
-        'VETERINARY' => 'vet',
+        'VETERINARY' => 'shelter',
         'SHELTER'    => 'shelter',
         'ADMIN'      => 'admin',
         'ADOPTER'    => 'adopter',
