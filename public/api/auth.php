@@ -162,14 +162,9 @@ function handleRegister(PDO $pdo, Database $db): void {
         if ($role === 'ADOPTER') {
             $pdo->prepare("INSERT INTO adopter_profiles (adopter_id, full_name) VALUES (?, ?)")
                 ->execute([$userId, $username]);
-        } elseif ($role === 'SHELTER') {
-            $defaultName = $username . " Shelter";
-            $pdo->prepare("INSERT INTO shelter_profiles (shelter_id, shelter_name) VALUES (?, ?)")
-                ->execute([$userId, $defaultName]);
-            $pdo->prepare("INSERT INTO shelter_verifications (shelter_id, status) VALUES (?, 'PENDING')")
-                ->execute([$userId]);
-        } elseif ($role === 'VETERINARY') {
-            $defaultName = $username . " Clinic";
+        } elseif ($role === 'SHELTER' || $role === 'VETERINARY') {
+            $suffix = ($role === 'VETERINARY') ? " Clinic" : " Shelter";
+            $defaultName = $username . $suffix;
             $pdo->prepare("INSERT INTO shelter_profiles (shelter_id, shelter_name) VALUES (?, ?)")
                 ->execute([$userId, $defaultName]);
             $pdo->prepare("INSERT INTO shelter_verifications (shelter_id, status) VALUES (?, 'PENDING')")
