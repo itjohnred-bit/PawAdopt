@@ -1,8 +1,7 @@
 <?php
 declare(strict_types=1);
 
-$root = dirname($_SERVER['DOCUMENT_ROOT'] ?: __DIR__, 3);
-require_once $root . '/includes/functions.php';
+require_once __DIR__ . '/../../../includes/functions.php';
 
 requireRole('ADMIN');
 $pageTitle = 'Admin Dashboard';
@@ -28,7 +27,7 @@ $pendingShelters = $db->fetchAll(
      WHERE sv.status = 'PENDING' ORDER BY sv.submitted_at ASC LIMIT 5"
 );
 
-require_once $root . '/includes/header.php';
+require_once __DIR__ . '/../../../includes/header.php';
 ?>
 
 <div class="page-header">
@@ -63,11 +62,11 @@ require_once $root . '/includes/header.php';
 </div>
 
 <div class="quick-actions mb-3">
-    <a href="<?= APP_URL ?>/pages/admin/users.php"     class="quick-action-btn"><span class="qa-icon">👥</span><span class="qa-label">Users</span></a>
-    <a href="<?= APP_URL ?>/pages/admin/shelters.php" class="quick-action-btn"><span class="qa-icon">🏠</span><span class="qa-label">Shelters</span></a>
-    <a href="<?= APP_URL ?>/pages/admin/pets.php"      class="quick-action-btn"><span class="qa-icon">🐾</span><span class="qa-label">Pets</span></a>
-    <a href="<?= APP_URL ?>/pages/admin/reports.php"  class="quick-action-btn"><span class="qa-icon">📊</span><span class="qa-label">Reports</span></a>
-    <a href="<?= APP_URL ?>/pages/admin/audit-logs.php" class="quick-action-btn"><span class="qa-icon">📜</span><span class="qa-label">Audit Logs</span></a>
+    <a href="<?= APP_URL ?>/pages/admin/users.php"       class="quick-action-btn"><span class="qa-icon">👥</span><span class="qa-label">Users</span></a>
+    <a href="<?= APP_URL ?>/pages/admin/shelters.php"    class="quick-action-btn"><span class="qa-icon">🏠</span><span class="qa-label">Shelters</span></a>
+    <a href="<?= APP_URL ?>/pages/admin/pets.php"        class="quick-action-btn"><span class="qa-icon">🐾</span><span class="qa-label">Pets</span></a>
+    <a href="<?= APP_URL ?>/pages/admin/reports.php"     class="quick-action-btn"><span class="qa-icon">📊</span><span class="qa-label">Reports</span></a>
+    <a href="<?= APP_URL ?>/pages/admin/audit-logs.php"  class="quick-action-btn"><span class="qa-icon">📜</span><span class="qa-label">Audit Logs</span></a>
 </div>
 
 <div class="grid-2">
@@ -139,4 +138,4 @@ async function quickVerify(shelterId, status) {
 }
 </script>
 
-<?php include $root . '/includes/footer.php'; ?>
+<?php include __DIR__ . '/../../../includes/footer.php'; ?>
