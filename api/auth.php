@@ -1,15 +1,8 @@
 <?php
 declare(strict_types=1);
 
-// Temporaary debug: Force PHP to show errors in the output
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
-// Log that we have reached the file
-error_log("DEBUG: Reached api/auth.php");
-
-
 require __DIR__ . '/../config/email.php';
-require_once '/var/www/html/config/database.php';
+require __DIR__ . '/../config/database.php';
 require __DIR__ . '/../includes/functions.php';
 require __DIR__ . '/../includes/functions_audit.php';
 require __DIR__ . '/../includes/mailer.php';
@@ -28,11 +21,13 @@ function refreshSession(): void {
 
 function redirectForRole(string $role): string {
     $role = strtoupper($role);
-    $dir  = match ($role) {
-        'VETERINARY', 'SHELTER' => 'shelter',
-        'ADMIN'                => 'admin',
-        default                => 'adopter',
-    };
+    $map  = [
+        'VETERINARY' => 'vet',
+        'SHELTER'    => 'shelter',
+        'ADMIN'      => 'admin',
+        'ADOPTER'    => 'adopter',
+    ];
+    $dir = $map[$role] ?? 'adopter';
     return APP_URL . "/pages/{$dir}/dashboard.php";
 }
 
@@ -48,11 +43,11 @@ if ($method !== 'POST') {
 switch ($action) {
 
     case 'login':
-        handleLogin($db, $pdo);
+        handleLogin($pdo, $db);
         break;
 
     case 'register':
-        handleRegister($db, $pdo);
+        handleRegister($pdo, $db);
         break;
 
     case 'logout':
@@ -67,13 +62,17 @@ switch ($action) {
         fail('Unknown action.', 400);
 }
 
-function handleLogin(Database $db, PDO $pdo): void {
+function handleLogin(PDO $pdo, Database $db): void {
     $username  = trim((string)($_POST['username'] ?? ''));
     $password  = (string)($_POST['password'] ?? '');
     $roleInput = strtoupper(trim((string)($_POST['role'] ?? '')));
 
+    $knownRoles = ['ADOPTER', 'VETERINARY', 'SHELTER', 'ADMIN'];
     if ($username === '' || $password === '' || $roleInput === '') {
         fail('All fields are required.', 400);
+    }
+    if (!in_array($roleInput, $knownRoles, true)) {
+        fail('Unknown role selection.', 400);
     }
 
     try {
@@ -103,22 +102,27 @@ function handleLogin(Database $db, PDO $pdo): void {
         );
     }
 
-    if (strtoupper($user['role']) !== $roleInput) {
+    $userRole = strtoupper((string)$user['role']);
+    if (!in_array($userRole, $knownRoles, true)) {
+        error_log("Login role unknown for user_id={$user['user_id']}: {$user['role']}");
+        fail('Account misconfigured. Contact support.', 500);
+    }
+    if ($userRole !== $roleInput) {
         fail('Incorrect role selection for this account.', 403);
     }
 
     session_regenerate_id(true);
     $_SESSION['user_id']   = (int)$user['user_id'];
     $_SESSION['username']  = $user['username'];
-    $_SESSION['role']      = strtoupper($user['role']);
+    $_SESSION['role']      = $userRole;
     $_SESSION['last_seen'] = time();
 
     log_action((int)$user['user_id'], 'login', 'Successful login');
 
-    jsonSuccess(['redirect' => redirectForRole($user['role'])], 'Login successful!');
+    jsonSuccess(['redirect' => redirectForRole($userRole)], 'Login successful!');
 }
 
-function handleRegister(Database $db, PDO $pdo): void {
+function handleRegister(PDO $pdo, Database $db): void {
     $username = trim((string)($_POST['username'] ?? ''));
     $email    = strtolower(trim((string)($_POST['email'] ?? '')));
     $password = (string)($_POST['password'] ?? '');
@@ -157,9 +161,14 @@ function handleRegister(Database $db, PDO $pdo): void {
         if ($role === 'ADOPTER') {
             $pdo->prepare("INSERT INTO adopter_profiles (adopter_id) VALUES (?)")
                 ->execute([$userId]);
-        } else {
-            $defaultName = $username . "'s "
-                         . ($role === 'VETERINARY' ? 'Clinic' : 'Shelter');
+        } elseif ($role === 'SHELTER') {
+            $defaultName = $username . "'s Shelter";
+            $pdo->prepare("INSERT INTO shelter_profiles (shelter_id, shelter_name) VALUES (?, ?)")
+                ->execute([$userId, $defaultName]);
+            $pdo->prepare("INSERT INTO shelter_verifications (shelter_id, status) VALUES (?, 'PENDING')")
+                ->execute([$userId]);
+        } elseif ($role === 'VETERINARY') {
+            $defaultName = $username . "'s Clinic";
             $pdo->prepare("INSERT INTO shelter_profiles (shelter_id, shelter_name) VALUES (?, ?)")
                 ->execute([$userId, $defaultName]);
             $pdo->prepare("INSERT INTO shelter_verifications (shelter_id, status) VALUES (?, 'PENDING')")
@@ -216,6 +225,7 @@ function handleLogout(): void {
     session_destroy();
     jsonSuccess([], 'Logged out.');
 }
+
 function handleForgot(Database $db): void {
     $email = strtolower(trim((string)($_POST['email'] ?? '')));
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -229,8 +239,8 @@ function handleForgot(Database $db): void {
 
     if (!is_array($user) || empty($user)) {
         jsonSuccess([
-            'state'     => 'unknown',
-            'message'   => 'No account is registered with that email.',
+            'state'   => 'unknown',
+            'message' => 'No account is registered with that email.',
         ], 'No account found.');
         return;
     }
@@ -246,8 +256,8 @@ function handleForgot(Database $db): void {
     );
 
     if (is_array($lastReset) && !empty($lastReset)) {
-        $createdTs  = strtotime((string)$lastReset['created_at']);
-        $now        = time();
+        $createdTs   = strtotime((string)$lastReset['created_at']);
+        $now         = time();
         $alreadyUsed = !empty($lastReset['used_at']);
 
         if (!$alreadyUsed
@@ -256,9 +266,9 @@ function handleForgot(Database $db): void {
         ) {
             $remaining = max(1, $throttleSeconds - ($now - $createdTs));
             jsonSuccess([
-                'state'     => 'throttled',
-                'message'   => 'A reset link was already sent recently. Please check your inbox (and spam folder).',
-                'retry_in'  => $remaining,
+                'state'    => 'throttled',
+                'message'  => 'A reset link was already sent recently. Please check your inbox (and spam folder).',
+                'retry_in' => $remaining,
             ], 'Reset link recently sent.');
             return;
         }
@@ -277,35 +287,35 @@ function handleForgot(Database $db): void {
                   VALUES (?, ?, ?, ?, ?, ?)",
             [(int)$user['user_id'], $hash, $expiry, $ip, $agent, $now]
         );
-
-        $link = APP_URL . '/pages/reset.php?token=' . urlencode($token);
-        $sent = mailer_send(
-            (string)$user['email'],
-            'Reset your PawAdopt password',
-            "Hi {$user['username']},\n\n"
-            . "We received a request to reset the password for your PawAdopt account.\n\n"
-            . "Click here within the next hour to choose a new password:\n"
-            . "{$link}\n\n"
-            . "If you didn't request this, you can safely ignore this email and your password will remain unchanged.\n\n"
-            . "— The PawAdopt team"
-        );
-
-        $resp = [
-            'state'   => 'sent',
-            'message' => "We've sent a reset link to " . $user['email'] . ". Check your inbox (and spam folder).",
-            'sent_ok' => $sent,
-        ];
-
-        if (!$sent) {
-            $resp['message'] .= " If it doesn't arrive in a few minutes, please contact support.";
-        }
-
-        jsonSuccess($resp, $sent ? 'Reset link sent.' : 'Reset requested.');
-
     } catch (Throwable $e) {
         error_log('handleForgot persistence failed: ' . $e->getMessage());
         fail('Could not process request. Please try again.', 500);
+        return;
     }
+
+    $link = APP_URL . '/pages/reset.php?token=' . urlencode($token);
+    $sent = mailer_send(
+        (string)$user['email'],
+        'Reset your PawAdopt password',
+        "Hi {$user['username']},\n\n"
+        . "We received a request to reset the password for your PawAdopt account.\n\n"
+        . "Click here within the next hour to choose a new password:\n"
+        . "{$link}\n\n"
+        . "If you didn't request this, you can safely ignore this email and your password will remain unchanged.\n\n"
+        . "— The PawAdopt team"
+    );
+
+    $resp = [
+        'state'   => 'sent',
+        'message' => "We've sent a reset link to " . $user['email'] . ". Check your inbox (and spam folder).",
+        'sent_ok' => $sent,
+    ];
+
+    if (!$sent) {
+        $resp['message'] .= " If it doesn't arrive in a few minutes, please contact support.";
+    }
+
+    jsonSuccess($resp, $sent ? 'Reset link sent.' : 'Reset requested.');
 }
 
 function clientIp(): ?string {
