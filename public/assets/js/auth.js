@@ -95,7 +95,6 @@
                 if (res && res.success && res.data && res.data.redirect) {
                     showAlert(loginPanel, 'Logged in! Redirecting…', 'success');
                     
-                    // CLEAN FIX: Automatically sanitizes accidental double slashes inside the path string
                     let cleanRedirect = res.data.redirect.replace(/([^:]\/)\/+/g, "$1");
                     setTimeout(() => { window.location.href = cleanRedirect; }, 800);
                 } else if (res && res.success) {
@@ -126,7 +125,6 @@
                 if (res && res.success && res.data && res.data.redirect) {
                     showAlert(registerPanel, 'Account created!', 'success');
                     
-                    // CLEAN FIX: Automatically sanitizes accidental double slashes inside the path string
                     let cleanRedirect = res.data.redirect.replace(/([^:]\/)\/+/g, "$1");
                     setTimeout(() => { window.location.href = cleanRedirect; }, 1000);
                 } else if (res && res.success) {
@@ -160,7 +158,7 @@
                     showAlert(forgotPanel, (res && res.message) || 'Request failed.', 'error');
                 }
             });
-        } Gracie;
+        }
     });
 
     async function postForm(url, formData) {
