@@ -20,7 +20,7 @@ function refreshSession(): void {
 }
 
 function redirectForRole(string $role): string {
-    $role = strtoupper($role);
+    $role = strtoupper(trim($role));
     $map  = [
         'VETERINARY' => 'vet',
         'SHELTER'    => 'shelter',
@@ -103,7 +103,7 @@ function handleLogin(PDO $pdo, Database $db): void {
         );
     }
 
-    $userRole = strtoupper((string)$user['role']);
+    $userRole = strtoupper(trim((string)$user['role']));
     if (!in_array($userRole, $knownRoles, true)) {
         error_log("Login role unknown for user_id={$user['user_id']}: {$user['role']}");
         fail('Account misconfigured. Contact support.', 500);
