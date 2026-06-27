@@ -55,14 +55,14 @@ INSERT INTO `adopter_profiles` (`adopter_id`, `full_name`, `phone`, `address`, `
 CREATE TABLE `adoption_applications` (
   `application_id` int(11) NOT NULL,
   `pet_id` int(11) NOT NULL,
-  `shelter_id` int(11) NOT NULL,
+  `veterinary_id` int(11) NOT NULL,
   `adopter_id` int(11) NOT NULL,
   `status` enum('PENDING','Submitted','Under Review','Approved','Rejected','Cancelled','Withdrawn') NOT NULL DEFAULT 'PENDING',
   `submitted_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `reviewed_at` timestamp NULL DEFAULT NULL,
   `decided_by` int(11) DEFAULT NULL,
   `screening_responses` text DEFAULT NULL,
-  `message_to_shelter` text DEFAULT NULL,
+  `message_to_veterinary` text DEFAULT NULL,
   `decision_note` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -70,7 +70,7 @@ CREATE TABLE `adoption_applications` (
 -- Dumping data for table `adoption_applications`
 --
 
-INSERT INTO `adoption_applications` (`application_id`, `pet_id`, `shelter_id`, `adopter_id`, `status`, `submitted_at`, `reviewed_at`, `decided_by`, `screening_responses`, `message_to_shelter`, `decision_note`) VALUES
+INSERT INTO `adoption_applications` (`application_id`, `pet_id`, `veterinary_id`, `adopter_id`, `status`, `submitted_at`, `reviewed_at`, `decided_by`, `screening_responses`, `message_to_veterinary`, `decision_note`) VALUES
 (1, 1, 5, 3, 'PENDING', '2026-06-13 01:53:27', NULL, NULL, '{\"pet_id\":\"1\",\"app_type\":\"Individual\",\"full_name\":\"Adopter\",\"sex\":\"Male\",\"dob\":\"2005-03-01\",\"civil_status\":\"Single\",\"address\":\"agsaga\",\"residence_status\":\"Owned\",\"phone\":\"09123456789\",\"income\":\"\\u20b115,000\\u201330,000\",\"income_source\":\"asfgasg\",\"owned_before\":\"Yes\",\"sick_policy\":\"Self-medicate\",\"has_current_pets\":\"Yes\",\"current_pet_info\":\"sagasg\",\"has_vet\":\"No\",\"vet_clinic\":\"sagasg\",\"why_adopt\":\"asgasg\",\"action\":\"submit_screening\"}', 'asgasg', NULL);
 
 -- --------------------------------------------------------
@@ -111,7 +111,7 @@ INSERT INTO `audit_logs` (`id`, `user_id`, `username`, `role`, `action`, `detail
 CREATE TABLE `conversations` (
   `conversation_id` int(11) NOT NULL,
   `adopter_id` int(11) NOT NULL,
-  `shelter_id` int(11) NOT NULL,
+  `veterinary_id` int(11) NOT NULL,
   `pet_id` int(11) DEFAULT NULL,
   `started_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
@@ -122,7 +122,7 @@ CREATE TABLE `conversations` (
 -- Dumping data for table `conversations`
 --
 
-INSERT INTO `conversations` (`conversation_id`, `adopter_id`, `shelter_id`, `pet_id`, `started_at`, `updated_at`, `created_at`) VALUES
+INSERT INTO `conversations` (`conversation_id`, `adopter_id`, `veterinary_id`, `pet_id`, `started_at`, `updated_at`, `created_at`) VALUES
 (3, 3, 5, 3, '2026-06-12 07:37:02', '2026-06-17 18:18:50', '2026-06-12 07:37:02');
 
 -- --------------------------------------------------------
@@ -196,7 +196,7 @@ CREATE TABLE `notifications` (
 
 CREATE TABLE `pets` (
   `pet_id` int(11) NOT NULL,
-  `shelter_id` int(11) NOT NULL,
+  `veterinary_id` int(11) NOT NULL,
   `name` varchar(100) NOT NULL,
   `species` enum('Dog','Cat') NOT NULL DEFAULT 'Dog',
   `breed` varchar(100) DEFAULT NULL,
@@ -218,7 +218,7 @@ CREATE TABLE `pets` (
 -- Dumping data for table `pets`
 --
 
-INSERT INTO `pets` (`pet_id`, `shelter_id`, `name`, `species`, `breed`, `age_months`, `sex`, `gender`, `size`, `color`, `temperament`, `medical_notes`, `description`, `status`, `created_at`, `updated_at`, `medical_certificate`) VALUES
+INSERT INTO `pets` (`pet_id`, `veterinary_id`, `name`, `species`, `breed`, `age_months`, `sex`, `gender`, `size`, `color`, `temperament`, `medical_notes`, `description`, `status`, `created_at`, `updated_at`, `medical_certificate`) VALUES
 (1, 5, 'Krema', 'Dog', 'Half Retriever', 12, 'Male', 'Male', 'Medium', 'Small Ears', 'Moody', '', 'dsadas', 'Available', '2026-06-02 00:50:16', '2026-06-02 00:50:16', NULL),
 (2, 5, 'red', 'Dog', 'Golden Retriever', 12, 'Male', 'Male', 'Medium', 'sfs', 'asfsaf', 'saffas', 'asfasf', 'Removed', '2026-06-12 09:13:47', '2026-06-12 09:48:55', 'uploads/certificates/cert_b9319af1237d7dc3.pdf'),
 (3, 5, 'fsa', 'Dog', 'asfa', 12, 'Male', 'Male', 'Medium', 'asf', 'asf', 'asf', 'asf', 'Removed', '2026-06-14 07:05:31', '2026-06-19 15:44:02', NULL);
@@ -248,12 +248,12 @@ INSERT INTO `pet_photos` (`photo_id`, `pet_id`, `photo_url`, `is_primary`, `crea
 -- --------------------------------------------------------
 
 --
--- Table structure for table `shelter_profiles`
+-- Table structure for table `veterinary_profiles`
 --
 
-CREATE TABLE `shelter_profiles` (
-  `shelter_id` int(11) NOT NULL,
-  `shelter_name` varchar(150) NOT NULL,
+CREATE TABLE `veterinary_profiles` (
+  `veterinary_id` int(11) NOT NULL,
+  `veterinary_name` varchar(150) NOT NULL,
   `phone` varchar(20) DEFAULT NULL,
   `address` text DEFAULT NULL,
   `city` varchar(100) DEFAULT NULL,
@@ -266,21 +266,21 @@ CREATE TABLE `shelter_profiles` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `shelter_profiles`
+-- Dumping data for table `veterinary_profiles`
 --
 
-INSERT INTO `shelter_profiles` (`shelter_id`, `shelter_name`, `phone`, `address`, `city`, `description`, `website`, `logo_url`, `is_verified`, `created_at`, `updated_at`) VALUES
-(5, 'Veterinary\'s Shelter', NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-06-02 00:18:07', '2026-06-02 00:18:07');
+INSERT INTO `veterinary_profiles` (`veterinary_id`, `veterinary_name`, `phone`, `address`, `city`, `description`, `website`, `logo_url`, `is_verified`, `created_at`, `updated_at`) VALUES
+(5, 'Veterinary\'s veterinary', NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-06-02 00:18:07', '2026-06-02 00:18:07');
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `shelter_verifications`
+-- Table structure for table `veterinary_verifications`
 --
 
-CREATE TABLE `shelter_verifications` (
+CREATE TABLE `veterinary_verifications` (
   `verification_id` int(11) NOT NULL,
-  `shelter_id` int(11) NOT NULL,
+  `veterinary_id` int(11) NOT NULL,
   `status` enum('PENDING','APPROVED','REJECTED') NOT NULL DEFAULT 'PENDING',
   `remarks` text DEFAULT NULL,
   `submitted_at` timestamp NOT NULL DEFAULT current_timestamp(),
@@ -288,10 +288,10 @@ CREATE TABLE `shelter_verifications` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `shelter_verifications`
+-- Dumping data for table `veterinary_verifications`
 --
 
-INSERT INTO `shelter_verifications` (`verification_id`, `shelter_id`, `status`, `remarks`, `submitted_at`, `updated_at`) VALUES
+INSERT INTO `veterinary_verifications` (`verification_id`, `veterinary_id`, `status`, `remarks`, `submitted_at`, `updated_at`) VALUES
 (2, 5, 'PENDING', NULL, '2026-06-02 00:18:07', '2026-06-02 00:18:07');
 
 -- --------------------------------------------------------
@@ -312,7 +312,7 @@ CREATE TABLE `site_content` (
 --
 
 INSERT INTO `site_content` (`content_key`, `content_value`, `updated_by`, `updated_at`) VALUES
-('homepage_banner_subtitle', 'PUPAdopt connects loving adopters with shelters.', NULL, '2026-05-30 21:28:08'),
+('homepage_banner_subtitle', 'PUPAdopt connects loving adopters with veterinarys.', NULL, '2026-05-30 21:28:08'),
 ('homepage_banner_title', 'Find Your Forever Furry Friend', NULL, '2026-05-30 21:28:08');
 
 -- --------------------------------------------------------
@@ -323,7 +323,7 @@ INSERT INTO `site_content` (`content_key`, `content_value`, `updated_by`, `updat
 
 CREATE TABLE `users` (
   `user_id` int(11) NOT NULL,
-  `role` enum('ADOPTER','SHELTER','ADMIN') NOT NULL DEFAULT 'ADOPTER',
+  `role` enum('ADOPTER','VETERINARY','ADMIN') NOT NULL DEFAULT 'ADOPTER',
   `username` varchar(50) NOT NULL,
   `email` varchar(100) NOT NULL,
   `password_hash` varchar(255) NOT NULL,
@@ -338,7 +338,7 @@ CREATE TABLE `users` (
 
 INSERT INTO `users` (`user_id`, `role`, `username`, `email`, `password_hash`, `is_active`, `created_at`, `updated_at`) VALUES
 (3, 'ADOPTER', 'Adopter', 'adopter@test.com', '$2y$10$PxyyujApK61kvEDHeGVHWOF/VRxb7J.d.ugOmIjqLuHHLtvJV4PF6', 1, '2026-05-30 23:24:09', '2026-05-30 23:24:09'),
-(5, 'SHELTER', 'Veterinary', 'vet@tester.com', '$2y$10$UI3TpdoxmOZviJLE0C42outmbPSxWhfZBVgfRFqav/7qip2Y6CXjW', 1, '2026-06-02 00:18:07', '2026-06-19 15:32:25'),
+(5, 'VETERINARY', 'Veterinary', 'vet@tester.com', '$2y$10$UI3TpdoxmOZviJLE0C42outmbPSxWhfZBVgfRFqav/7qip2Y6CXjW', 1, '2026-06-02 00:18:07', '2026-06-19 15:32:25'),
 (20, 'ADMIN', 'admin', 'admin@pupadopt.com', '$2y$10$lcpxqbjbwwAxacFUeh0ElOHaDQ4NmTJ5EjjyE6Q0qKHJywb1k56gK', 1, '2026-06-12 11:30:44', '2026-06-12 11:36:24');
 
 --
@@ -368,8 +368,8 @@ ALTER TABLE `audit_logs`
 --
 ALTER TABLE `conversations`
   ADD PRIMARY KEY (`conversation_id`),
-  ADD UNIQUE KEY `unique_chat_pair` (`adopter_id`,`shelter_id`),
-  ADD KEY `shelter_id` (`shelter_id`);
+  ADD UNIQUE KEY `unique_chat_pair` (`adopter_id`,`veterinary_id`),
+  ADD KEY `veterinary_id` (`veterinary_id`);
 
 --
 -- Indexes for table `favorites`
@@ -400,7 +400,7 @@ ALTER TABLE `notifications`
 --
 ALTER TABLE `pets`
   ADD PRIMARY KEY (`pet_id`),
-  ADD KEY `shelter_id` (`shelter_id`);
+  ADD KEY `veterinary_id` (`veterinary_id`);
 
 --
 -- Indexes for table `pet_photos`
@@ -410,17 +410,17 @@ ALTER TABLE `pet_photos`
   ADD KEY `pet_id` (`pet_id`);
 
 --
--- Indexes for table `shelter_profiles`
+-- Indexes for table `veterinary_profiles`
 --
-ALTER TABLE `shelter_profiles`
-  ADD PRIMARY KEY (`shelter_id`);
+ALTER TABLE `veterinary_profiles`
+  ADD PRIMARY KEY (`veterinary_id`);
 
 --
--- Indexes for table `shelter_verifications`
+-- Indexes for table `veterinary_verifications`
 --
-ALTER TABLE `shelter_verifications`
+ALTER TABLE `veterinary_verifications`
   ADD PRIMARY KEY (`verification_id`),
-  ADD KEY `shelter_id` (`shelter_id`);
+  ADD KEY `veterinary_id` (`veterinary_id`);
 
 --
 -- Indexes for table `site_content`
@@ -489,9 +489,9 @@ ALTER TABLE `pet_photos`
   MODIFY `photo_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
--- AUTO_INCREMENT for table `shelter_verifications`
+-- AUTO_INCREMENT for table `veterinary_verifications`
 --
-ALTER TABLE `shelter_verifications`
+ALTER TABLE `veterinary_verifications`
   MODIFY `verification_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
@@ -515,7 +515,7 @@ ALTER TABLE `adopter_profiles`
 --
 ALTER TABLE `conversations`
   ADD CONSTRAINT `conversations_ibfk_1` FOREIGN KEY (`adopter_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `conversations_ibfk_2` FOREIGN KEY (`shelter_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
+  ADD CONSTRAINT `conversations_ibfk_2` FOREIGN KEY (`veterinary_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `favorites`
@@ -542,7 +542,7 @@ ALTER TABLE `notifications`
 -- Constraints for table `pets`
 --
 ALTER TABLE `pets`
-  ADD CONSTRAINT `pets_ibfk_1` FOREIGN KEY (`shelter_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
+  ADD CONSTRAINT `pets_ibfk_1` FOREIGN KEY (`veterinary_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `pet_photos`
@@ -551,16 +551,16 @@ ALTER TABLE `pet_photos`
   ADD CONSTRAINT `pet_photos_ibfk_1` FOREIGN KEY (`pet_id`) REFERENCES `pets` (`pet_id`) ON DELETE CASCADE;
 
 --
--- Constraints for table `shelter_profiles`
+-- Constraints for table `veterinary_profiles`
 --
-ALTER TABLE `shelter_profiles`
-  ADD CONSTRAINT `shelter_profiles_ibfk_1` FOREIGN KEY (`shelter_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
+ALTER TABLE `veterinary_profiles`
+  ADD CONSTRAINT `veterinary_profiles_ibfk_1` FOREIGN KEY (`veterinary_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
 
 --
--- Constraints for table `shelter_verifications`
+-- Constraints for table `veterinary_verifications`
 --
-ALTER TABLE `shelter_verifications`
-  ADD CONSTRAINT `shelter_verifications_ibfk_1` FOREIGN KEY (`shelter_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
+ALTER TABLE `veterinary_verifications`
+  ADD CONSTRAINT `veterinary_verifications_ibfk_1` FOREIGN KEY (`veterinary_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

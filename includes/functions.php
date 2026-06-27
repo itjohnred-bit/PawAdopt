@@ -143,7 +143,7 @@ function getUnreadMessageCount(int $userId): int {
         "SELECT COUNT(*) as cnt FROM messages WHERE is_read = 0 AND sender_user_id != ?
          AND conversation_id IN (
              SELECT conversation_id FROM conversations
-             WHERE adopter_id = ? OR shelter_id = ?
+             WHERE adopter_id = ? OR veterinary_id = ?
          )",
         [$userId, $userId, $userId]
     );

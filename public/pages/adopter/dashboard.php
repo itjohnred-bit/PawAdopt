@@ -63,11 +63,11 @@ if (!is_array($profile)) {
 }
 
 $recentApps = $db->fetchAll(
-    "SELECT aa.*, p.name AS pet_name, p.species, sp.shelter_name,
+    "SELECT aa.*, p.name AS pet_name, p.species, sp.veterinary_name,
      (SELECT pp.photo_url FROM pet_photos pp WHERE pp.pet_id = p.pet_id AND pp.is_primary = 1 LIMIT 1) AS pet_photo
      FROM adoption_applications aa
      JOIN pets p ON aa.pet_id = p.pet_id
-     JOIN shelter_profiles sp ON aa.shelter_id = sp.shelter_id
+     JOIN veterinary_profiles sp ON aa.veterinary_id = sp.veterinary_id
      WHERE aa.adopter_id = ?
      ORDER BY aa.submitted_at DESC LIMIT 5",
     [$user['user_id']]
@@ -77,10 +77,10 @@ if (!is_array($recentApps)) {
 }
 
 $featuredPets = $db->fetchAll(
-    "SELECT p.*, sp.shelter_name, sp.city AS shelter_city,
+    "SELECT p.*, sp.veterinary_name, sp.city AS veterinary_city,
      (SELECT pp.photo_url FROM pet_photos pp WHERE pp.pet_id = p.pet_id AND pp.is_primary = 1 LIMIT 1) AS primary_photo
      FROM pets p
-     JOIN shelter_profiles sp ON p.shelter_id = sp.shelter_id
+     JOIN veterinary_profiles sp ON p.veterinary_id = sp.veterinary_id
      WHERE p.status = 'Available'
      ORDER BY RAND() LIMIT 4"
 );
@@ -173,7 +173,7 @@ include __DIR__ . '/../../includes/header.php';
         <?php else: ?>
         <div class="table-wrap">
             <table class="data-table">
-                <thead><tr><th>Pet</th><th>Shelter</th><th>Status</th><th>Date</th></tr></thead>
+                <thead><tr><th>Pet</th><th>veterinary</th><th>Status</th><th>Date</th></tr></thead>
                 <tbody>
                 <?php foreach ($recentApps as $app): ?>
                 <?php
@@ -192,7 +192,7 @@ include __DIR__ . '/../../includes/header.php';
                             </div>
                         </div>
                     </td>
-                    <td><?= sanitize($app['shelter_name'] ?? '') ?></td>
+                    <td><?= sanitize($app['veterinary_name'] ?? '') ?></td>
                     <td><?= statusBadge($app['status'] ?? '') ?></td>
                     <td style="font-size:.82rem;color:var(--gray-mid)"><?= $submittedAt ? date('M j', $submittedAt) : '—' ?></td>
                 </tr>
@@ -230,7 +230,7 @@ include __DIR__ . '/../../includes/header.php';
                         <div class="pet-card-body" style="padding:10px">
                             <div class="pet-card-name" style="font-size:.95rem"><?= sanitize($p['name'] ?? 'Unnamed') ?></div>
                             <div class="pet-card-meta">
-                                <span>🏠 <?= sanitize($p['shelter_city'] ?? '') ?></span>
+                                <span>🏠 <?= sanitize($p['veterinary_city'] ?? '') ?></span>
                             </div>
                         </div>
                     </div>

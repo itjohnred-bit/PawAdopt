@@ -9,10 +9,10 @@ $db   = Database::getInstance();
 $user = getCurrentUser();
 
 $pet = $db->fetch(
-    "SELECT p.*, sp.shelter_name, sp.city as shelter_city, sp.phone as shelter_phone,
-            sp.description as shelter_desc, sp.is_verified
+    "SELECT p.*, sp.veterinary_name, sp.city as veterinary_city, sp.phone as veterinary_phone,
+            sp.description as veterinary_desc, sp.is_verified
      FROM pets p
-     JOIN shelter_profiles sp ON p.shelter_id = sp.shelter_id
+     JOIN veterinary_profiles sp ON p.veterinary_id = sp.veterinary_id
      WHERE p.pet_id = ? AND p.status != 'Removed'",
     [$petId]
 );
@@ -139,16 +139,16 @@ include __DIR__ . '/../../includes/header.php';
             <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
                 <div class="avatar-circle" style="background:var(--teal-light);color:var(--teal-dark)">🏠</div>
                 <div>
-                    <div class="fw-bold"><?= sanitize($pet['shelter_name']) ?>
+                    <div class="fw-bold"><?= sanitize($pet['veterinary_name']) ?>
                         <?php if ($pet['is_verified']): ?><span class="badge badge-success" style="margin-left:4px">✓ Verified</span><?php endif; ?>
                     </div>
-                    <?php if ($pet['shelter_city']): ?>
-                    <div class="text-muted" style="font-size:.82rem"><i class="fas fa-map-marker-alt"></i> <?= sanitize($pet['shelter_city']) ?></div>
+                    <?php if ($pet['veterinary_city']): ?>
+                    <div class="text-muted" style="font-size:.82rem"><i class="fas fa-map-marker-alt"></i> <?= sanitize($pet['veterinary_city']) ?></div>
                     <?php endif; ?>
                 </div>
             </div>
-            <button onclick="startMessage(<?= $pet['shelter_id'] ?>,<?= $petId ?>)" class="btn btn-outline btn-sm btn-block">
-                <i class="fas fa-comment"></i> Message Shelter
+            <button onclick="startMessage(<?= $pet['veterinary_id'] ?>,<?= $petId ?>)" class="btn btn-outline btn-sm btn-block">
+                <i class="fas fa-comment"></i> Message veterinary
             </button>
         </div>
 
@@ -441,9 +441,9 @@ async function apiRequest(url, method = 'GET', body = null) {
     }
 }
 
-async function startMessage(shelterId, petId) {
+async function startMessage(veterinaryId, petId) {
     const res = await apiRequest('<?= APP_URL ?>/api/messages.php', 'POST', new URLSearchParams({
-        action: 'start', shelter_id: shelterId, pet_id: petId
+        action: 'start', veterinary_id: veterinaryId, pet_id: petId
     }));
     if (res.success) {
         window.location.href = '<?= APP_URL ?>/pages/adopter/messages.php?conv=' + res.data.conversation_id;

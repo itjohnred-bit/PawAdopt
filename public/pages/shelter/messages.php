@@ -3,14 +3,14 @@
 require_once __DIR__ . '/../../includes/functions.php';
 
 startSession();
-requireRole('SHELTER');
+requireRole('VETERINARY');
 
-$pageTitle = 'Shelter Messages';
+$pageTitle = 'veterinary Messages';
 $user = getCurrentUser();
 $db   = Database::getInstance();
 
-$shelter = $db->fetch("SELECT shelter_id, shelter_name FROM shelter_profiles WHERE shelter_id = ?", [$user['user_id']]);
-$shelterId = $shelter['shelter_id'] ?? 0;
+$veterinary = $db->fetch("SELECT veterinary_id, veterinary_name FROM veterinary_profiles WHERE veterinary_id = ?", [$user['user_id']]);
+$veterinaryId = $veterinary['veterinary_id'] ?? 0;
 
 $convs = $db->fetchAll(
     "SELECT c.*, u.username as other_name, u.email as adopter_email,
@@ -20,9 +20,9 @@ $convs = $db->fetchAll(
      FROM conversations c
      JOIN users u ON c.adopter_id = u.user_id
      LEFT JOIN pets p ON c.pet_id = p.pet_id
-     WHERE c.shelter_id = ?
+     WHERE c.veterinary_id = ?
      ORDER BY c.created_at DESC",
-    [$user['user_id'], $shelterId]
+    [$user['user_id'], $veterinaryId]
 );
 
 $activeConvId = (int)($_GET['conv'] ?? ($convs[0]['conversation_id'] ?? 0));
@@ -34,7 +34,7 @@ include __DIR__ . '/../../includes/header.php';
 <script src="../../assets/js/app.js?v=<?= time() ?>"></script>
 
 <div class="page-header">
-    <h1 class="page-title"><span class="icon">📩</span> Shelter Inbox</h1>
+    <h1 class="page-title"><span class="icon">📩</span> veterinary Inbox</h1>
     <p class="text-muted">Manage inquiries from potential adopters regarding your pets.</p>
 </div>
 

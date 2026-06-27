@@ -21,7 +21,7 @@ switch ($action) {
         $message = trim($_POST['notes'] ?? $_POST['message'] ?? '');
         if (!$petId) { jsonError('Pet ID is required.'); exit; }
 
-        $pet = $db->fetch("SELECT pet_id, shelter_id, status FROM pets WHERE pet_id = ?", [$petId]);
+        $pet = $db->fetch("SELECT pet_id, veterinary_id, status FROM pets WHERE pet_id = ?", [$petId]);
         if (!$pet) { jsonError('Pet not found.'); exit; }
         if ($pet['status'] !== 'Available') { jsonError('This pet is no longer available.'); exit; }
 
@@ -43,9 +43,9 @@ switch ($action) {
 
         $db->execute(
             "INSERT INTO adoption_applications
-                 (pet_id, adopter_id, shelter_id, status, message_to_shelter, screening_responses, submitted_at)
+                 (pet_id, adopter_id, veterinary_id, status, message_to_veterinary, screening_responses, submitted_at)
              VALUES (?, ?, ?, 'Submitted', ?, ?, NOW())",
-            [$petId, $user['user_id'], $pet['shelter_id'], $message, $screeningJson]
+            [$petId, $user['user_id'], $pet['veterinary_id'], $message, $screeningJson]
         );
         $appId = (int)$db->lastInsertId();
 
@@ -54,11 +54,11 @@ switch ($action) {
         }
         if (function_exists('createNotification')) {
             createNotification(
-                $pet['shelter_id'],
+                $pet['veterinary_id'],
                 'NEW_APPLICATION',
                 'New adoption application',
                 "{$user['username']} applied for one of your pets.",
-                APP_URL . '/pages/shelter/applications.php'
+                APP_URL . '/pages/veterinary/applications.php'
             );
         }
 
@@ -98,7 +98,7 @@ switch ($action) {
         jsonSuccess([], 'Application cancelled.');
         exit;
 
-    // ──────────────────────── SHELTER: view full application details ─────────────
+    // ──────────────────────── VETERINARY: view full application details ─────────────
     case 'get_detail':
         if (!$user) { jsonError('Please log in.'); exit; }
 
@@ -109,8 +109,8 @@ switch ($action) {
                        p.name     AS pet_name,
                        p.species,
                        p.breed,
-                       sp.shelter_name,
-                       sp.city    AS shelter_city,
+                       sp.veterinary_name,
+                       sp.city    AS veterinary_city,
                        u.username AS adopter_username,
                        u.email    AS adopter_email,
                        ap.full_name AS adopter_name,
@@ -119,7 +119,7 @@ switch ($action) {
                        ap.bio     AS adopter_bio
                   FROM adoption_applications aa
                   JOIN pets p  ON aa.pet_id     = p.pet_id
-                  JOIN shelter_profiles sp ON p.shelter_id = sp.shelter_id
+                  JOIN veterinary_profiles sp ON p.veterinary_id = sp.veterinary_id
                   JOIN users u  ON aa.adopter_id = u.user_id
                   LEFT JOIN adopter_profiles ap ON aa.adopter_id = ap.adopter_id
                  WHERE aa.application_id = ?";
@@ -128,17 +128,17 @@ switch ($action) {
 
         // Authorization check
         $role      = strtoupper($user['role']);
-        $isShelter = ($role === 'SHELTER' || $role === 'VETERINARY') && (int)$app['shelter_id'] === (int)$user['user_id'];
+        $isveterinary = ($role === 'VETERINARY' || $role === 'VETERINARY') && (int)$app['veterinary_id'] === (int)$user['user_id'];
         $isAdopter = $role === 'ADOPTER' && (int)$app['adopter_id'] === (int)$user['user_id'];
         $isAdmin   = $role === 'ADMIN';
-        if (!$isShelter && !$isAdopter && !$isAdmin) {
+        if (!$isveterinary && !$isAdopter && !$isAdmin) {
             jsonError('Not authorized to view this application.'); exit;
         }
 
         jsonSuccess($app);
         exit;
 
-    // ──────────────────────── SHELTER: approve / reject / mark under review ──────
+    // ──────────────────────── VETERINARY: approve / reject / mark under review ──────
     case 'review':
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') { jsonError('Method not allowed', 405); exit; }
         if (!$user) { jsonError('Please log in.'); exit; }
@@ -152,7 +152,7 @@ switch ($action) {
         if (!in_array($status, $allowed, true)) { jsonError('Invalid status.'); exit; }
 
         $app = $db->fetch(
-            "SELECT aa.*, p.shelter_id
+            "SELECT aa.*, p.veterinary_id
                FROM adoption_applications aa
                JOIN pets p ON aa.pet_id = p.pet_id
               WHERE aa.application_id = ?",
@@ -161,9 +161,9 @@ switch ($action) {
         if (!$app) { jsonError('Application not found.'); exit; }
 
         $role      = strtoupper($user['role']);
-        $isShelter = ($role === 'SHELTER' || $role === 'VETERINARY') && (int)$app['shelter_id'] === (int)$user['user_id'];
+        $isveterinary = ($role === 'VETERINARY' || $role === 'VETERINARY') && (int)$app['veterinary_id'] === (int)$user['user_id'];
         $isAdmin   = $role === 'ADMIN';
-        if (!$isShelter && !$isAdmin) {
+        if (!$isveterinary && !$isAdmin) {
             jsonError('Not authorized to review this application.'); exit;
         }
 

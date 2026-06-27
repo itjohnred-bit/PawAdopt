@@ -22,17 +22,17 @@ if ($role === 'ADOPTER') {
     $msgUrl     = "$basePath/pages/adopter/messages.php";
     $profileUrl = "$basePath/pages/adopter/profile.php";
     $notifUrl   = "$basePath/pages/adopter/notifications.php"; 
-} elseif ($role === 'SHELTER') {
-    $dashUrl    = "$basePath/pages/shelter/dashboard.php";
-    $petsUrl    = "$basePath/pages/shelter/pets.php";
-    $appsUrl    = "$basePath/pages/shelter/applications.php";
-    $msgUrl     = "$basePath/pages/shelter/messages.php";
-    $profileUrl = "$basePath/pages/shelter/profile.php";
-    $notifUrl   = "$basePath/pages/shelter/notifications.php"; 
+} elseif ($role === 'VETERINARY') {
+    $dashUrl    = "$basePath/pages/veterinary/dashboard.php";
+    $petsUrl    = "$basePath/pages/veterinary/pets.php";
+    $appsUrl    = "$basePath/pages/veterinary/applications.php";
+    $msgUrl     = "$basePath/pages/veterinary/messages.php";
+    $profileUrl = "$basePath/pages/veterinary/profile.php";
+    $notifUrl   = "$basePath/pages/veterinary/notifications.php"; 
 } else {
     $dashUrl    = "$basePath/pages/admin/dashboard.php";
     $usersUrl   = "$basePath/pages/admin/users.php";
-    $sheltersUrl= "$basePath/pages/admin/shelters.php";
+    $veterinarysUrl= "$basePath/pages/admin/veterinarys.php";
     $petsAdmUrl = "$basePath/pages/admin/pets.php";
     $reportsUrl = "$basePath/pages/admin/reports.php";
     $auditLogsUrl = "$basePath/pages/admin/audit-logs.php";
@@ -212,7 +212,7 @@ if ($role === 'ADOPTER') {
                 <a href="<?= $browseUrl ?>" class="nav-item <?= $current_page == 'browse.php' ? 'active' : '' ?>"><i class="fas fa-search"></i> Browse</a>
                 <a href="<?= $favUrl ?>" class="nav-item <?= $current_page == 'favorites.php' ? 'active' : '' ?>"><i class="fas fa-heart"></i> Favorites</a>
                 <a href="<?= $appsUrl ?>" class="nav-item <?= $current_page == 'applications.php' ? 'active' : '' ?>"><i class="fas fa-file-alt"></i> My Applications</a>
-            <?php elseif ($role === 'SHELTER'): ?>
+            <?php elseif ($role === 'VETERINARY'): ?>
                 <a href="<?= $dashUrl ?>" class="nav-item <?= $current_page == 'dashboard.php' ? 'active' : '' ?>"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
                 <a href="<?= $petsUrl ?>" class="nav-item <?= $current_page == 'pets.php' ? 'active' : '' ?>"><i class="fas fa-paw"></i> My Pets</a>
                 <a href="<?= $appsUrl ?>" class="nav-item <?= $current_page == 'applications.php' ? 'active' : '' ?>"><i class="fas fa-file-alt"></i> Applications</a>
@@ -220,7 +220,7 @@ if ($role === 'ADOPTER') {
                 <!-- ADMIN MENU -->
                 <a href="<?= $dashUrl ?>" class="nav-item <?= $current_page == 'dashboard.php' ? 'active' : '' ?>"><i class="fas fa-th-large"></i> Dashboard</a>
                 <a href="<?= $usersUrl ?>" class="nav-item <?= $current_page == 'users.php' ? 'active' : '' ?>"><i class="fas fa-users"></i> Users</a>
-                <a href="<?= $sheltersUrl ?>" class="nav-item <?= $current_page == 'shelters.php' ? 'active' : '' ?>"><i class="fas fa-building"></i> Shelters</a>
+                <a href="<?= $veterinarysUrl ?>" class="nav-item <?= $current_page == 'veterinarys.php' ? 'active' : '' ?>"><i class="fas fa-building"></i> veterinarys</a>
                 <a href="<?= $petsAdmUrl ?>" class="nav-item <?= $current_page == 'pets.php' ? 'active' : '' ?>"><i class="fas fa-paw"></i> Pets</a>
                 <a href="<?= $reportsUrl ?>" class="nav-item <?= $current_page == 'reports.php' ? 'active' : '' ?>"><i class="fas fa-chart-bar"></i> Reports</a>
                 <a href="<?= $auditLogsUrl ?>" class="nav-item <?= $current_page == 'audit-logs.php' ? 'active' : '' ?>"><i class="fas fa-history"></i> Audit Logs</a>

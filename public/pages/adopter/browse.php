@@ -21,19 +21,19 @@ if ($species) { $where[] = 'p.species = ?'; $params[] = $species; }
 if ($sex)     { $where[] = 'p.sex = ?';     $params[] = $sex; }
 if ($size)    { $where[] = 'p.size = ?';    $params[] = $size; }
 if ($search)  {
-    $where[] = '(p.name LIKE ? OR p.breed LIKE ? OR sp.shelter_name LIKE ?)';
+    $where[] = '(p.name LIKE ? OR p.breed LIKE ? OR sp.veterinary_name LIKE ?)';
     $params = array_merge($params, ["%$search%","%$search%","%$search%"]);
 }
 $whereStr = implode(' AND ', $where);
 
-$totalRow = $db->fetch("SELECT COUNT(*) as c FROM pets p JOIN shelter_profiles sp ON p.shelter_id = sp.shelter_id WHERE $whereStr", $params);
+$totalRow = $db->fetch("SELECT COUNT(*) as c FROM pets p JOIN veterinary_profiles sp ON p.veterinary_id = sp.veterinary_id WHERE $whereStr", $params);
 $total  = $totalRow ? (int)$totalRow['c'] : 0;
 $pages  = max(1, ceil($total / $limit));
 
 $pets = $db->fetchAll(
-    "SELECT p.*, sp.shelter_name, sp.city as shelter_city,
+    "SELECT p.*, sp.veterinary_name, sp.city as veterinary_city,
      (SELECT pp.photo_url FROM pet_photos pp WHERE pp.pet_id = p.pet_id AND pp.is_primary = 1 LIMIT 1) as primary_photo
-     FROM pets p JOIN shelter_profiles sp ON p.shelter_id = sp.shelter_id
+     FROM pets p JOIN veterinary_profiles sp ON p.veterinary_id = sp.veterinary_id
      WHERE $whereStr ORDER BY p.created_at DESC LIMIT $limit OFFSET $offset",
     $params
 );
@@ -114,8 +114,8 @@ include __DIR__ . '/../../includes/header.php';
             <span><?= $pet['sex'] === 'Male' ? '♂' : ($pet['sex'] === 'Female' ? '♀' : '⚥') ?> <?= $pet['sex'] ?></span>
         </div>
         <div style="font-size:.8rem;color:var(--gray-mid)">
-            <i class="fas fa-building"></i> <?= sanitize($pet['shelter_name']) ?>
-            <?php if ($pet['shelter_city']): ?> · <?= sanitize($pet['shelter_city']) ?><?php endif; ?>
+            <i class="fas fa-building"></i> <?= sanitize($pet['veterinary_name']) ?>
+            <?php if ($pet['veterinary_city']): ?> · <?= sanitize($pet['veterinary_city']) ?><?php endif; ?>
         </div>
     </div>
     <div class="pet-card-footer">

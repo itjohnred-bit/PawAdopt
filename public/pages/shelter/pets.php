@@ -1,12 +1,12 @@
 <?php
 require_once __DIR__ . '/../../includes/functions.php';
-requireRole('SHELTER');
+requireRole('VETERINARY');
 $pageTitle = 'My Pet Listings';
 $user = getCurrentUser();
 $db   = Database::getInstance();
 
 $status = $_GET['status'] ?? '';
-$where  = ['p.shelter_id = ?'];
+$where  = ['p.veterinary_id = ?'];
 $params = [$user['user_id']];
 if ($status) { $where[] = 'p.status = ?'; $params[] = $status; }
 $whereStr = implode(' AND ', $where);
@@ -56,7 +56,7 @@ include __DIR__ . '/../../includes/header.php';
 
 <div class="page-header">
     <h1 class="page-title"><span class="icon">🐾</span> My Pet Listings</h1>
-    <a href="<?= APP_URL ?>/pages/shelter/add-pet.php" class="btn btn-primary"><i class="fas fa-plus"></i> Add New Pet</a>
+    <a href="<?= APP_URL ?>/pages/veterinary/add-pet.php" class="btn btn-primary"><i class="fas fa-plus"></i> Add New Pet</a>
 </div>
 
 <!-- Status filters -->
@@ -72,7 +72,7 @@ include __DIR__ . '/../../includes/header.php';
     <div class="empty-icon">🐾</div>
     <h3>No pet listings found</h3>
     <p>Start by adding your first adoptable pet!</p>
-    <a href="<?= APP_URL ?>/pages/shelter/add-pet.php" class="btn btn-primary">Add a Pet</a>
+    <a href="<?= APP_URL ?>/pages/veterinary/add-pet.php" class="btn btn-primary">Add a Pet</a>
 </div>
 <?php else: ?>
 <div class="table-wrap card" style="padding:0">
@@ -94,13 +94,13 @@ include __DIR__ . '/../../includes/header.php';
             <td><?= formatAge($pet['age_months']) ?></td>
             <td><?= statusBadge($pet['status']) ?></td>
             <td>
-                <a href="<?= APP_URL ?>/pages/shelter/applications.php?pet=<?= $pet['pet_id'] ?>" class="badge badge-info" style="text-decoration:none">
+                <a href="<?= APP_URL ?>/pages/veterinary/applications.php?pet=<?= $pet['pet_id'] ?>" class="badge badge-info" style="text-decoration:none">
                     <?= $pet['app_count'] ?> apps
                 </a>
             </td>
             <td>
                 <div style="display:flex;gap:6px">
-                    <a href="<?= APP_URL ?>/pages/shelter/edit-pet.php?id=<?= $pet['pet_id'] ?>" class="btn btn-outline btn-sm">Edit</a>
+                    <a href="<?= APP_URL ?>/pages/veterinary/edit-pet.php?id=<?= $pet['pet_id'] ?>" class="btn btn-outline btn-sm">Edit</a>
                     <?php if ($pet['status'] !== 'Removed'): ?>
                     <button onclick="deletePet(<?= (int)$pet['pet_id'] ?>)" class="btn btn-danger btn-sm">Remove</button>
                     <?php endif; ?>

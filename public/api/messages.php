@@ -22,12 +22,12 @@ switch ($action) {
     case 'conversations':
         if ($user['role'] === 'ADOPTER') {
             $convs = $db->fetchAll(
-                "SELECT c.*, sp.shelter_name as other_name,
+                "SELECT c.*, sp.veterinary_name as other_name,
                  (SELECT m.message_text FROM messages m WHERE m.conversation_id = c.conversation_id ORDER BY m.created_at DESC LIMIT 1) as last_message,
                  (SELECT COUNT(*) FROM messages m WHERE m.conversation_id = c.conversation_id AND m.is_read = 0 AND m.sender_id != ?) as unread_count,
                  p.name as pet_name
                  FROM conversations c
-                 JOIN shelter_profiles sp ON c.shelter_id = sp.shelter_id
+                 JOIN veterinary_profiles sp ON c.veterinary_id = sp.veterinary_id
                  LEFT JOIN pets p ON c.pet_id = p.pet_id
                  WHERE c.adopter_id = ?
                  ORDER BY c.created_at DESC",
@@ -42,7 +42,7 @@ switch ($action) {
                  FROM conversations c
                  JOIN users u ON c.adopter_id = u.user_id
                  LEFT JOIN pets p ON c.pet_id = p.pet_id
-                 WHERE c.shelter_id = ?
+                 WHERE c.veterinary_id = ?
                  ORDER BY c.created_at DESC",
                 [$user['user_id'], $user['user_id']]
             );
@@ -93,7 +93,7 @@ switch ($action) {
         $conv = $db->fetch("SELECT * FROM conversations WHERE conversation_id = ?", [$convId]);
         if (!$conv) { jsonError('Conversation not found.', 404); break; }
 
-        $recipientId = ($user['user_id'] == $conv['adopter_id']) ? $conv['shelter_id'] : $conv['adopter_id'];
+        $recipientId = ($user['user_id'] == $conv['adopter_id']) ? $conv['veterinary_id'] : $conv['adopter_id'];
 
         try {
             $db->execute(
@@ -108,14 +108,14 @@ switch ($action) {
 case 'start':
         if ($user['role'] !== 'ADOPTER') { jsonError('Only adopters can start chats.', 403); break; }
 
-        $shelterId = (int)($_POST['shelter_id'] ?? 0);
+        $veterinaryId = (int)($_POST['veterinary_id'] ?? 0);
         $petId     = isset($_POST['pet_id']) && $_POST['pet_id'] !== '' ? (int)$_POST['pet_id'] : 0;
 
-        if (!$shelterId) { jsonError('Shelter ID required.'); break; }
+        if (!$veterinaryId) { jsonError('veterinary ID required.'); break; }
 
         $existing = $db->fetch(
-            "SELECT conversation_id, pet_id FROM conversations WHERE adopter_id = ? AND shelter_id = ?",
-            [$user['user_id'], $shelterId]
+            "SELECT conversation_id, pet_id FROM conversations WHERE adopter_id = ? AND veterinary_id = ?",
+            [$user['user_id'], $veterinaryId]
         );
 
         if ($existing) {
@@ -135,14 +135,14 @@ case 'start':
         try {
             $insertPetId = ($petId > 0) ? $petId : null;
             $db->execute(
-                "INSERT INTO conversations (adopter_id, shelter_id, pet_id) VALUES (?, ?, ?)",
-                [$user['user_id'], $shelterId, $insertPetId]
+                "INSERT INTO conversations (adopter_id, veterinary_id, pet_id) VALUES (?, ?, ?)",
+                [$user['user_id'], $veterinaryId, $insertPetId]
             );
             jsonSuccess(['conversation_id' => (int)$db->lastInsertId()], 'Chat started.');
         } catch (Exception $e) {
             $fallback = $db->fetch(
-                "SELECT conversation_id FROM conversations WHERE adopter_id = ? AND shelter_id = ?",
-                [$user['user_id'], $shelterId]
+                "SELECT conversation_id FROM conversations WHERE adopter_id = ? AND veterinary_id = ?",
+                [$user['user_id'], $veterinaryId]
             );
             
             if ($fallback) {

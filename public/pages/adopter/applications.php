@@ -6,11 +6,11 @@ $user = getCurrentUser();
 $db   = Database::getInstance();
 
 $apps = $db->fetchAll(
-    "SELECT aa.*, p.name as pet_name, p.species, p.breed, sp.shelter_name, sp.city as shelter_city,
+    "SELECT aa.*, p.name as pet_name, p.species, p.breed, sp.veterinary_name, sp.city as veterinary_city,
      (SELECT pp.photo_url FROM pet_photos pp WHERE pp.pet_id = p.pet_id AND pp.is_primary = 1 LIMIT 1) as pet_photo
      FROM adoption_applications aa
      JOIN pets p ON aa.pet_id = p.pet_id
-     JOIN shelter_profiles sp ON aa.shelter_id = sp.shelter_id
+     JOIN veterinary_profiles sp ON aa.veterinary_id = sp.veterinary_id
      WHERE aa.adopter_id = ?
      ORDER BY aa.submitted_at DESC",
     [$user['user_id']]
@@ -61,7 +61,7 @@ include __DIR__ . '/../../includes/header.php';
                 <div>
                     <div style="font-size:1.1rem;font-weight:800"><?= sanitize($app['pet_name']) ?></div>
                     <div class="text-muted" style="font-size:.84rem"><?= sanitize($app['species']) ?><?= $app['breed'] ? ' · '.sanitize($app['breed']) : '' ?></div>
-                    <div class="text-muted" style="font-size:.82rem;margin-top:2px"><i class="fas fa-building"></i> <?= sanitize($app['shelter_name']) ?><?= $app['shelter_city'] ? ', '.sanitize($app['shelter_city']) : '' ?></div>
+                    <div class="text-muted" style="font-size:.82rem;margin-top:2px"><i class="fas fa-building"></i> <?= sanitize($app['veterinary_name']) ?><?= $app['veterinary_city'] ? ', '.sanitize($app['veterinary_city']) : '' ?></div>
                 </div>
                 <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
                     <?= statusBadge($app['status']) ?>
@@ -71,15 +71,15 @@ include __DIR__ . '/../../includes/header.php';
                 </div>
             </div>
 
-            <?php if ($app['message_to_shelter']): ?>
+            <?php if ($app['message_to_veterinary']): ?>
             <div style="margin-top:10px;background:var(--gray-bg);border-radius:10px;padding:10px;font-size:.85rem">
-                <strong>Your message:</strong> <?= sanitize($app['message_to_shelter']) ?>
+                <strong>Your message:</strong> <?= sanitize($app['message_to_veterinary']) ?>
             </div>
             <?php endif; ?>
 
             <?php if ($app['decision_note'] && in_array($app['status'], ['Approved','Rejected'])): ?>
             <div style="margin-top:8px;background:<?= $app['status']==='Approved'?'#ecfdf5':'#fef2f2' ?>;border-radius:10px;padding:10px;font-size:.85rem;color:<?= $app['status']==='Approved'?'#065f46':'#991b1b' ?>">
-                <strong>Shelter note:</strong> <?= sanitize($app['decision_note']) ?>
+                <strong>veterinary note:</strong> <?= sanitize($app['decision_note']) ?>
             </div>
             <?php endif; ?>
 

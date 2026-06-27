@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/../../../includes/functions.php';
 requireRole('ADMIN');
-$pageTitle = 'Shelter Verification';
+$pageTitle = 'veterinary Verification';
 $user = getCurrentUser();
 $db   = Database::getInstance();
 
@@ -10,11 +10,11 @@ $where  = []; $params = [];
 if ($statusFilter) { $where[] = 'sv.status = ?'; $params[] = $statusFilter; }
 $whereStr = $where ? 'WHERE '.implode(' AND ',$where) : '';
 
-$shelters = $db->fetchAll(
-    "SELECT sv.*, sp.shelter_name, sp.city, sp.phone, sp.is_verified, sp.description, u.email, u.username, u.created_at as joined_at
-     FROM shelter_verifications sv
-     JOIN shelter_profiles sp ON sv.shelter_id = sp.shelter_id
-     JOIN users u ON sv.shelter_id = u.user_id
+$veterinarys = $db->fetchAll(
+    "SELECT sv.*, sp.veterinary_name, sp.city, sp.phone, sp.is_verified, sp.description, u.email, u.username, u.created_at as joined_at
+     FROM veterinary_verifications sv
+     JOIN veterinary_profiles sp ON sv.veterinary_id = sp.veterinary_id
+     JOIN users u ON sv.veterinary_id = u.user_id
      $whereStr ORDER BY sv.submitted_at DESC",
     $params
 );
@@ -23,8 +23,8 @@ include __DIR__ . '/../../../includes/header.php';
 ?>
 
 <div class="page-header">
-    <h1 class="page-title"><span class="icon">🏠</span> Shelter Verification</h1>
-    <span class="text-muted"><?= count($shelters) ?> shelter<?= count($shelters)!==1?'s':'' ?></span>
+    <h1 class="page-title"><span class="icon">🏠</span> veterinary Verification</h1>
+    <span class="text-muted"><?= count($veterinarys) ?> veterinary<?= count($veterinarys)!==1?'s':'' ?></span>
 </div>
 
 <div class="tabs">
@@ -35,21 +35,21 @@ include __DIR__ . '/../../../includes/header.php';
     <?php endforeach; ?>
 </div>
 
-<?php if (empty($shelters)): ?>
+<?php if (empty($veterinarys)): ?>
 <div class="empty-state">
     <div class="empty-icon">🏠</div>
-    <h3>No shelters found</h3>
+    <h3>No veterinarys found</h3>
 </div>
 <?php else: ?>
 <div style="display:flex;flex-direction:column;gap:14px">
-<?php foreach ($shelters as $sv): ?>
+<?php foreach ($veterinarys as $sv): ?>
 <div class="card">
     <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px">
         <div style="flex:1">
             <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
                 <div class="avatar-circle" style="background:var(--teal-light);color:var(--teal-dark)">🏠</div>
                 <div>
-                    <div class="fw-bold" style="font-size:1.05rem"><?= sanitize($sv['shelter_name']) ?></div>
+                    <div class="fw-bold" style="font-size:1.05rem"><?= sanitize($sv['veterinary_name']) ?></div>
                     <div class="text-muted" style="font-size:.82rem"><?= sanitize($sv['email']) ?> <?= $sv['city'] ? '· '.sanitize($sv['city']) : '' ?></div>
                 </div>
             </div>
@@ -68,13 +68,13 @@ include __DIR__ . '/../../../includes/header.php';
             <?= statusBadge($sv['status']) ?>
             <?php if ($sv['status'] !== 'APPROVED' && $sv['status'] !== 'REJECTED' || $sv['status'] === 'PENDING'): ?>
             <div style="display:flex;gap:6px">
-                <button onclick="verifyShelter(<?= $sv['shelter_id'] ?>,'APPROVED')" class="btn btn-success btn-sm">✅ Approve</button>
-                <button onclick="showRejectModal(<?= $sv['shelter_id'] ?>)" class="btn btn-danger btn-sm">❌ Reject</button>
+                <button onclick="verifyveterinary(<?= $sv['veterinary_id'] ?>,'APPROVED')" class="btn btn-success btn-sm">✅ Approve</button>
+                <button onclick="showRejectModal(<?= $sv['veterinary_id'] ?>)" class="btn btn-danger btn-sm">❌ Reject</button>
             </div>
             <?php elseif ($sv['status'] === 'REJECTED'): ?>
-            <button onclick="verifyShelter(<?= $sv['shelter_id'] ?>,'APPROVED')" class="btn btn-success btn-sm">Re-Approve</button>
+            <button onclick="verifyveterinary(<?= $sv['veterinary_id'] ?>,'APPROVED')" class="btn btn-success btn-sm">Re-Approve</button>
             <?php elseif ($sv['status'] === 'APPROVED'): ?>
-            <button onclick="showRejectModal(<?= $sv['shelter_id'] ?>)" class="btn btn-danger btn-sm">Revoke</button>
+            <button onclick="showRejectModal(<?= $sv['veterinary_id'] ?>)" class="btn btn-danger btn-sm">Revoke</button>
             <?php endif; ?>
         </div>
     </div>
@@ -87,12 +87,12 @@ include __DIR__ . '/../../../includes/header.php';
 <div class="modal-overlay" id="rejectModal">
     <div class="modal">
         <div class="modal-header">
-            <span class="modal-title">❌ Reject / Revoke Shelter</span>
+            <span class="modal-title">❌ Reject / Revoke veterinary</span>
             <button class="modal-close" onclick="closeModal('rejectModal')">&times;</button>
         </div>
         <div class="modal-body">
             <div class="form-group">
-                <label class="form-label">Reason (shown to shelter)</label>
+                <label class="form-label">Reason (shown to veterinary)</label>
                 <textarea id="rejectNote" class="form-control" rows="3" placeholder="Reason for rejection…"></textarea>
             </div>
         </div>
@@ -105,15 +105,15 @@ include __DIR__ . '/../../../includes/header.php';
 
 <script>
 let rejectShelId = null;
-function showRejectModal(shelterId) { rejectShelId = shelterId; openModal('rejectModal'); }
+function showRejectModal(veterinaryId) { rejectShelId = veterinaryId; openModal('rejectModal'); }
 async function confirmReject() {
     const note = document.getElementById('rejectNote').value;
     closeModal('rejectModal');
-    await verifyShelter(rejectShelId, 'REJECTED', note);
+    await verifyveterinary(rejectShelId, 'REJECTED', note);
 }
-async function verifyShelter(shelterId, status, note = '') {
-    const res = await apiRequest('/PAWAdopt/api/admin.php','POST',new URLSearchParams({action:'verify_shelter',shelter_id:shelterId,status:status,note:note||'Reviewed by admin'}));
-    if (res.success) { showToast('Shelter '+status+'!'); setTimeout(()=>location.reload(),900); }
+async function verifyveterinary(veterinaryId, status, note = '') {
+    const res = await apiRequest('/PAWAdopt/api/admin.php','POST',new URLSearchParams({action:'verify_veterinary',veterinary_id:veterinaryId,status:status,note:note||'Reviewed by admin'}));
+    if (res.success) { showToast('veterinary '+status+'!'); setTimeout(()=>location.reload(),900); }
     else showToast(res.message,'error');
 }
 </script>

@@ -40,7 +40,7 @@
             if (res && res.success) {
                 showToast(res.message);
                 setTimeout(function () {
-                    window.location.href = window.BASE_URL + '/pages/shelter/pets.php';
+                    window.location.href = window.BASE_URL + '/pages/veterinary/pets.php';
                 }, 2000);
             } else {
                 showToast((res && res.message) || 'Failed to add pet', 'error');
@@ -168,7 +168,7 @@
             };
             setText('modal_adopter_name', d.adopter_name || d.adopter_username);
             setText('modal_pet_name',     d.pet_name);
-            setText('modal_message',      d.message_to_shelter || 'No extra message provided.');
+            setText('modal_message',      d.message_to_veterinary || 'No extra message provided.');
             setText('modal_status',       d.status);
 
             const container = document.getElementById('modal_responses_container');

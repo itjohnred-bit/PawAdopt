@@ -11,19 +11,19 @@ $db   = Database::getInstance();
 $stats = [
     'users'     => $db->fetch("SELECT COUNT(*) as c FROM users")['c'] ?? 0,
     'adopters'  => $db->fetch("SELECT COUNT(*) as c FROM users WHERE role='ADOPTER'")['c'] ?? 0,
-    'shelters'  => $db->fetch("SELECT COUNT(*) as c FROM users WHERE role='SHELTER'")['c'] ?? 0,
+    'veterinarys'  => $db->fetch("SELECT COUNT(*) as c FROM users WHERE role='VETERINARY'")['c'] ?? 0,
     'pets'      => $db->fetch("SELECT COUNT(*) as c FROM pets WHERE status!='Removed'")['c'] ?? 0,
     'available' => $db->fetch("SELECT COUNT(*) as c FROM pets WHERE status='Available'")['c'] ?? 0,
     'apps'      => $db->fetch("SELECT COUNT(*) as c FROM adoption_applications")['c'] ?? 0,
-    'pending_v' => $db->fetch("SELECT COUNT(*) as c FROM shelter_verifications WHERE status='PENDING'")['c'] ?? 0,
+    'pending_v' => $db->fetch("SELECT COUNT(*) as c FROM veterinary_verifications WHERE status='PENDING'")['c'] ?? 0,
 ];
 
 $recentUsers = $db->fetchAll("SELECT * FROM users ORDER BY created_at DESC LIMIT 6");
-$pendingShelters = $db->fetchAll(
-    "SELECT sv.*, sp.shelter_name, u.email
-     FROM shelter_verifications sv
-     JOIN shelter_profiles sp ON sv.shelter_id = sp.shelter_id
-     JOIN users u ON sv.shelter_id = u.user_id
+$pendingveterinarys = $db->fetchAll(
+    "SELECT sv.*, sp.veterinary_name, u.email
+     FROM veterinary_verifications sv
+     JOIN veterinary_profiles sp ON sv.veterinary_id = sp.veterinary_id
+     JOIN users u ON sv.veterinary_id = u.user_id
      WHERE sv.status = 'PENDING' ORDER BY sv.submitted_at ASC LIMIT 5"
 );
 
@@ -45,7 +45,7 @@ require_once __DIR__ . '/../../../includes/header.php';
     </div>
     <div class="stat-card">
         <div class="stat-icon green"><span>🏠</span></div>
-        <div><div class="stat-value"><?= (int)$stats['shelters'] ?></div><div class="stat-label">Shelters</div></div>
+        <div><div class="stat-value"><?= (int)$stats['veterinarys'] ?></div><div class="stat-label">veterinarys</div></div>
     </div>
     <div class="stat-card">
         <div class="stat-icon amber"><span>🐾</span></div>
@@ -63,7 +63,7 @@ require_once __DIR__ . '/../../../includes/header.php';
 
 <div class="quick-actions mb-3">
     <a href="<?= APP_URL ?>/pages/admin/users.php"       class="quick-action-btn"><span class="qa-icon">👥</span><span class="qa-label">Users</span></a>
-    <a href="<?= APP_URL ?>/pages/admin/shelters.php"    class="quick-action-btn"><span class="qa-icon">🏠</span><span class="qa-label">Shelters</span></a>
+    <a href="<?= APP_URL ?>/pages/admin/veterinarys.php"    class="quick-action-btn"><span class="qa-icon">🏠</span><span class="qa-label">veterinarys</span></a>
     <a href="<?= APP_URL ?>/pages/admin/pets.php"        class="quick-action-btn"><span class="qa-icon">🐾</span><span class="qa-label">Pets</span></a>
     <a href="<?= APP_URL ?>/pages/admin/reports.php"     class="quick-action-btn"><span class="qa-icon">📊</span><span class="qa-label">Reports</span></a>
     <a href="<?= APP_URL ?>/pages/admin/audit-logs.php"  class="quick-action-btn"><span class="qa-icon">📜</span><span class="qa-label">Audit Logs</span></a>
@@ -73,22 +73,22 @@ require_once __DIR__ . '/../../../includes/header.php';
     <div class="card">
         <div class="card-title" style="display:flex;justify-content:space-between">
             <span><i class="fas fa-shield-alt"></i> Pending Verifications</span>
-            <a href="<?= APP_URL ?>/pages/admin/shelters.php" class="text-teal" style="font-size:.82rem;font-weight:700">View All</a>
+            <a href="<?= APP_URL ?>/pages/admin/veterinarys.php" class="text-teal" style="font-size:.82rem;font-weight:700">View All</a>
         </div>
-        <?php if (empty($pendingShelters)): ?>
+        <?php if (empty($pendingveterinarys)): ?>
         <div class="empty-state" style="padding:20px 0">
             <p>✅ No pending verifications!</p>
         </div>
         <?php else: ?>
-        <?php foreach ($pendingShelters as $sv): ?>
+        <?php foreach ($pendingveterinarys as $sv): ?>
         <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:var(--gray-bg);border-radius:10px;margin-bottom:8px">
             <div>
-                <div class="fw-bold"><?= sanitize((string)$sv['shelter_name']) ?></div>
+                <div class="fw-bold"><?= sanitize((string)$sv['veterinary_name']) ?></div>
                 <div style="font-size:.78rem;color:var(--gray-mid)"><?= sanitize((string)$sv['email']) ?></div>
             </div>
             <div style="display:flex;gap:6px">
-                <button onclick="quickVerify(<?= (int)$sv['shelter_id'] ?>,'APPROVED')" class="btn btn-success btn-sm">✓</button>
-                <button onclick="quickVerify(<?= (int)$sv['shelter_id'] ?>,'REJECTED')" class="btn btn-danger btn-sm">✕</button>
+                <button onclick="quickVerify(<?= (int)$sv['veterinary_id'] ?>,'APPROVED')" class="btn btn-success btn-sm">✓</button>
+                <button onclick="quickVerify(<?= (int)$sv['veterinary_id'] ?>,'REJECTED')" class="btn btn-danger btn-sm">✕</button>
             </div>
         </div>
         <?php endforeach; ?>
@@ -110,7 +110,7 @@ require_once __DIR__ . '/../../../includes/header.php';
                 </div>
             </div>
             <div style="display:flex;gap:6px;align-items:center">
-                <span class="badge badge-<?= $u['role']==='ADOPTER'?'primary':($u['role']==='SHELTER'?'info':'danger') ?>" style="font-size:.7rem"><?= sanitize((string)$u['role']) ?></span>
+                <span class="badge badge-<?= $u['role']==='ADOPTER'?'primary':($u['role']==='VETERINARY'?'info':'danger') ?>" style="font-size:.7rem"><?= sanitize((string)$u['role']) ?></span>
                 <?= $u['is_active'] ? '<span class="badge badge-success" style="font-size:.7rem">Active</span>' : '<span class="badge badge-danger" style="font-size:.7rem">Inactive</span>' ?>
             </div>
         </div>
@@ -119,18 +119,18 @@ require_once __DIR__ . '/../../../includes/header.php';
 </div>
 
 <script>
-async function quickVerify(shelterId, status) {
+async function quickVerify(veterinaryId, status) {
     const note = status === 'REJECTED' ? (prompt('Rejection note (optional):') || '') : 'Verified by admin.';
     
     const res = await apiRequest('/api/admin.php', 'POST', new URLSearchParams({
-        action: 'verify_shelter', 
-        shelter_id: shelterId, 
+        action: 'verify_veterinary', 
+        veterinary_id: veterinaryId, 
         status: status, 
         note: note
     }));
     
     if (res.success) { 
-        showToast('Shelter ' + status.toLowerCase() + '!'); 
+        showToast('veterinary ' + status.toLowerCase() + '!'); 
         setTimeout(() => location.reload(), 900); 
     } else {
         showToast(res.message, 'error');

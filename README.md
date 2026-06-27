@@ -1,6 +1,6 @@
 # 🐾 PAWAdopt – Pet Adoption Platform
 
-A full-stack pet adoption web application connecting **Adopters** and **Shelters/Rescue Organizations**.
+A full-stack pet adoption web application connecting **Adopters** and **veterinarys/Rescue Organizations**.
 
 ---
 
@@ -99,7 +99,7 @@ PAWAdopt/
 │   │   ├── favorites.php
 │   │   ├── messages.php
 │   │   └── profile.php
-│   ├── shelter/
+│   ├── veterinary/
 │   │   ├── dashboard.php
 │   │   ├── pets.php
 │   │   ├── add-pet.php
@@ -110,7 +110,7 @@ PAWAdopt/
 │   └── admin/
 │       ├── dashboard.php
 │       ├── users.php
-│       ├── shelters.php
+│       ├── veterinarys.php
 │       ├── pets.php
 │       └── reports.php
 ├── assets/
@@ -147,18 +147,18 @@ PAWAdopt/
 - Save favorites
 - Submit adoption applications
 - Track application status
-- Message shelters
+- Message veterinarys
 - Receive notifications
 
-### Shelter
+### veterinary
 - Post pet listings with photos
 - Review adoption applications (Approve / Reject)
 - Message adopters
-- Manage shelter profile
+- Manage veterinary profile
 - Await admin verification
 
 ### Admin
-- Verify/reject shelters
+- Verify/reject veterinarys
 - Manage all users (activate/deactivate/delete)
 - Moderate pet listings
 - View reports & analytics
@@ -170,9 +170,9 @@ PAWAdopt/
 
 | Table | Description |
 |-------|-------------|
-| `users` | All user accounts (Adopter/Shelter/Admin) |
+| `users` | All user accounts (Adopter/veterinary/Admin) |
 | `adopter_profiles` | Adopter profile details |
-| `shelter_profiles` | Shelter info & verification status |
+| `veterinary_profiles` | veterinary info & verification status |
 | `pets` | Pet listings |
 | `pet_photos` | Multiple photos per pet |
 | `adoption_applications` | Applications with status tracking |
@@ -180,7 +180,7 @@ PAWAdopt/
 | `conversations` | Messaging threads |
 | `messages` | Individual messages |
 | `notifications` | In-app notifications |
-| `shelter_verifications` | Admin verification records |
+| `veterinary_verifications` | Admin verification records |
 | `site_content` | CMS for About/Terms text |
 
 ---

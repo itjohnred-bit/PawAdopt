@@ -73,24 +73,24 @@ switch ($action) {
         jsonSuccess([], 'User deleted.');
         break;
 
-    case 'shelters':
+    case 'veterinarys':
         $status = $_GET['status'] ?? '';
         $where  = $status ? 'WHERE sv.status = ?' : '';
         $params = $status ? [$status] : [];
-        $shelters = $db->fetchAll(
-            "SELECT sv.*, sp.shelter_name, sp.city, sp.phone, sp.is_verified, u.email, u.username
-             FROM shelter_verifications sv
-             JOIN shelter_profiles sp ON sv.shelter_id = sp.shelter_id
-             JOIN users u ON sv.shelter_id = u.user_id
+        $veterinarys = $db->fetchAll(
+            "SELECT sv.*, sp.veterinary_name, sp.city, sp.phone, sp.is_verified, u.email, u.username
+             FROM veterinary_verifications sv
+             JOIN veterinary_profiles sp ON sv.veterinary_id = sp.veterinary_id
+             JOIN users u ON sv.veterinary_id = u.user_id
              $where
              ORDER BY sv.submitted_at DESC",
             $params
         );
-        jsonSuccess($shelters);
+        jsonSuccess($veterinarys);
         break;
 
-    case 'verify_shelter':
-        $shelId  = (int)($_POST['shelter_id'] ?? 0);
+    case 'verify_veterinary':
+        $shelId  = (int)($_POST['veterinary_id'] ?? 0);
         $status  = $_POST['status'] ?? '';
         $note    = trim($_POST['note'] ?? '');
         if (!$shelId || !in_array($status, ['APPROVED', 'REJECTED'], true)) {
@@ -98,33 +98,33 @@ switch ($action) {
             break;
         }
 
-        $shelter = $db->fetch("SELECT shelter_name FROM shelter_profiles WHERE shelter_id = ?", [$shelId]);
+        $veterinary = $db->fetch("SELECT veterinary_name FROM veterinary_profiles WHERE veterinary_id = ?", [$shelId]);
 
         $db->execute(
-            "UPDATE shelter_verifications SET status = ?, note = ?, reviewed_by_admin_id = ?, reviewed_at = NOW() WHERE shelter_id = ?",
+            "UPDATE veterinary_verifications SET status = ?, note = ?, reviewed_by_admin_id = ?, reviewed_at = NOW() WHERE veterinary_id = ?",
             [$status, $note, $user['user_id'], $shelId]
         );
 
         $verified = ($status === 'APPROVED') ? 1 : 0;
-        $db->execute("UPDATE shelter_profiles SET is_verified = ? WHERE shelter_id = ?", [$verified, $shelId]);
+        $db->execute("UPDATE veterinary_profiles SET is_verified = ? WHERE veterinary_id = ?", [$verified, $shelId]);
 
         $msg = $status === 'APPROVED'
-            ? 'Your shelter has been verified! You can now post pet listings. 🎉'
-            : 'Your shelter verification was not approved. Note: ' . $note;
+            ? 'Your veterinary has been verified! You can now post pet listings. 🎉'
+            : 'Your veterinary verification was not approved. Note: ' . $note;
 
         if (function_exists('createNotification')) {
-            createNotification($shelId, 'SHELTER_VERIFIED', 'Shelter Verification Update', $msg, APP_URL . '/pages/shelter/profile.php');
+            createNotification($shelId, 'veterinary_VERIFIED', 'veterinary Verification Update', $msg, APP_URL . '/pages/veterinary/profile.php');
         }
 
         if (function_exists('log_action')) {
-            $shelterName = $shelter['shelter_name'] ?? 'Unknown Shelter';
+            $veterinaryName = $veterinary['veterinary_name'] ?? 'Unknown veterinary';
             log_action(
                 $user['user_id'],
-                'verify_shelter',
-                "Admin updated verification for '{$shelterName}' (ID: {$shelId}) to status: {$status}. Note: " . ($note ?: 'None')
+                'verify_veterinary',
+                "Admin updated verification for '{$veterinaryName}' (ID: {$shelId}) to status: {$status}. Note: " . ($note ?: 'None')
             );
         }
-        jsonSuccess([], "Shelter $status.");
+        jsonSuccess([], "veterinary $status.");
         break;
 
     case 'all_pets':
@@ -132,9 +132,9 @@ switch ($action) {
         $where  = $status ? 'WHERE p.status = ?' : '';
         $params = $status ? [$status] : [];
         $pets = $db->fetchAll(
-            "SELECT p.*, sp.shelter_name,
+            "SELECT p.*, sp.veterinary_name,
              (SELECT pp.photo_url FROM pet_photos pp WHERE pp.pet_id = p.pet_id AND pp.is_primary = 1 LIMIT 1) as primary_photo
-             FROM pets p JOIN shelter_profiles sp ON p.shelter_id = sp.shelter_id
+             FROM pets p JOIN veterinary_profiles sp ON p.veterinary_id = sp.veterinary_id
              $where ORDER BY p.created_at DESC",
             $params
         );
@@ -203,13 +203,13 @@ switch ($action) {
         $stats = [
             'total_users'    => (int)($db->fetch("SELECT COUNT(*) as c FROM users")['c'] ?? 0),
             'total_adopters' => (int)($db->fetch("SELECT COUNT(*) as c FROM users WHERE role='ADOPTER'")['c'] ?? 0),
-            'total_shelters' => (int)($db->fetch("SELECT COUNT(*) as c FROM users WHERE role='SHELTER'")['c'] ?? 0),
+            'total_veterinarys' => (int)($db->fetch("SELECT COUNT(*) as c FROM users WHERE role='VETERINARY'")['c'] ?? 0),
             'total_pets'     => (int)($db->fetch("SELECT COUNT(*) as c FROM pets WHERE status != 'Removed'")['c'] ?? 0),
             'available_pets' => (int)($db->fetch("SELECT COUNT(*) as c FROM pets WHERE status='Available'")['c'] ?? 0),
             'adopted_pets'   => (int)($db->fetch("SELECT COUNT(*) as c FROM pets WHERE status='Adopted'")['c'] ?? 0),
             'total_apps'     => (int)($db->fetch("SELECT COUNT(*) as c FROM adoption_applications")['c'] ?? 0),
             'approved_apps'  => (int)($db->fetch("SELECT COUNT(*) as c FROM adoption_applications WHERE status='Approved'")['c'] ?? 0),
-            'pending_verif'  => (int)($db->fetch("SELECT COUNT(*) as c FROM shelter_verifications WHERE status='PENDING'")['c'] ?? 0),
+            'pending_verif'  => (int)($db->fetch("SELECT COUNT(*) as c FROM veterinary_verifications WHERE status='PENDING'")['c'] ?? 0),
         ];
 
         $monthlyRegs = $db->fetchAll(

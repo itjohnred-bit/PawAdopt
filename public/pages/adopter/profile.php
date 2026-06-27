@@ -77,7 +77,7 @@ include __DIR__ . '/../../includes/header.php';
             </div>
             <div class="form-group">
                 <label class="form-label">Bio</label>
-                <textarea name="bio" class="form-control" rows="3" placeholder="Tell shelters about yourself and your experience with pets…"><?= sanitize($profile['bio'] ?? '') ?></textarea>
+                <textarea name="bio" class="form-control" rows="3" placeholder="Tell veterinarys about yourself and your experience with pets…"><?= sanitize($profile['bio'] ?? '') ?></textarea>
             </div>
             <div class="form-group">
                 <label class="form-label">Profile Photo</label>

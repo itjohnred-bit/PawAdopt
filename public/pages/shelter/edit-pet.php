@@ -1,14 +1,14 @@
 <?php
 require_once __DIR__ . '/../../includes/functions.php';
-requireRole('SHELTER');
+requireRole('VETERINARY');
 $pageTitle = 'Edit Pet';
 $user  = getCurrentUser();
 $db    = Database::getInstance();
 $petId = (int)($_GET['id'] ?? 0);
-if (!$petId) { redirect(APP_URL.'/pages/shelter/pets.php'); }
+if (!$petId) { redirect(APP_URL.'/pages/veterinary/pets.php'); }
 
-$pet = $db->fetch("SELECT * FROM pets WHERE pet_id = ? AND shelter_id = ?", [$petId, $user['user_id']]);
-if (!$pet) { flashMessage('error','Pet not found.'); redirect(APP_URL.'/pages/shelter/pets.php'); }
+$pet = $db->fetch("SELECT * FROM pets WHERE pet_id = ? AND veterinary_id = ?", [$petId, $user['user_id']]);
+if (!$pet) { flashMessage('error','Pet not found.'); redirect(APP_URL.'/pages/veterinary/pets.php'); }
 
 $photos = $db->fetchAll("SELECT * FROM pet_photos WHERE pet_id = ? ORDER BY is_primary DESC", [$petId]);
 include __DIR__ . '/../../includes/header.php';
@@ -16,7 +16,7 @@ include __DIR__ . '/../../includes/header.php';
 
 <div class="page-header">
     <h1 class="page-title"><span class="icon">✏️</span> Edit <?= sanitize($pet['name']) ?></h1>
-    <a href="<?= APP_URL ?>/pages/shelter/pets.php" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back</a>
+    <a href="<?= APP_URL ?>/pages/veterinary/pets.php" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back</a>
 </div>
 
 <div style="max-width:700px;margin:0 auto">
@@ -150,7 +150,7 @@ include __DIR__ . '/../../includes/header.php';
 
     <div style="display:flex;gap:12px;margin-top:20px">
         <button type="submit" class="btn btn-primary flex-1" id="editBtn"><i class="fas fa-save"></i> Save Changes</button>
-        <a href="<?= APP_URL ?>/pages/shelter/pets.php" class="btn btn-secondary">Cancel</a>
+        <a href="<?= APP_URL ?>/pages/veterinary/pets.php" class="btn btn-secondary">Cancel</a>
     </div>
 </form>
 </div>
@@ -190,7 +190,7 @@ async function submitEditPet(form, petId) {
             } else {
                 alert('Pet updated!');
             }
-            setTimeout(() => window.location.href = window.BASE_URL + '/pages/shelter/pets.php', 1000); 
+            setTimeout(() => window.location.href = window.BASE_URL + '/pages/veterinary/pets.php', 1000); 
         } else {
             if (typeof showToast === 'function') showToast(data.message || 'Update failed.', 'error');
             else alert(data.message || 'Update failed.');

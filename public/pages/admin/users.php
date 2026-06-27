@@ -30,7 +30,7 @@ include __DIR__ . '/../../includes/header.php';
     <select name="role" class="form-control" onchange="this.form.submit()">
         <option value="">All Roles</option>
         <option value="ADOPTER" <?= $role==='ADOPTER'?'selected':'' ?>>Adopter</option>
-        <option value="SHELTER" <?= $role==='SHELTER'?'selected':'' ?>>Shelter</option>
+        <option value="VETERINARY" <?= $role==='VETERINARY'?'selected':'' ?>>veterinary</option>
         <option value="ADMIN"   <?= $role==='ADMIN'  ?'selected':'' ?>>Admin</option>
     </select>
     <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i></button>

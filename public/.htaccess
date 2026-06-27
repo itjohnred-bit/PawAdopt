@@ -5,6 +5,7 @@
 <FilesMatch "^\.ht">
     Require all denied
 </FilesMatch>
+
 <FilesMatch "\.(env|sql|bak|backup|gitignore|git|svn|log)$">
     Require all denied
 </FilesMatch>
@@ -17,25 +18,29 @@
     Header unset X-Powered-By
     Header unset Server
 </IfModule>
-RewriteEngine On
 
-# If the request is for a real file or directory, serve it directly
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^(.*)$ index.php [QSA,L]
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
-    # 1. API Passthrough: Stop processing if the request is for the /api folder
+    RewriteCond %{REQUEST_URI} ^(.*)/{2,}(.*)$
+    RewriteRule .* /%1/%2 [L,R=301]
+
     RewriteRule ^api/ - [L]
 
-    # 2. Favicon rewrite: ONLY trigger if the requested URI is exactly /favicon.ico
     RewriteCond %{REQUEST_URI} ^/favicon\.ico$ [NC]
     RewriteRule .* /assets/images/Paw-Adopt%20Logo.png [L]
+
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME}.php -f
+    RewriteRule ^([^.]+)$ $1.php [L]
+
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteCond %{REQUEST_FILENAME}.php -f
-    RewriteRule ^([^\.]+)$ $1.php [L]
+    RewriteRule ^ index.php [QSA,L]
 </IfModule>
 
 <IfModule mod_mime.c>

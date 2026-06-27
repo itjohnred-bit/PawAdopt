@@ -6,11 +6,11 @@ $user = getCurrentUser();
 $db   = Database::getInstance();
 
 $pets = $db->fetchAll(
-    "SELECT p.*, f.created_at as favorited_at, sp.shelter_name, sp.city as shelter_city,
+    "SELECT p.*, f.created_at as favorited_at, sp.veterinary_name, sp.city as veterinary_city,
      (SELECT pp.photo_url FROM pet_photos pp WHERE pp.pet_id = p.pet_id AND pp.is_primary = 1 LIMIT 1) as primary_photo
      FROM favorites f
      JOIN pets p ON f.pet_id = p.pet_id
-     JOIN shelter_profiles sp ON p.shelter_id = sp.shelter_id
+     JOIN veterinary_profiles sp ON p.veterinary_id = sp.veterinary_id
      WHERE f.adopter_id = ? AND p.status != 'Removed'
      ORDER BY f.created_at DESC",
     [$user['user_id']]
@@ -51,7 +51,7 @@ include __DIR__ . '/../../includes/header.php';
             <span>📅 <?= formatAge($pet['age_months']) ?></span>
         </div>
         <div style="font-size:.8rem;color:var(--gray-mid)">
-            <i class="fas fa-building"></i> <?= sanitize($pet['shelter_name']) ?>
+            <i class="fas fa-building"></i> <?= sanitize($pet['veterinary_name']) ?>
         </div>
     </div>
     <div class="pet-card-footer">

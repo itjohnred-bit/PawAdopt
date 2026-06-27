@@ -1,13 +1,13 @@
 <?php
 require_once __DIR__ . '/../../includes/functions.php';
-requireRole('SHELTER'); 
-$pageTitle = 'Shelter Notifications';
+requireRole('VETERINARY'); 
+$pageTitle = 'veterinary Notifications';
 
 include __DIR__ . '/../../includes/header.php';
 ?>
 
 <div class="page-header">
-    <h1 class="page-title"><span class="icon">🔔</span> Shelter Notifications</h1>
+    <h1 class="page-title"><span class="icon">🔔</span> veterinary Notifications</h1>
     <a href="<?= APP_URL ?>/api/notifications.php?action=mark_all_read" class="btn btn-outline btn-sm">Mark All as Read</a>
 </div>
 
@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
                 container.innerHTML = html;
             } else {
-                container.innerHTML = '<div style="padding: 40px; text-align: center;">No notifications found for this shelter.</div>';
+                container.innerHTML = '<div style="padding: 40px; text-align: center;">No notifications found for this veterinary.</div>';
             }
         });
 });

@@ -32,11 +32,11 @@ switch ($action) {
 
     case 'list':
         $pets = $db->fetchAll(
-            "SELECT p.*, f.created_at as favorited_at, sp.shelter_name,
+            "SELECT p.*, f.created_at as favorited_at, sp.veterinary_name,
                     (SELECT pp.photo_url FROM pet_photos pp WHERE pp.pet_id = p.pet_id AND pp.is_primary = 1 LIMIT 1) as primary_photo
              FROM favorites f
              JOIN pets p ON f.pet_id = p.pet_id
-             JOIN shelter_profiles sp ON p.shelter_id = sp.shelter_id
+             JOIN veterinary_profiles sp ON p.veterinary_id = sp.veterinary_id
              WHERE f.adopter_id = ? AND p.status != 'Removed'
              ORDER BY f.created_at DESC",
             [$user['user_id']]

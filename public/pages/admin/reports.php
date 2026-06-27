@@ -9,8 +9,8 @@ $db   = Database::getInstance();
 $stats = [
     'total_users'    => $db->fetch("SELECT COUNT(*) as c FROM users")['c'] ?? 0,
     'total_adopters' => $db->fetch("SELECT COUNT(*) as c FROM users WHERE role='ADOPTER'")['c'] ?? 0,
-    'total_shelters' => $db->fetch("SELECT COUNT(*) as c FROM users WHERE role='SHELTER'")['c'] ?? 0,
-    'verified_sh'    => $db->fetch("SELECT COUNT(*) as c FROM shelter_profiles WHERE is_verified=1")['c'] ?? 0,
+    'total_veterinarys' => $db->fetch("SELECT COUNT(*) as c FROM users WHERE role='VETERINARY'")['c'] ?? 0,
+    'verified_sh'    => $db->fetch("SELECT COUNT(*) as c FROM veterinary_profiles WHERE is_verified=1")['c'] ?? 0,
     'total_pets'     => $db->fetch("SELECT COUNT(*) as c FROM pets WHERE status!='Removed'")['c'] ?? 0,
     'available_pets' => $db->fetch("SELECT COUNT(*) as c FROM pets WHERE status='Available'")['c'] ?? 0,
     'pending_pets'   => $db->fetch("SELECT COUNT(*) as c FROM pets WHERE status='Pending'")['c'] ?? 0,

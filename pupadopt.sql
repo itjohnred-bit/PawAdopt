@@ -55,7 +55,7 @@ INSERT INTO `adopter_profiles` (`adopter_id`, `full_name`, `phone`, `address`, `
 CREATE TABLE `adoption_applications` (
   `application_id` int(11) NOT NULL,
   `pet_id` int(11) NOT NULL,
-  `shelter_id` int(11) NOT NULL,
+  `veterinary_id` int(11) NOT NULL,
   `adopter_id` int(11) NOT NULL,
   `status` enum('PENDING','Approved','Rejected') NOT NULL DEFAULT 'PENDING',
   `submitted_at` timestamp NOT NULL DEFAULT current_timestamp(),
@@ -89,7 +89,7 @@ CREATE TABLE `audit_logs` (
 CREATE TABLE `conversations` (
   `conversation_id` int(11) NOT NULL,
   `adopter_id` int(11) NOT NULL,
-  `shelter_id` int(11) NOT NULL,
+  `veterinary_id` int(11) NOT NULL,
   `pet_id` int(11) DEFAULT NULL,
   `started_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
@@ -153,7 +153,7 @@ CREATE TABLE `notifications` (
 
 CREATE TABLE `pets` (
   `pet_id` int(11) NOT NULL,
-  `shelter_id` int(11) NOT NULL,
+  `veterinary_id` int(11) NOT NULL,
   `name` varchar(100) NOT NULL,
   `species` enum('Dog','Cat') NOT NULL DEFAULT 'Dog',
   `breed` varchar(100) DEFAULT NULL,
@@ -183,12 +183,12 @@ CREATE TABLE `pet_photos` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `shelter_profiles`
+-- Table structure for table `veterinary_profiles`
 --
 
-CREATE TABLE `shelter_profiles` (
-  `shelter_id` int(11) NOT NULL,
-  `shelter_name` varchar(150) NOT NULL,
+CREATE TABLE `veterinary_profiles` (
+  `veterinary_id` int(11) NOT NULL,
+  `veterinary_name` varchar(150) NOT NULL,
   `phone` varchar(20) DEFAULT NULL,
   `address` text DEFAULT NULL,
   `city` varchar(100) DEFAULT NULL,
@@ -201,21 +201,21 @@ CREATE TABLE `shelter_profiles` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `shelter_profiles`
+-- Dumping data for table `veterinary_profiles`
 --
 
-INSERT INTO `shelter_profiles` (`shelter_id`, `shelter_name`, `phone`, `address`, `city`, `description`, `website`, `logo_url`, `is_verified`, `created_at`, `updated_at`) VALUES
-(2, 'Veterinary\'s Shelter', NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-05-30 22:56:42', '2026-05-30 22:56:42');
+INSERT INTO `veterinary_profiles` (`veterinary_id`, `veterinary_name`, `phone`, `address`, `city`, `description`, `website`, `logo_url`, `is_verified`, `created_at`, `updated_at`) VALUES
+(2, 'Veterinary\'s veterinary', NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-05-30 22:56:42', '2026-05-30 22:56:42');
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `shelter_verifications`
+-- Table structure for table `veterinary_verifications`
 --
 
-CREATE TABLE `shelter_verifications` (
+CREATE TABLE `veterinary_verifications` (
   `verification_id` int(11) NOT NULL,
-  `shelter_id` int(11) NOT NULL,
+  `veterinary_id` int(11) NOT NULL,
   `status` enum('PENDING','APPROVED','REJECTED') NOT NULL DEFAULT 'PENDING',
   `remarks` text DEFAULT NULL,
   `submitted_at` timestamp NOT NULL DEFAULT current_timestamp(),
@@ -223,10 +223,10 @@ CREATE TABLE `shelter_verifications` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `shelter_verifications`
+-- Dumping data for table `veterinary_verifications`
 --
 
-INSERT INTO `shelter_verifications` (`verification_id`, `shelter_id`, `status`, `remarks`, `submitted_at`, `updated_at`) VALUES
+INSERT INTO `veterinary_verifications` (`verification_id`, `veterinary_id`, `status`, `remarks`, `submitted_at`, `updated_at`) VALUES
 (1, 2, 'PENDING', NULL, '2026-05-30 22:56:42', '2026-05-30 22:56:42');
 
 -- --------------------------------------------------------
@@ -247,7 +247,7 @@ CREATE TABLE `site_content` (
 --
 
 INSERT INTO `site_content` (`content_key`, `content_value`, `updated_by`, `updated_at`) VALUES
-('homepage_banner_subtitle', 'Paw-Adopt connects loving adopters with shelters.', NULL, '2026-05-30 21:28:08'),
+('homepage_banner_subtitle', 'Paw-Adopt connects loving adopters with veterinarys.', NULL, '2026-05-30 21:28:08'),
 ('homepage_banner_title', 'Find Your Forever Furry Friend', NULL, '2026-05-30 21:28:08');
 
 -- --------------------------------------------------------
@@ -258,7 +258,7 @@ INSERT INTO `site_content` (`content_key`, `content_value`, `updated_by`, `updat
 
 CREATE TABLE `users` (
   `user_id` int(11) NOT NULL,
-  `role` enum('ADOPTER','SHELTER','ADMIN') NOT NULL DEFAULT 'ADOPTER',
+  `role` enum('ADOPTER','VETERINARY','ADMIN') NOT NULL DEFAULT 'ADOPTER',
   `username` varchar(50) NOT NULL,
   `email` varchar(100) NOT NULL,
   `password_hash` varchar(255) NOT NULL,
@@ -273,7 +273,7 @@ CREATE TABLE `users` (
 
 INSERT INTO `users` (`user_id`, `role`, `username`, `email`, `password_hash`, `is_active`, `created_at`, `updated_at`) VALUES
 (1, 'ADMIN', 'admin', 'admin@pawadopt.ph', '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', 1, '2026-05-30 21:14:16', '2026-05-30 21:26:22'),
-(2, 'SHELTER', 'Veterinary', 'veterinary@gmail.com', '$2y$10$9mzc0gepYmtYfiw0kb.iw.2Vp9G5B1n0wscWOKy/LITJupIxbD27q', 1, '2026-05-30 22:56:42', '2026-05-30 22:56:42'),
+(2, 'VETERINARY', 'Veterinary', 'veterinary@gmail.com', '$2y$10$9mzc0gepYmtYfiw0kb.iw.2Vp9G5B1n0wscWOKy/LITJupIxbD27q', 1, '2026-05-30 22:56:42', '2026-05-30 22:56:42'),
 (3, 'ADOPTER', 'Adopter', 'adopter@test.com', '$2y$10$PxyyujApK61kvEDHeGVHWOF/VRxb7J.d.ugOmIjqLuHHLtvJV4PF6', 1, '2026-05-30 23:24:09', '2026-05-30 23:24:09');
 
 --
@@ -303,8 +303,8 @@ ALTER TABLE `audit_logs`
 --
 ALTER TABLE `conversations`
   ADD PRIMARY KEY (`conversation_id`),
-  ADD UNIQUE KEY `unique_chat_pair` (`adopter_id`,`shelter_id`),
-  ADD KEY `shelter_id` (`shelter_id`);
+  ADD UNIQUE KEY `unique_chat_pair` (`adopter_id`,`veterinary_id`),
+  ADD KEY `veterinary_id` (`veterinary_id`);
 
 --
 -- Indexes for table `favorites`
@@ -335,7 +335,7 @@ ALTER TABLE `notifications`
 --
 ALTER TABLE `pets`
   ADD PRIMARY KEY (`pet_id`),
-  ADD KEY `shelter_id` (`shelter_id`);
+  ADD KEY `veterinary_id` (`veterinary_id`);
 
 --
 -- Indexes for table `pet_photos`
@@ -345,17 +345,17 @@ ALTER TABLE `pet_photos`
   ADD KEY `pet_id` (`pet_id`);
 
 --
--- Indexes for table `shelter_profiles`
+-- Indexes for table `veterinary_profiles`
 --
-ALTER TABLE `shelter_profiles`
-  ADD PRIMARY KEY (`shelter_id`);
+ALTER TABLE `veterinary_profiles`
+  ADD PRIMARY KEY (`veterinary_id`);
 
 --
--- Indexes for table `shelter_verifications`
+-- Indexes for table `veterinary_verifications`
 --
-ALTER TABLE `shelter_verifications`
+ALTER TABLE `veterinary_verifications`
   ADD PRIMARY KEY (`verification_id`),
-  ADD KEY `shelter_id` (`shelter_id`);
+  ADD KEY `veterinary_id` (`veterinary_id`);
 
 --
 -- Indexes for table `site_content`
@@ -424,9 +424,9 @@ ALTER TABLE `pet_photos`
   MODIFY `photo_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `shelter_verifications`
+-- AUTO_INCREMENT for table `veterinary_verifications`
 --
-ALTER TABLE `shelter_verifications`
+ALTER TABLE `veterinary_verifications`
   MODIFY `verification_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
@@ -450,7 +450,7 @@ ALTER TABLE `adopter_profiles`
 --
 ALTER TABLE `conversations`
   ADD CONSTRAINT `conversations_ibfk_1` FOREIGN KEY (`adopter_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `conversations_ibfk_2` FOREIGN KEY (`shelter_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
+  ADD CONSTRAINT `conversations_ibfk_2` FOREIGN KEY (`veterinary_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `favorites`
@@ -477,7 +477,7 @@ ALTER TABLE `notifications`
 -- Constraints for table `pets`
 --
 ALTER TABLE `pets`
-  ADD CONSTRAINT `pets_ibfk_1` FOREIGN KEY (`shelter_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
+  ADD CONSTRAINT `pets_ibfk_1` FOREIGN KEY (`veterinary_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `pet_photos`
@@ -486,16 +486,16 @@ ALTER TABLE `pet_photos`
   ADD CONSTRAINT `pet_photos_ibfk_1` FOREIGN KEY (`pet_id`) REFERENCES `pets` (`pet_id`) ON DELETE CASCADE;
 
 --
--- Constraints for table `shelter_profiles`
+-- Constraints for table `veterinary_profiles`
 --
-ALTER TABLE `shelter_profiles`
-  ADD CONSTRAINT `shelter_profiles_ibfk_1` FOREIGN KEY (`shelter_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
+ALTER TABLE `veterinary_profiles`
+  ADD CONSTRAINT `veterinary_profiles_ibfk_1` FOREIGN KEY (`veterinary_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
 
 --
--- Constraints for table `shelter_verifications`
+-- Constraints for table `veterinary_verifications`
 --
-ALTER TABLE `shelter_verifications`
-  ADD CONSTRAINT `shelter_verifications_ibfk_1` FOREIGN KEY (`shelter_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
+ALTER TABLE `veterinary_verifications`
+  ADD CONSTRAINT `veterinary_verifications_ibfk_1` FOREIGN KEY (`veterinary_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

@@ -1,15 +1,15 @@
 <?php
 require_once __DIR__ . '/../../includes/functions.php';
-requireRole('SHELTER');
-$pageTitle = 'Shelter Dashboard';
+requireRole('VETERINARY');
+$pageTitle = 'veterinary Dashboard';
 $user = getCurrentUser();
 $db   = Database::getInstance();
 
-$profile = $db->fetch("SELECT * FROM shelter_profiles WHERE shelter_id = ?", [$user['user_id']]);
-$verif   = $db->fetch("SELECT * FROM shelter_verifications WHERE shelter_id = ?", [$user['user_id']]);
+$profile = $db->fetch("SELECT * FROM veterinary_profiles WHERE veterinary_id = ?", [$user['user_id']]);
+$verif   = $db->fetch("SELECT * FROM veterinary_verifications WHERE veterinary_id = ?", [$user['user_id']]);
 
-$petCount  = $db->fetch("SELECT COUNT(*) as c FROM pets WHERE shelter_id = ? AND status != 'Removed'", [$user['user_id']])['c'] ?? 0;
-$availPets = $db->fetch("SELECT COUNT(*) as c FROM pets WHERE shelter_id = ? AND status = 'Available'", [$user['user_id']])['c'] ?? 0;
+$petCount  = $db->fetch("SELECT COUNT(*) as c FROM pets WHERE veterinary_id = ? AND status != 'Removed'", [$user['user_id']])['c'] ?? 0;
+$availPets = $db->fetch("SELECT COUNT(*) as c FROM pets WHERE veterinary_id = ? AND status = 'Available'", [$user['user_id']])['c'] ?? 0;
 
 $appStats = $db->fetch("
     SELECT 
@@ -17,7 +17,7 @@ $appStats = $db->fetch("
         COUNT(CASE WHEN aa.status = 'Submitted' THEN 1 END) as pending
     FROM adoption_applications aa
     JOIN pets p ON aa.pet_id = p.pet_id
-    WHERE p.shelter_id = ?", 
+    WHERE p.veterinary_id = ?", 
     [$user['user_id']]
 );
 
@@ -31,7 +31,7 @@ $recentApps = $db->fetchAll("
     FROM adoption_applications aa
     JOIN pets p ON aa.pet_id = p.pet_id
     JOIN users u ON aa.adopter_id = u.user_id
-    WHERE p.shelter_id = ?
+    WHERE p.veterinary_id = ?
     ORDER BY aa.submitted_at DESC LIMIT 5",
     [$user['user_id']]
 );
@@ -40,8 +40,8 @@ include __DIR__ . '/../../includes/header.php';
 ?>
 
 <div class="page-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:30px">
-    <h1 class="page-title" style="font-weight:900;margin:0">🏠 <?= sanitize($profile['shelter_name'] ?? 'My Shelter') ?></h1>
-    <a href="<?= APP_URL ?>/pages/shelter/add-pet.php" class="btn btn-primary" style="background:var(--active-text);color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:700">
+    <h1 class="page-title" style="font-weight:900;margin:0">🏠 <?= sanitize($profile['veterinary_name'] ?? 'My veterinary') ?></h1>
+    <a href="<?= APP_URL ?>/pages/veterinary/add-pet.php" class="btn btn-primary" style="background:var(--active-text);color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:700">
         <i class="fas fa-plus"></i> Add New Pet
     </a>
 </div>
@@ -51,7 +51,7 @@ include __DIR__ . '/../../includes/header.php';
     <span style="font-size:1.8rem">⚠️</span>
     <div>
         <div style="font-weight:800;color:#92400e">Verification Pending</div>
-        <div style="color:#78350f;font-size:.88rem">Admin is reviewing your shelter. 
+        <div style="color:#78350f;font-size:.88rem">Admin is reviewing your veterinary. 
             Status: <strong><?= $verif ? sanitize($verif['status']) : 'Not submitted' ?></strong>
         </div>
     </div>
@@ -104,7 +104,7 @@ include __DIR__ . '/../../includes/header.php';
                     </td>
                     <td><?= sanitize($app['adopter_username']) ?></td>
                     <td><span style="background:#eee;padding:4px 10px;border-radius:20px;font-size:0.7rem;font-weight:700"><?= strtoupper($app['status']) ?></span></td>
-                    <td><a href="<?= APP_URL ?>/pages/shelter/applications.php?id=<?= $app['application_id'] ?>" style="color:var(--active-text);text-decoration:none;font-weight:700">Review</a></td>
+                    <td><a href="<?= APP_URL ?>/pages/veterinary/applications.php?id=<?= $app['application_id'] ?>" style="color:var(--active-text);text-decoration:none;font-weight:700">Review</a></td>
                 </tr>
                 <?php endforeach; ?>
             </table>

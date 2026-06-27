@@ -22,8 +22,8 @@ function refreshSession(): void {
 function redirectForRole(string $role): string {
     $role = strtoupper(trim($role));
     $map  = [
-        'VETERINARY' => 'shelter',
-        'SHELTER'    => 'shelter',
+        'VETERINARY' => 'veterinary',
+        'VETERINARY'    => 'veterinary',
         'ADMIN'      => 'admin',
         'ADOPTER'    => 'adopter',
     ];
@@ -68,7 +68,7 @@ function handleLogin(PDO $pdo, Database $db): void {
     $password  = (string)($_POST['password'] ?? '');
     $roleInput = strtoupper(trim((string)($_POST['role'] ?? '')));
 
-    $knownRoles = ['ADOPTER', 'VETERINARY', 'SHELTER', 'ADMIN'];
+    $knownRoles = ['ADOPTER', 'VETERINARY', 'VETERINARY', 'ADMIN'];
     if ($username === '' || $password === '' || $roleInput === '') {
         fail('All fields are required.', 400);
     }
@@ -129,7 +129,7 @@ function handleRegister(PDO $pdo, Database $db): void {
     $password = (string)($_POST['password'] ?? '');
     $role     = strtoupper(trim((string)($_POST['role'] ?? 'ADOPTER')));
 
-    $allowedRoles = ['ADOPTER', 'SHELTER', 'VETERINARY'];
+    $allowedRoles = ['ADOPTER', 'VETERINARY', 'VETERINARY'];
     if (!in_array($role, $allowedRoles, true)) fail('Invalid role supplied.', 400);
     if (strlen($username) < 3 || strlen($username) > 32) fail('Username must be 3–32 characters.', 400);
     if (!preg_match('/^[A-Za-z0-9_.-]+$/', $username)) fail('Username has invalid characters.', 400);
@@ -162,12 +162,12 @@ function handleRegister(PDO $pdo, Database $db): void {
         if ($role === 'ADOPTER') {
             $pdo->prepare("INSERT INTO adopter_profiles (adopter_id, full_name) VALUES (?, ?)")
                 ->execute([$userId, $username]);
-        } elseif ($role === 'SHELTER' || $role === 'VETERINARY') {
-            $suffix = ($role === 'VETERINARY') ? " Clinic" : " Shelter";
+        } elseif ($role === 'VETERINARY' || $role === 'VETERINARY') {
+            $suffix = ($role === 'VETERINARY') ? " Clinic" : " veterinary";
             $defaultName = $username . $suffix;
-            $pdo->prepare("INSERT INTO shelter_profiles (shelter_id, shelter_name) VALUES (?, ?)")
+            $pdo->prepare("INSERT INTO veterinary_profiles (veterinary_id, veterinary_name) VALUES (?, ?)")
                 ->execute([$userId, $defaultName]);
-            $pdo->prepare("INSERT INTO shelter_verifications (shelter_id, status) VALUES (?, 'PENDING')")
+            $pdo->prepare("INSERT INTO veterinary_verifications (veterinary_id, status) VALUES (?, 'PENDING')")
                 ->execute([$userId]);
         }
 
@@ -191,7 +191,7 @@ function handleRegister(PDO $pdo, Database $db): void {
             $pdo->rollBack();
         }
         error_log('Registration failed: ' . $e->getMessage());
-        fail('Registration failed. Please try again later.', 500);
+        fail($e->getMessage(), 500);
     }
 }
 

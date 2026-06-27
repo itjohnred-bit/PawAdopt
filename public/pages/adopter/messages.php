@@ -7,12 +7,12 @@ $user = getCurrentUser();
 $db   = Database::getInstance();
 
 $convs = $db->fetchAll(
-    "SELECT c.*, sp.shelter_name as other_name,
+    "SELECT c.*, sp.veterinary_name as other_name,
      (SELECT m.message_text FROM messages m WHERE m.conversation_id = c.conversation_id ORDER BY m.created_at DESC LIMIT 1) as last_message,
      (SELECT COUNT(*) FROM messages m WHERE m.conversation_id = c.conversation_id AND m.is_read = 0 AND m.sender_id != ?) as unread_count,
      p.name as pet_name
      FROM conversations c
-     JOIN shelter_profiles sp ON c.shelter_id = sp.shelter_id
+     JOIN veterinary_profiles sp ON c.veterinary_id = sp.veterinary_id
      LEFT JOIN pets p ON c.pet_id = p.pet_id
      WHERE c.adopter_id = ?
      ORDER BY c.created_at DESC",
@@ -88,7 +88,7 @@ include __DIR__ . '/../../includes/header.php';
             <div class="chat-no-conv">
                 <i class="fas fa-comment-dots"></i>
                 <div style="font-weight:700">Select a conversation</div>
-                <div style="font-size:.88rem">or browse pets to message a shelter</div>
+                <div style="font-size:.88rem">or browse pets to message a veterinary</div>
             </div>
         <?php endif; ?>
     </div>

@@ -243,7 +243,7 @@ if (!function_exists('get_action_icon')) {
     function get_action_icon($action) {
         $icons = [
             'login' => 'fa-sign-in-alt', 'logout' => 'fa-sign-out-alt', 'failed' => 'fa-exclamation-triangle',
-            'user' => 'fa-user', 'pet' => 'fa-paw', 'shelter' => 'fa-building', 'application' => 'fa-paper-plane',
+            'user' => 'fa-user', 'pet' => 'fa-paw', 'veterinary' => 'fa-building', 'application' => 'fa-paper-plane',
             'report' => 'fa-chart-bar', 'export' => 'fa-file-pdf', 'dashboard' => 'fa-th-large'
         ];
         
@@ -259,7 +259,7 @@ if (!function_exists('get_role_badge_class')) {
     function get_role_badge_class($role) {
         $classes = [
             'admin' => 'badge-danger', 
-            'shelter' => 'badge-success', 
+            'veterinary' => 'badge-success', 
             'adopter' => 'badge-info', 
             'guest' => 'badge-secondary', 
             'system' => 'badge-dark'

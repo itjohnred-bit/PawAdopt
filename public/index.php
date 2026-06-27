@@ -5,43 +5,52 @@ require $BASE . '/config/database.php';
 require $BASE . '/includes/functions.php';
 require $BASE . '/includes/functions_audit.php';
 require $BASE . '/includes/mailer.php';
-startSession();
 
 startSession();
 
 if (isLoggedIn()) {
     $user    = getCurrentUser();
-    $roleKey = strtolower($user['role'] ?? '');
+    $roleKey = strtolower(trim((string)($user['role'] ?? '')));
 
     $dashByRole = [
         'adopter'    => '/pages/adopter/dashboard.php',
-        'shelter'    => '/pages/shelter/dashboard.php',
-        'veterinary' => '/pages/shelter/dashboard.php',
+        'veterinary'    => '/pages/veterinary/dashboard.php',
+        'veterinary' => '/pages/veterinary/dashboard.php',
         'admin'      => '/pages/admin/dashboard.php',
     ];
-    $path = $dashByRole[$roleKey] ?? ('/pages' . $roleKey . '/dashboard.php');
 
-    header('Location: ' . APP_URL . $path);
+    if (isset($dashByRole[$roleKey])) {
+        $path = $dashByRole[$roleKey];
+        $base = rtrim(APP_URL, '/');
+        $path = '/' . ltrim($path, '/');
+        header('Location: ' . $base . $path, true, 302);
+        exit;
+    }
+
+    $_SESSION = [];
+    @session_destroy();
+    header('Location: ' . rtrim(APP_URL, '/') . '/login.php', true, 302);
     exit;
 }
 
 $db = Database::getInstance();
 
-$aboutContent = $db->fetch("SELECT content_value FROM site_content WHERE content_key = 'about_text'");
-$aboutText    = $aboutContent ? $aboutContent['content_value']
-    : 'Paw-Adopt connects loving adopters with shelters. Browse, apply, and change a life today!';
+$aboutContent  = $db->fetch("SELECT content_value FROM site_content WHERE content_key = 'about_text'");
+$aboutText     = $aboutContent ? $aboutContent['content_value']
+    : 'Paw-Adopt connects loving adopters with veterinarys. Browse, apply, and change a life today!';
 
-$termsContent = $db->fetch("SELECT content_value FROM site_content WHERE content_key = 'terms_text'");
-$termsText    = $termsContent ? $termsContent['content_value'] : 'Standard terms apply.';
+$termsContent  = $db->fetch("SELECT content_value FROM site_content WHERE content_key = 'terms_text'");
+$termsText     = $termsContent ? $termsContent['content_value'] : 'Standard terms apply.';
 
-$urlError = $_GET['error'] ?? '';
-?><!DOCTYPE html>
+$urlError      = $_GET['error'] ?? '';
+?>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PAWAdopt – Find Your Forever Friend</title>
-    <link rel="stylesheet" href="<?= htmlspecialchars(APP_URL) ?>/assets/css/auth.css">
+    <link rel="stylesheet" href="<?= htmlspecialchars(rtrim(APP_URL, '/')) ?>/assets/css/auth.css">
     <link rel="icon" href="data:,">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
@@ -64,7 +73,7 @@ $urlError = $_GET['error'] ?? '';
 
         <div class="auth-panel active" id="loginPanel">
             <div class="auth-logo">
-                <img src="<?= htmlspecialchars(APP_URL) ?>/assets/images/Paw-Adopt Logo.png" alt="Paw-Adopt Logo">
+                <img src="<?= htmlspecialchars(rtrim(APP_URL, '/')) ?>/assets/images/Paw-Adopt Logo.png" alt="Paw-Adopt Logo">
             </div>
 
             <?php if ($urlError === 'unauthorized'): ?>
@@ -76,7 +85,7 @@ $urlError = $_GET['error'] ?? '';
             <div class="auth-role-label">Sign in as</div>
             <div class="role-toggle">
                 <button type="button" class="role-btn active" data-role="adopter">🐶 Adopter</button>
-                <button type="button" class="role-btn"        data-role="shelter">🏠 Veterinary</button>
+                <button type="button" class="role-btn"        data-role="veterinary">🏠 Veterinary</button>
                 <button type="button" class="role-btn"        data-role="admin">🛡️ Admin</button>
             </div>
 
@@ -114,7 +123,7 @@ $urlError = $_GET['error'] ?? '';
             <div class="auth-role-label">Register as</div>
             <div class="role-toggle">
                 <button type="button" class="role-btn active" data-role="adopter">🐶 Adopter</button>
-                <button type="button" class="role-btn"        data-role="shelter">🏠 Veterinary</button>
+                <button type="button" class="role-btn"        data-role="veterinary">🏠 Veterinary</button>
             </div>
 
             <form id="registerForm" style="width:100%;display:flex;flex-direction:column;align-items:center;">
@@ -215,6 +224,6 @@ $urlError = $_GET['error'] ?? '';
         <button class="paw-modal-btn" id="closeErrorModal">Close</button>
     </div>
 </div>
-<script src="<?= htmlspecialchars(APP_URL) ?>/assets/js/auth.js" defer></script>
+<script src="<?= htmlspecialchars(rtrim(APP_URL, '/')) ?>/assets/js/auth.js" defer></script>
 </body>
 </html>

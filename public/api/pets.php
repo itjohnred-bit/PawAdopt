@@ -55,16 +55,16 @@ switch ($action) {
 
         $countRes = $db->fetch(
             "SELECT COUNT(*) as total FROM pets p
-             JOIN shelter_profiles sp ON p.shelter_id = sp.shelter_id
+             JOIN veterinary_profiles sp ON p.veterinary_id = sp.veterinary_id
              WHERE $whereStr", $params
         );
         $total = $countRes ? (int)$countRes['total'] : 0;
 
         $pets = $db->fetchAll(
-            "SELECT p.*, sp.shelter_name, sp.city as shelter_city,
+            "SELECT p.*, sp.veterinary_name, sp.city as veterinary_city,
                     (SELECT pp.photo_url FROM pet_photos pp WHERE pp.pet_id = p.pet_id AND pp.is_primary = 1 LIMIT 1) as primary_photo
              FROM pets p
-             JOIN shelter_profiles sp ON p.shelter_id = sp.shelter_id
+             JOIN veterinary_profiles sp ON p.veterinary_id = sp.veterinary_id
              WHERE $whereStr
              ORDER BY p.created_at DESC LIMIT $limit OFFSET $offset",
             $params
@@ -92,9 +92,9 @@ switch ($action) {
         $petId = (int)($_GET['id'] ?? 0);
         if (!$petId) { jsonError('Pet ID required.'); break; }
         $pet = $db->fetch(
-            "SELECT p.*, sp.shelter_name, sp.city as shelter_city, sp.phone as shelter_phone
+            "SELECT p.*, sp.veterinary_name, sp.city as veterinary_city, sp.phone as veterinary_phone
              FROM pets p
-             JOIN shelter_profiles sp ON p.shelter_id = sp.shelter_id
+             JOIN veterinary_profiles sp ON p.veterinary_id = sp.veterinary_id
              WHERE p.pet_id = ?",
             [$petId]
         );
@@ -116,7 +116,7 @@ switch ($action) {
         break;
 
     case 'add':
-        if ($user['role'] !== 'SHELTER') { jsonError('Shelter only.', 403); break; }
+        if ($user['role'] !== 'VETERINARY') { jsonError('veterinary only.', 403); break; }
         if ($method !== 'POST') { jsonError('POST only.', 405); break; }
 
         $name    = trim($_POST['name'] ?? '');
@@ -127,7 +127,7 @@ switch ($action) {
 
         $duplicate = $db->fetch(
             "SELECT pet_id FROM pets 
-             WHERE name = ? AND species = ? AND breed = ? AND shelter_id = ? AND status != 'Removed' LIMIT 1",
+             WHERE name = ? AND species = ? AND breed = ? AND veterinary_id = ? AND status != 'Removed' LIMIT 1",
             [$name, $species, $breed, $user['user_id']]
         );
 
@@ -147,7 +147,7 @@ switch ($action) {
         }
 
         $db->execute(
-            "INSERT INTO pets (shelter_id, name, species, breed, age_months, sex, size, color, temperament, medical_notes, description, medical_certificate)
+            "INSERT INTO pets (veterinary_id, name, species, breed, age_months, sex, size, color, temperament, medical_notes, description, medical_certificate)
              VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
             [
                 $user['user_id'], $name, $species, $breed, 
@@ -182,12 +182,12 @@ switch ($action) {
         break;
 
     case 'edit':
-        if ($user['role'] !== 'SHELTER' && $user['role'] !== 'ADMIN') { jsonError('Unauthorized.', 403); break; }
+        if ($user['role'] !== 'VETERINARY' && $user['role'] !== 'ADMIN') { jsonError('Unauthorized.', 403); break; }
         $petId = (int)($_POST['pet_id'] ?? 0);
         if (!$petId) { jsonError('Pet ID required.'); break; }
 
-        if ($user['role'] === 'SHELTER') {
-            $owner = $db->fetch("SELECT pet_id FROM pets WHERE pet_id = ? AND shelter_id = ?", [$petId, $user['user_id']]);
+        if ($user['role'] === 'VETERINARY') {
+            $owner = $db->fetch("SELECT pet_id FROM pets WHERE pet_id = ? AND veterinary_id = ?", [$petId, $user['user_id']]);
             if (!$owner) { jsonError('Not your pet listing.', 403); break; }
         }
 
@@ -255,12 +255,12 @@ switch ($action) {
         break;
 
     case 'delete':
-        if ($user['role'] !== 'SHELTER' && $user['role'] !== 'ADMIN') { jsonError('Unauthorized.', 403); break; }
+        if ($user['role'] !== 'VETERINARY' && $user['role'] !== 'ADMIN') { jsonError('Unauthorized.', 403); break; }
         $petId = (int)($_GET['id'] ?? $_POST['pet_id'] ?? 0);
         if (!$petId) { jsonError('Pet ID required.'); break; }
 
-        if ($user['role'] === 'SHELTER') {
-            $owner = $db->fetch("SELECT pet_id FROM pets WHERE pet_id = ? AND shelter_id = ?", [$petId, $user['user_id']]);
+        if ($user['role'] === 'VETERINARY') {
+            $owner = $db->fetch("SELECT pet_id FROM pets WHERE pet_id = ? AND veterinary_id = ?", [$petId, $user['user_id']]);
             if (!$owner) { jsonError('Not your pet listing.', 403); break; }
         }
         $db->execute("UPDATE pets SET status = 'Removed' WHERE pet_id = ?", [$petId]);
@@ -268,7 +268,7 @@ switch ($action) {
         break;
 
     case 'delete_photo':
-        if ($user['role'] !== 'SHELTER' && $user['role'] !== 'ADMIN') { 
+        if ($user['role'] !== 'VETERINARY' && $user['role'] !== 'ADMIN') { 
             jsonError('Unauthorized.', 403); 
             break; 
         }
@@ -279,15 +279,15 @@ switch ($action) {
             break; 
         }
 
-        if ($user['role'] === 'SHELTER') {
+        if ($user['role'] === 'VETERINARY') {
             $check = $db->fetch(
                 "SELECT pp.photo_id, pp.pet_id FROM pet_photos pp
                  JOIN pets p ON pp.pet_id = p.pet_id
-                 WHERE pp.photo_id = ? AND p.shelter_id = ?", 
+                 WHERE pp.photo_id = ? AND p.veterinary_id = ?", 
                 [$photoId, $user['user_id']]
             );
             if (!$check) { 
-                jsonError('Unauthorized: This photo does not belong to your shelter listings.', 403); 
+                jsonError('Unauthorized: This photo does not belong to your veterinary listings.', 403); 
                 break; 
             }
             $petId = $check['pet_id'];
@@ -315,13 +315,13 @@ switch ($action) {
         break;
 
     case 'my_pets':
-        if ($user['role'] !== 'SHELTER') { jsonError('Shelter only.', 403); break; }
+        if ($user['role'] !== 'VETERINARY') { jsonError('veterinary only.', 403); break; }
         $pets = $db->fetchAll(
             "SELECT p.*,
              (SELECT pp.photo_url FROM pet_photos pp WHERE pp.pet_id = p.pet_id AND pp.is_primary = 1 LIMIT 1) as primary_photo,
              (SELECT COUNT(*) FROM adoption_applications aa WHERE aa.pet_id = p.pet_id) as app_count
              FROM pets p
-             WHERE p.shelter_id = ? AND p.status != 'Removed'
+             WHERE p.veterinary_id = ? AND p.status != 'Removed'
              ORDER BY p.created_at DESC",
             [$user['user_id']]
         );

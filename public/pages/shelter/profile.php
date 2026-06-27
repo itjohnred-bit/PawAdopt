@@ -1,41 +1,41 @@
 <?php
 require_once __DIR__ . '/../../includes/functions.php';
-requireRole('SHELTER');
-$pageTitle = 'Shelter Profile';
+requireRole('VETERINARY');
+$pageTitle = 'veterinary Profile';
 $user = getCurrentUser();
 $db   = Database::getInstance();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $shelter_name = trim($_POST['shelter_name'] ?? '');
+    $veterinary_name = trim($_POST['veterinary_name'] ?? '');
     $phone        = trim($_POST['phone'] ?? '');
     $address      = trim($_POST['address'] ?? '');
     $city         = trim($_POST['city'] ?? '');
     $description  = trim($_POST['description'] ?? '');
     $website      = trim($_POST['website'] ?? '');
 
-    if (!$shelter_name) { flashMessage('error','Shelter name is required.'); redirect(APP_URL.'/pages/shelter/profile.php'); }
+    if (!$veterinary_name) { flashMessage('error','veterinary name is required.'); redirect(APP_URL.'/pages/veterinary/profile.php'); }
 
     $db->execute(
-        "UPDATE shelter_profiles SET shelter_name=?,phone=?,address=?,city=?,description=?,website=?,updated_at=NOW() WHERE shelter_id=?",
-        [$shelter_name,$phone,$address,$city,$description,$website,$user['user_id']]
+        "UPDATE veterinary_profiles SET veterinary_name=?,phone=?,address=?,city=?,description=?,website=?,updated_at=NOW() WHERE veterinary_id=?",
+        [$veterinary_name,$phone,$address,$city,$description,$website,$user['user_id']]
     );
 
     if (!empty($_FILES['logo']['name'])) {
         $logoUrl = uploadImage($_FILES['logo'], 'logos');
-        if ($logoUrl) $db->execute("UPDATE shelter_profiles SET logo_url=? WHERE shelter_id=?", [$logoUrl, $user['user_id']]);
+        if ($logoUrl) $db->execute("UPDATE veterinary_profiles SET logo_url=? WHERE veterinary_id=?", [$logoUrl, $user['user_id']]);
     }
     flashMessage('success','Profile updated!');
-    redirect(APP_URL.'/pages/shelter/profile.php');
+    redirect(APP_URL.'/pages/veterinary/profile.php');
 }
 
-$profile = $db->fetch("SELECT * FROM shelter_profiles WHERE shelter_id = ?", [$user['user_id']]);
-$verif   = $db->fetch("SELECT * FROM shelter_verifications WHERE shelter_id = ?", [$user['user_id']]);
+$profile = $db->fetch("SELECT * FROM veterinary_profiles WHERE veterinary_id = ?", [$user['user_id']]);
+$verif   = $db->fetch("SELECT * FROM veterinary_verifications WHERE veterinary_id = ?", [$user['user_id']]);
 
 include __DIR__ . '/../../includes/header.php';
 ?>
 
 <div class="page-header">
-    <h1 class="page-title"><span class="icon">🏠</span> Shelter Profile</h1>
+    <h1 class="page-title"><span class="icon">🏠</span> veterinary Profile</h1>
 </div>
 
 <div class="grid-2">
@@ -47,9 +47,9 @@ include __DIR__ . '/../../includes/header.php';
             <div class="profile-avatar-lg">🏠</div>
             <?php endif; ?>
             <div>
-                <div class="profile-name"><?= sanitize($profile['shelter_name'] ?? '') ?></div>
+                <div class="profile-name"><?= sanitize($profile['veterinary_name'] ?? '') ?></div>
                 <div class="profile-sub">@<?= sanitize($user['username']) ?></div>
-                <div class="role-tag mt-1">SHELTER</div>
+                <div class="role-tag mt-1">VETERINARY</div>
                 <?php if ($profile['is_verified']): ?>
                 <span class="badge badge-success" style="margin-top:4px">✓ Verified</span>
                 <?php else: ?>
@@ -60,8 +60,8 @@ include __DIR__ . '/../../includes/header.php';
 
         <form method="POST" enctype="multipart/form-data">
             <div class="form-group">
-                <label class="form-label">Shelter Name *</label>
-                <input type="text" name="shelter_name" class="form-control" value="<?= sanitize($profile['shelter_name'] ?? '') ?>" required>
+                <label class="form-label">veterinary Name *</label>
+                <input type="text" name="veterinary_name" class="form-control" value="<?= sanitize($profile['veterinary_name'] ?? '') ?>" required>
             </div>
             <div class="grid-2" style="gap:16px">
                 <div class="form-group">
@@ -79,14 +79,14 @@ include __DIR__ . '/../../includes/header.php';
             </div>
             <div class="form-group">
                 <label class="form-label">Website</label>
-                <input type="url" name="website" class="form-control" value="<?= sanitize($profile['website'] ?? '') ?>" placeholder="https://yourshelter.com">
+                <input type="url" name="website" class="form-control" value="<?= sanitize($profile['website'] ?? '') ?>" placeholder="https://yourveterinary.com">
             </div>
             <div class="form-group">
-                <label class="form-label">About Your Shelter</label>
+                <label class="form-label">About Your veterinary</label>
                 <textarea name="description" class="form-control" rows="4"><?= sanitize($profile['description'] ?? '') ?></textarea>
             </div>
             <div class="form-group">
-                <label class="form-label">Shelter Logo</label>
+                <label class="form-label">veterinary Logo</label>
                 <input type="file" name="logo" class="form-control" accept="image/*">
             </div>
             <button type="submit" class="btn btn-primary btn-block"><i class="fas fa-save"></i> Save Profile</button>
@@ -115,13 +115,13 @@ include __DIR__ . '/../../includes/header.php';
             <?php endif; ?>
         </div>
 
-        <!-- Shelter Stats -->
+        <!-- veterinary Stats -->
         <div class="card">
-            <div class="card-title"><i class="fas fa-chart-bar"></i> Shelter Stats</div>
+            <div class="card-title"><i class="fas fa-chart-bar"></i> veterinary Stats</div>
             <?php
-            $totPets  = $db->fetch("SELECT COUNT(*) as c FROM pets WHERE shelter_id=? AND status!='Removed'",[$user['user_id']])['c']??0;
-            $adopted  = $db->fetch("SELECT COUNT(*) as c FROM pets WHERE shelter_id=? AND status='Adopted'",[$user['user_id']])['c']??0;
-            $apps     = $db->fetch("SELECT COUNT(*) as c FROM adoption_applications WHERE shelter_id=?",[$user['user_id']])['c']??0;
+            $totPets  = $db->fetch("SELECT COUNT(*) as c FROM pets WHERE veterinary_id=? AND status!='Removed'",[$user['user_id']])['c']??0;
+            $adopted  = $db->fetch("SELECT COUNT(*) as c FROM pets WHERE veterinary_id=? AND status='Adopted'",[$user['user_id']])['c']??0;
+            $apps     = $db->fetch("SELECT COUNT(*) as c FROM adoption_applications WHERE veterinary_id=?",[$user['user_id']])['c']??0;
             ?>
             <div style="display:flex;flex-direction:column;gap:10px">
                 <div style="display:flex;justify-content:space-between;padding:12px;background:var(--gray-bg);border-radius:10px">

@@ -1,19 +1,19 @@
 <?php
 require_once __DIR__ . '/../../includes/functions.php';
-requireRole('SHELTER');
+requireRole('VETERINARY');
 $pageTitle = 'Add New Pet';
 $user = getCurrentUser();
 $db   = Database::getInstance();
 
 // Check profile
-$profile = $db->fetch("SELECT * FROM shelter_profiles WHERE shelter_id = ?", [$user['user_id']]);
+$profile = $db->fetch("SELECT * FROM veterinary_profiles WHERE veterinary_id = ?", [$user['user_id']]);
 
 include __DIR__ . '/../../includes/header.php';
 ?>
 
 <div class="page-header">
     <h1 class="page-title"><span class="icon">➕</span> Add New Pet Listing</h1>
-    <a href="<?= APP_URL ?>/pages/shelter/pets.php" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back</a>
+    <a href="<?= APP_URL ?>/pages/veterinary/pets.php" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back</a>
 </div>
 
 <div style="max-width:700px;margin:0 auto">
@@ -180,7 +180,7 @@ async function submitAddPet(form) {
 
         if (data.success) {
             showToast('Pet listing created! 🐾');
-            setTimeout(() => window.location.href = '/PAWAdopt/pages/shelter/pets.php', 1200);
+            setTimeout(() => window.location.href = '/PAWAdopt/pages/veterinary/pets.php', 1200);
         } else {
             showToast(data.message || 'Failed to create listing.', 'error');
         }

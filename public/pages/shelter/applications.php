@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__ . '/../../includes/functions.php';
-requireRole('SHELTER');
+requireRole('VETERINARY');
 $pageTitle = 'Applications';
 $user = getCurrentUser();
 $db   = Database::getInstance();
@@ -9,7 +9,7 @@ $petFilter    = (int)($_GET['pet'] ?? 0);
 $statusFilter = $_GET['status'] ?? '';
 $focusApp     = (int)($_GET['app'] ?? 0);
 
-$where  = ['p.shelter_id = ?'];
+$where  = ['p.veterinary_id = ?'];
 $params = [$user['user_id']];
 
 if ($petFilter)    { $where[] = 'aa.pet_id = ?';  $params[] = $petFilter; }
@@ -33,7 +33,7 @@ $apps = $db->fetchAll(
 
 $myPets = $db->fetchAll(
     "SELECT pet_id, name FROM pets 
-     WHERE shelter_id = ? AND status != 'Removed' 
+     WHERE veterinary_id = ? AND status != 'Removed' 
      ORDER BY name", 
     [$user['user_id']]
 );
@@ -111,10 +111,10 @@ include __DIR__ . '/../../includes/header.php';
                 <?php endif; ?>
             </div>
 
-            <?php if (!empty($app['message_to_shelter'])): ?>
+            <?php if (!empty($app['message_to_veterinary'])): ?>
             <div style="margin-top:10px;background:#f8f9fa;border-radius:10px;padding:12px;font-size:.88rem">
                 <strong>Adopter's message:</strong><br>
-                <?= sanitize($app['message_to_shelter']) ?>
+                <?= sanitize($app['message_to_veterinary']) ?>
             </div>
             <?php endif; ?>
 
@@ -387,11 +387,11 @@ async function viewApplication(appId) {
                 <span><strong>Status:</strong> ${statusBadge}</span>
             </div>
 
-            ${a.message_to_shelter ? `
+            ${a.message_to_veterinary ? `
                 <div style="margin-top:14px;background:#f8f9fa;border-radius:10px;
                             padding:12px;font-size:.88rem;">
                     <strong>💬 Message from Adopter:</strong><br>
-                    ${escapeHtml(a.message_to_shelter)}
+                    ${escapeHtml(a.message_to_veterinary)}
                 </div>` : ''}
 
             ${screeningSection}
