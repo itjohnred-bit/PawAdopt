@@ -15,7 +15,6 @@ if (isLoggedIn()) {
     $dashByRole = [
         'adopter'    => '/pages/adopter/dashboard.php',
         'veterinary'    => '/pages/veterinary/dashboard.php',
-        'veterinary' => '/pages/veterinary/dashboard.php',
         'admin'      => '/pages/admin/dashboard.php',
     ];
 

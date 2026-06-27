@@ -23,7 +23,7 @@ function redirectForRole(string $role): string {
     $role = strtoupper(trim($role));
     $map  = [
         'VETERINARY' => 'veterinary',
-        'VETERINARY'    => 'veterinary',
+
         'ADMIN'      => 'admin',
         'ADOPTER'    => 'adopter',
     ];
