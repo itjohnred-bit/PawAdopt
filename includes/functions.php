@@ -2,14 +2,50 @@
 require_once __DIR__ . '/../config/database.php';
 
 function startSession(): void {
+    if (session_status() === PHP_SESSION_ACTIVE) {
+        return;
+    }
     if (session_status() === PHP_SESSION_NONE) {
-        session_start();
+        $baseUrl = rtrim((string)APP_URL, '/');
+        $cookiePath = '/';
+        if (preg_match('#^https?://[^/]+(/.*)?$#i', $baseUrl, $m) && !empty($m[1])) {
+            $cookiePath = rtrim($m[1], '/') . '/';
+        }
+        $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+            || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https')
+            || (isset($_SERVER['SERVER_PORT']) && (int)$_SERVER['SERVER_PORT'] === 443);
+        if (headers_sent()) {
+            return;
+        }
+        session_name('PCSESSID');
+        session_set_cookie_params([
+            'lifetime' => 0,
+            'path'     => $cookiePath,
+            'domain'   => '',
+            'secure'   => $isHttps,
+            'httponly' => true,
+            'samesite' => 'Lax',
+        ]);
+        ini_set('session.use_only_cookies', '1');
+        ini_set('session.use_strict_mode', '1');
+        ini_set('session.cookie_httponly', '1');
+        ini_set('session.cookie_samesite', 'Lax');
+        @session_start();
     }
 }
 
 function isLoggedIn(): bool {
     startSession();
-    return isset($_SESSION['user_id']);
+    return !empty($_SESSION['user_id']);
+}
+
+function loginUser(array $user): void {
+    startSession();
+    $_SESSION['user']    = $user;
+    $_SESSION['user_id'] = (int)$user['id'];
+    $_SESSION['role']    = $user['role'] ?? '';
+    $_SESSION['login_time'] = time();
+    session_regenerate_id(true);
 }
 
 function getCurrentUser(): ?array {
@@ -28,7 +64,7 @@ function requireLogin(): void {
 function requireRole(string $role): void {
     requireLogin();
     $user = getCurrentUser();
-    if (!$user || $user['role'] !== $role) {
+    if (!$user || ($user['role'] ?? '') !== $role) {
         $baseUrl = rtrim(APP_URL, '/');
         header('Location: ' . $baseUrl . '/index.php?error=unauthorized');
         exit;
@@ -38,7 +74,7 @@ function requireRole(string $role): void {
 function requireAnyRole(array $roles): void {
     requireLogin();
     $user = getCurrentUser();
-    if (!$user || !in_array($user['role'], $roles)) {
+    if (!$user || !in_array($user['role'] ?? '', $roles, true)) {
         $baseUrl = rtrim(APP_URL, '/');
         header('Location: ' . $baseUrl . '/index.php?error=unauthorized');
         exit;
@@ -58,7 +94,8 @@ function logout(): void {
     exit;
 }
 
-date_default_timezone_set('Asia/Manila'); 
+date_default_timezone_set('Asia/Manila');
+
 function sanitize(string $input): string {
     return htmlspecialchars(trim($input), ENT_QUOTES, 'UTF-8');
 }
@@ -77,8 +114,10 @@ function verifyCsrfToken(string $token): bool {
 }
 
 function jsonResponse(array $data, int $code = 200): void {
-    http_response_code($code);
-    header('Content-Type: application/json');
+    if (!headers_sent()) {
+        http_response_code($code);
+        header('Content-Type: application/json');
+    }
     echo json_encode($data);
     exit;
 }
@@ -88,15 +127,17 @@ function jsonSuccess(array $data = [], string $message = 'Success'): void {
 }
 
 function jsonError($message, $code = 400) {
-    header('Content-Type: application/json');
-    http_response_code($code);
+    if (!headers_sent()) {
+        http_response_code($code);
+        header('Content-Type: application/json');
+    }
     echo json_encode(['success' => false, 'message' => $message]);
     exit;
 }
-if (!defined('MAX_FILE_SIZE')) {
-    define('MAX_FILE_SIZE', 5242880); 
-}
 
+if (!defined('MAX_FILE_SIZE')) {
+    define('MAX_FILE_SIZE', 5242880);
+}
 
 function uploadImage(array $file, string $subdir = 'pets'): ?string {
     $allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
@@ -119,11 +160,10 @@ function uploadImageToAiven($fileField) {
     if (!isset($_FILES[$fileField]) || $_FILES[$fileField]['error'] !== UPLOAD_ERR_OK) {
         return null;
     }
-
     $imgBinaryData = file_get_contents($_FILES[$fileField]['tmp_name']);
-    
     return $imgBinaryData;
 }
+
 function createNotification($userId, $type, $title, $message, $link = '') {
     $db = Database::getInstance();
     return $db->query(
@@ -131,6 +171,7 @@ function createNotification($userId, $type, $title, $message, $link = '') {
         [$userId, $type, $title, $message, $link]
     );
 }
+
 function getUnreadNotificationCount(int $userId): int {
     $db = Database::getInstance();
     $result = $db->fetch("SELECT COUNT(*) as cnt FROM notifications WHERE user_id = ? AND is_read = 0", [$userId]);
