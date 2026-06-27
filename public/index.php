@@ -19,7 +19,7 @@ if (isLoggedIn()) {
         'veterinary' => '/pages/shelter/dashboard.php',
         'admin'      => '/pages/admin/dashboard.php',
     ];
-    $path = $dashByRole[$roleKey] ?? ('/pages/' . $roleKey . '/dashboard.php');
+    $path = $dashByRole[$roleKey] ?? ('/pages' . $roleKey . '/dashboard.php');
 
     header('Location: ' . APP_URL . $path);
     exit;
