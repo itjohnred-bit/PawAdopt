@@ -1,0 +1,36 @@
+# Keep secrets, junk, and heavyweight dev artifacts OUT of the Docker build
+# context. A real .env must never enter the image — configure credentials
+# via the Render dashboard / environment instead.
+.env
+.env.*
+!.env.example
+
+# Version control and editor junk
+.git
+.gitignore
+.vscode
+*.swp
+.DS_Store
+
+# Docs that don't belong inside the runtime image
+PawAdopt_Security_Report.docx
+PawAdopt_Secrets_Inventory.xlsx
+PawAdopt_Deployment_Guide.docx
+PawAdopt_Desktop_Setup_README.md
+README.zip
+Procfile.zip
+
+# Deployment / CI configs (not needed inside the container)
+render.yaml
+docker-compose.yml
+.github
+
+# Duplicate legacy archives and sample binaries found in the repo
+72cb900c-438d-4502-a6a0-9e479e91c13a.jfif
+
+# Uploaded user content is served from a mounted disk at runtime,
+# so the local sample uploads don't need to bloat the image
+uploads/pets
+uploads/avatars
+uploads/certificates
+uploads/logos

@@ -1,0 +1,103 @@
+# ============================================================================
+# PawAdopt — Render Blueprint (render.yaml)
+#
+# Render has NO native PHP runtime, so the app deploys as a Docker image
+# built from ./Dockerfile (php:8.2-apache + pdo_mysql).
+# Render has NO managed MySQL — only managed PostgreSQL. PawAdopt uses
+# MySQL/MariaDB, so point DB_* at either:
+#   (a) an external managed MySQL such as Aiven's free tier, or
+#     (b) the OPTIONAL MySQL private service at the bottom of this file
+#         (requires a paid instance type — private services are not free).
+#
+# Secrets declared with `sync: false` are entered manually in the Render
+# dashboard after the first Blueprint sync (Dashboard → pawadopt-web →
+# Environment). They are NEVER stored in this file or in Git.
+# ============================================================================
+
+services:
+  # ── PawAdopt web service (PHP 8.2 + Apache, Docker runtime) ──────────────
+  - type: web
+    name: pawadopt-web
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: free
+    region: oregon
+    # Render verifies the deploy before shifting traffic. health.php returns
+    # 200 only when the database accepts a query.
+    healthCheckPath: /health.php
+    envVars:
+      - key: APP_ENV
+        value: production
+      # Public URL of the service — auto-wired from Render's own external URL.
+      - key: APP_URL
+        fromService:
+          name: pawadopt-web
+          type: web
+          envVarKey: RENDER_EXTERNAL_URL
+      # ── Database connection (values set in the Render dashboard) ──
+      - key: DB_HOST
+        sync: false          # e.g. your-db.aivencloud.com
+      - key: DB_PORT
+        value: "3306"
+      - key: DB_NAME
+        sync: false          # e.g. pawadopt (defaultdb on Aiven)
+      - key: DB_USER
+        sync: false          # least-privilege runtime user (NOT root/admin)
+      - key: DB_PASS
+        sync: false          # SECRET — dashboard only
+      # ── Server-side secrets ──
+      - key: GEMINI_API_KEY
+        sync: false          # AI assistant (PawBot) — server-side only
+      - key: SMTP_HOST
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_ENCRYPTION
+        value: tls
+      - key: SMTP_USERNAME
+        sync: false
+      - key: SMTP_PASSWORD
+        sync: false          # SECRET — Gmail app-password, dashboard only
+      - key: SMTP_FROM_EMAIL
+        sync: false
+      - key: SMTP_FROM_NAME
+        value: PawAdopt
+    # ── Persistent uploads (OPTIONAL — paid plans only) ──
+    # Render's free tier has an EPHEMERAL filesystem: uploaded pet photos /
+    # avatars are wiped on every redeploy. To persist them, upgrade to a paid
+    # plan and uncomment this block (the disk is mounted at the uploads path):
+    # disk:
+    #   name: pawadopt-uploads
+    #   mountPath: /var/www/html/uploads
+    #   sizeGB: 1
+
+  # ── OPTIONAL: managed MySQL as a Render private service ─────────────────
+  # UNCOMMENT ONLY if you are on a paid plan and want Render to host MySQL
+  # instead of an external provider like Aiven. Free plans cannot use
+  # private services or disks.
+  # - type: psc
+  #   name: pawadopt-mysql
+  #   runtime: docker
+  #   dockerfilePath: ./docker/mysql.Dockerfile
+  #   dockerContext: .
+  #   plan: standard
+  #   disk:
+  #     name: pawadopt-mysql-data
+  #     mountPath: /var/lib/mysql
+  #     sizeGB: 5
+  #   envVars:
+  #     - key: MYSQL_DATABASE
+  #       value: pawadopt
+  #     - key: MYSQL_USER
+  #       sync: false        # runtime app user (least privilege)
+  #     - key: MYSQL_PASSWORD
+  #       sync: false        # SECRET — dashboard only
+  #     - key: MYSQL_ROOT_PASSWORD
+  #       sync: false        # SECRET — admin/migration use only
+  #
+  # When enabled, set on pawadopt-web:
+  #   DB_HOST = pawadopt-mysql   (private service hostname)
+  #   DB_PORT = 3306
+  #   DB_NAME = pawadopt
+  #   DB_USER / DB_PASS = the MYSQL_USER / MYSQL_PASSWORD values above

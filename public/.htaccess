@@ -1,0 +1,12 @@
+RewriteEngine On
+RewriteBase /
+
+# Serve static assets directly without hitting the index controller
+RewriteCond %{REQUEST_URI} ^/assets/
+RewriteRule ^ - [L]
+
+# Route everything else smoothly through index.php
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php?route=$1 [QSA,L]
+DirectoryIndex index.php
