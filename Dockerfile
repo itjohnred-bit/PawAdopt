@@ -13,8 +13,15 @@ FROM php:8.2-apache
 # pdo_mysql = database access (PDO used by config/database.php)
 # gd        = image processing for uploaded pet photos / avatars
 # curl, mbstring, openssl etc. are already included in the php:8.2-apache base.
-RUN docker-php-ext-install pdo_mysql mysqli gd \
-    && a2enmod rewrite headers
+RUN apt-get update && apt-get install -y \
+    libpng-dev \
+    libjpeg62-turbo-dev \
+    libfreetype6-dev \
+    zlib1g-dev \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install -j$(nproc) pdo_mysql mysqli gd \
+    && a2enmod rewrite headers \
+    && rm -rf /var/lib/apt/lists/*
 
 # --- Production PHP settings: never show errors/stack traces to users -------
 RUN { echo "display_errors = Off"; \
