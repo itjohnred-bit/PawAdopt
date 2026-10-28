@@ -6,7 +6,7 @@
 -- ============================================================================
 
 ALTER TABLE user_preferences
-  ADD COLUMN IF NOT EXISTS ui_theme          VARCHAR(32) NOT NULL DEFAULT 'cozy_warmth',
+  ADD COLUMN ui_theme          VARCHAR(32) NOT NULL DEFAULT 'cozy_warmth',
   ADD COLUMN IF NOT EXISTS accent_color_hex  VARCHAR(7)  NOT NULL DEFAULT '#E07A5F',
   ADD COLUMN IF NOT EXISTS font_family       VARCHAR(32) NOT NULL DEFAULT 'Nunito',
   ADD COLUMN IF NOT EXISTS base_font_size    VARCHAR(10) NOT NULL DEFAULT '8pt',
