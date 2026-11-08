@@ -554,10 +554,10 @@ switch ($action) {
                 ['redirect' => APP_URL . "/pages/{$roleDir}/dashboard.php"],
                 'Account created!'
             );
-        } catch (Exception $e) {
-            jsonError('Registration failed.');
-        }
-        break;
+            } catch (Exception $e) {
+                error_log('PawAdopt register failed: ' . $e->getMessage());
+                jsonError('Registration failed.');
+            }
 
     case 'request_reset_otp':
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') { jsonError('Method not allowed', 405); break; }

@@ -1,9 +1,11 @@
 /* ============================================================
-   PawAdopt UI Restyle — new presentation layer only
-   Scoped to body.pa-restyle (applied by includes/header.php for
-   SHELTER and ADOPTER roles only; admin pages are unaffected).
-   Loaded AFTER main.css and dark-mode.css.
-   No PHP, queries, or form logic is touched by this file.
+   PawAdopt UI Restyle — presentation layer for SHELTER + ADOPTER
+   Scoped to body.pa-restyle (applied by includes/header.php).
+   Admin pages are NOT affected (no pa-restyle class there).
+   Loaded AFTER main.css and dark-mode.css; the body.pa-restyle
+   prefix also out-specifies page-level <style> blocks, so this
+   reskin wins everywhere without editing those blocks.
+   No PHP, queries, form names, or session logic is touched here.
    ============================================================ */
 
 /* ---------- Canvas: deep forest green with subtle dot texture ---------- */
@@ -13,9 +15,7 @@ body.pa-restyle {
     background-size: 24px 24px;
 }
 
-body.pa-restyle .main-content {
-    background: transparent;
-}
+body.pa-restyle .main-content { background: transparent; }
 
 /* ---------- Sidebar ---------- */
 body.pa-restyle .sidebar {
@@ -24,291 +24,570 @@ body.pa-restyle .sidebar {
     box-shadow: 0 0 40px rgba(0, 0, 0, 0.18);
 }
 
-body.pa-restyle .sidebar-brand {
-    gap: 12px;
-    font-size: 24px;
-}
+body.pa-restyle .sidebar-brand { gap: 12px; font-size: 24px; }
 
 /* Brand: dark-green circular paw tile + coral wordmark */
 body.pa-restyle .sidebar-brand .pa-brand-paw {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: #165B4C;
-    color: #ffffff;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 17px;
-    flex: none;
+    width: 40px; height: 40px; border-radius: 50%;
+    background: #165B4C; color: #ffffff;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 17px; flex: none;
 }
 
 body.pa-restyle .sidebar-brand .pa-brand-text {
-    color: #B33927;
-    font-weight: 900;
-    letter-spacing: 0.2px;
+    color: #B33927; font-weight: 900; letter-spacing: 0.2px;
 }
 
 /* Nav items become rounded pills; active = solid dark-green pill */
 body.pa-restyle .nav-item {
-    color: #556960;
-    font-weight: 700;
-    border-radius: 999px;
-    margin-bottom: 6px;
-    padding: 12px 18px;
+    color: #556960; font-weight: 700; border-radius: 999px;
+    margin-bottom: 6px; padding: 12px 18px; border-left: none;
 }
-
-body.pa-restyle .nav-item i {
-    font-size: 16px;
-}
-
-body.pa-restyle .nav-item:hover {
-    background: #eef6f3;
-    color: #165B4C;
-}
-
+body.pa-restyle .nav-item i { font-size: 16px; }
+body.pa-restyle .nav-item:hover { background: #eef6f3; color: #165B4C; }
 body.pa-restyle .nav-item.active {
-    background: #165B4C;
-    color: #ffffff;
-    border-left: none;
-    border-radius: 999px;
-    box-shadow: 0 10px 20px rgba(22, 91, 76, 0.35);
+    background: #165B4C; color: #ffffff; border-left: none;
+    border-radius: 999px; box-shadow: 0 10px 20px rgba(22, 91, 76, 0.35);
 }
-
 body.pa-restyle .sidebar-nav { padding: 12px 14px; }
 
 /* Sign Out pinned at the bottom, crimson */
-body.pa-restyle .sidebar .nav-item[href*="logout"] {
-    color: #B33927;
-    font-weight: 800;
-}
+body.pa-restyle .sidebar .nav-item[href*="logout"] { color: #B33927; font-weight: 800; }
 
 /* ---------- Top header ---------- */
 body.pa-restyle .top-header {
-    background: #ffffff;
-    border-bottom: none;
+    background: #ffffff; border-bottom: none;
     box-shadow: 0 2px 18px rgba(0, 0, 0, 0.10);
 }
 
 body.pa-restyle .icon-btn {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    color: #3f514b;
-    background: #f2f7f5;
+    width: 40px; height: 40px; border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    color: #3f514b; background: #f2f7f5;
 }
-
 body.pa-restyle .icon-btn:hover { background: #e3efe9; }
 
 body.pa-restyle .user-pill {
-    background: #f2f7f5;
-    border-radius: 999px;
-    padding: 5px 16px 5px 6px;
+    background: #f2f7f5; border-radius: 999px; padding: 5px 16px 5px 6px;
 }
 
 body.pa-restyle .avatar-circle-sm {
-    width: 34px;
-    height: 34px;
-    background: #165B4C;
-    font-weight: 800;
+    width: 34px; height: 34px; background: #165B4C; font-weight: 800;
 }
 
-/* ---------- Page header & titles ---------- */
-/* White header band carrying the page title, like the target mockup */
+/* ---------- Page header band & titles ---------- */
 body.pa-restyle .page-header {
-    background: #ffffff;
-    border-radius: 20px;
-    padding: 18px 24px;
-    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.20);
-    margin-bottom: 24px;
+    background: #ffffff; border-radius: 20px; padding: 18px 24px;
+    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.20); margin-bottom: 24px;
 }
-
-body.pa-restyle .page-title {
-    color: #165B4C;
-    font-weight: 900;
-}
+body.pa-restyle .page-title { color: #165B4C; font-weight: 900; }
 
 /* ---------- Cards ---------- */
 body.pa-restyle .card {
-    border-radius: 20px;
-    border: 1px solid #edf2f0;
+    border-radius: 20px; border: 1px solid #edf2f0;
     box-shadow: 0 14px 30px rgba(0, 0, 0, 0.20);
 }
+body.pa-restyle .card-title { color: #1E2E28; font-weight: 900; }
 
 body.pa-restyle .mini-card,
-body.pa-restyle .pet-card {
-    border-radius: 20px;
-}
+body.pa-restyle .pet-card { border-radius: 20px; }
 
 /* ---------- Pill buttons ---------- */
-body.pa-restyle .btn {
-    border-radius: 999px;
-    font-weight: 800;
-}
-
+body.pa-restyle .btn { border-radius: 999px; font-weight: 800; }
 body.pa-restyle .btn-primary { background: #1F7261; }
 body.pa-restyle .btn-primary:hover { background: #165B4C; }
+body.pa-restyle .btn-outline { border-radius: 999px; border-width: 2px; }
+body.pa-restyle .btn-danger { background: #B33927; }
+body.pa-restyle .btn-danger:hover { background: #93291b; }
+body.pa-restyle .btn-secondary { border-radius: 999px; font-weight: 700; }
 
-/* ---------- Shelter dashboard action bar ---------- */
-.pa-action-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 12px;
-    flex-wrap: wrap;
-    margin: 0 0 24px;
-}
+/* ---------- Badges: rounded capsule pills ---------- */
+body.pa-restyle .badge { border-radius: 999px; font-weight: 800; letter-spacing: .03em; }
+body.pa-restyle .badge-success { background: #DDF3EA; color: #165B4C; }
+body.pa-restyle .badge-warning { background: #FCEFD5; color: #A6731B; }
+body.pa-restyle .badge-danger  { background: #FBE3E0; color: #B33927; }
+body.pa-restyle .badge-info    { background: #E3EEFB; color: #1E4E8C; }
+body.pa-restyle .badge-primary { background: #DDF3EA; color: #165B4C; }
+body.pa-restyle .badge-secondary { background: #EEF2F1; color: #556960; }
 
-body.pa-restyle .shelter-action {
-    border-radius: 999px;
-    border: none;
-    box-shadow: 0 12px 26px rgba(0, 0, 0, 0.22);
-}
-
-body.pa-restyle .shelter-action.report {
-    background: #ffffff;
-    color: #B33927;
-    border: none;
-}
-
-body.pa-restyle .shelter-action.report:hover { background: #f7f2f2; }
-
-body.pa-restyle .shelter-action.add-pet {
-    background: #1F7261;
-    color: #ffffff;
-    border: none;
-}
-
-body.pa-restyle .shelter-action.add-pet:hover { background: #175848; }
-
-/* ---------- Dashboard Usage Policy info card ---------- */
-.pa-policy-card {
-    display: flex;
-    gap: 16px;
-    align-items: flex-start;
-    padding: 22px 24px;
-    border-radius: 20px;
-    margin-bottom: 24px;
-    background: #ffffff;
-    border: 1px solid #e7efec;
-    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.20);
-}
-
-.pa-policy-icon {
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    background: #0F766E;
-    color: #ffffff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1rem;
-    flex: none;
-}
-
-.pa-policy-title {
-    font-weight: 900;
-    color: #1E2E28;
-    font-size: 1.05rem;
-    margin-bottom: 6px;
-}
-
-.pa-policy-text {
-    margin: 0;
-    color: #4b5b55;
-    line-height: 1.65;
-    font-size: 0.95rem;
-}
-
-/* ---------- Verification Pending banner ---------- */
-.pa-verify-banner {
-    display: flex;
-    gap: 14px;
-    align-items: flex-start;
-    background: #FEF8E7;
-    border: 2px solid #DFC15D;
-    border-radius: 18px;
-    padding: 18px 20px;
-    margin-bottom: 26px;
-}
-
-.pa-verify-icon {
-    width: 44px;
-    height: 44px;
-    border-radius: 12px;
-    background: #F6A81C;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.25rem;
-    flex: none;
-}
-
-.pa-verify-title {
-    font-weight: 900;
-    color: #8C4722;
-    margin-bottom: 4px;
-    font-size: 1rem;
-}
-
-.pa-verify-text {
-    color: #7a5b2e;
-    font-size: 0.92rem;
-    line-height: 1.55;
-}
-
-/* ---------- Stat cards (2 x 2 grid on the shelter dashboard) ---------- */
-body.pa-restyle .pa-stats-2 {
-    grid-template-columns: repeat(2, 1fr);
-}
+/* ---------- Stat cards ---------- */
+body.pa-restyle .stats-grid { gap: 20px; }
 
 body.pa-restyle .stat-card {
-    border-radius: 20px;
-    border: 1px solid #edf2f0;
-    padding: 22px;
+    border-radius: 20px; border: 1px solid #edf2f0; padding: 22px;
     box-shadow: 0 14px 30px rgba(0, 0, 0, 0.20);
 }
 
 body.pa-restyle .stat-icon {
-    width: 52px;
-    height: 52px;
-    border-radius: 14px;
-    font-size: 1.35rem;
+    width: 52px; height: 52px; border-radius: 14px; font-size: 1.35rem;
 }
-
+body.pa-restyle .stat-icon.teal   { background: #DDF3EA; color: #165B4C; }
+body.pa-restyle .stat-icon.green  { background: #DDF3EA; color: #1F7261; }
+body.pa-restyle .stat-icon.amber  { background: #FCEFD5; color: #A6731B; }
+body.pa-restyle .stat-icon.blue   { background: #E3EEFB; color: #1E4E8C; }
+body.pa-restyle .stat-icon.red    { background: #FBE3E0; color: #B33927; }
 body.pa-restyle .stat-icon.purple { background: #EDE9FE; color: #7C3AED; }
 
-body.pa-restyle .stat-value {
-    font-weight: 900;
-    color: #1E2E28;
+body.pa-restyle .stat-value { font-weight: 900; color: #1E2E28; }
+body.pa-restyle .stat-label { color: #6B7C75; font-weight: 700; }
+
+/* Shelter dashboard: fixed 2 x 2 stat grid (target mockup) */
+body.pa-restyle .pa-stats-2 { grid-template-columns: repeat(2, 1fr); }
+
+/* ---------- Forms ---------- */
+body.pa-restyle .form-label { color: #3f514b; font-weight: 800; }
+body.pa-restyle .form-control {
+    border-radius: 14px; border: 1px solid #d6e3df; background: #fcfefe;
+}
+body.pa-restyle .form-control:focus {
+    border-color: #1F7261; box-shadow: 0 0 0 3px rgba(31, 114, 97, 0.15);
 }
 
-/* ---------- Recent Applications table card ---------- */
+/* ---------- Data tables ---------- */
+body.pa-restyle .table-wrap { border-radius: 14px; }
+body.pa-restyle .data-table thead { background: #DDF3EA; }
+body.pa-restyle .data-table thead th {
+    color: #165B4C; font-weight: 900; text-transform: uppercase;
+    letter-spacing: .05em; font-size: .72rem;
+}
+body.pa-restyle .data-table tbody tr:hover { background: #f2faf7; }
+
+/* ---------- Modals ---------- */
+body.pa-restyle .modal-content {
+    border-radius: 22px; border: none;
+    box-shadow: 0 25px 60px rgba(2, 8, 23, 0.35);
+}
+body.pa-restyle .modal-header { border-bottom: 1px solid #eef2f0; }
+body.pa-restyle .modal-title { color: #165B4C; font-weight: 900; }
+
+/* ---------- Filter tabs (applications pages) ---------- */
+body.pa-restyle .tab-btn {
+    border-radius: 999px; font-weight: 800; border: 1px solid #d6e3df;
+    background: #ffffff; color: #556960;
+}
+body.pa-restyle .tab-btn.active {
+    background: #165B4C; color: #ffffff; border-color: #165B4C;
+    box-shadow: 0 8px 18px rgba(22, 91, 76, 0.30);
+}
+
+/* ---------- Empty states ---------- */
+body.pa-restyle .empty-state { color: #6B7C75; }
+
+/* ---------- Pet cards (browse / favorites / featured) ---------- */
+body.pa-restyle .pet-card {
+    border-radius: 20px; border: 1px solid #edf2f0;
+    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.20);
+}
+body.pa-restyle .pet-card-name { color: #1E2E28; font-weight: 900; }
+
+/* ---------- Action strip pills (adopter dashboard etc.) ---------- */
+body.pa-restyle .action-mini {
+    border-radius: 999px; border: none; background: #ffffff; color: #165B4C;
+    box-shadow: 0 12px 26px rgba(0, 0, 0, 0.22); font-weight: 800;
+}
+body.pa-restyle .action-mini.report { background: #ffffff; color: #B33927; }
+body.pa-restyle .action-mini:hover { transform: translateY(-2px); }
+
+/* ---------- vd-* buttons & pills (shelter/adopter applications pages) ---------- */
+body.pa-restyle .vd-btn { border-radius: 999px; font-weight: 800; }
+body.pa-restyle .vd-btn--primary { background: #1F7261; color: #ffffff; }
+body.pa-restyle .vd-btn--primary:hover:not(:disabled) { background: #165B4C; }
+body.pa-restyle .vd-btn--secondary { background: #ffffff; color: #165B4C; border-color: #bfe3d9; }
+body.pa-restyle .vd-btn--danger { background: #B33927; }
+
+body.pa-restyle .vd-status-pill { border-radius: 999px; font-weight: 800; }
+
+/* ---------- Wizard (adoption form on pet-detail) ---------- */
+body.pa-restyle .wizard-section { border-radius: 20px; }
+
+/* ---------- Flash message ---------- */
+body.pa-restyle .flash-message { border-radius: 999px; box-shadow: 0 12px 26px rgba(0, 0, 0, 0.25); }
+
+/* ---------- Chat (messages pages) ---------- */
+body.pa-restyle .chat-active,
+body.pa-restyle .chat-pane,
+body.pa-restyle .chat-empty { border-radius: 20px; }
+
+/* ---------- Two-column grid ---------- */
+body.pa-restyle .grid-2 { gap: 20px; }
+
+/* ---------- Shelter dashboard action bar ---------- */
+.pa-action-bar {
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 12px; flex-wrap: wrap; margin: 0 0 24px;
+}
+
+body.pa-restyle .shelter-action {
+    border-radius: 999px; border: none;
+    box-shadow: 0 12px 26px rgba(0, 0, 0, 0.22);
+}
+body.pa-restyle .shelter-action.report { background: #ffffff; color: #B33927; border: none; }
+body.pa-restyle .shelter-action.report:hover { background: #f7f2f2; }
+body.pa-restyle .shelter-action.add-pet { background: #1F7261; color: #ffffff; border: none; }
+body.pa-restyle .shelter-action.add-pet:hover { background: #175848; }
+
+/* ---------- Dashboard Usage Policy info card ---------- */
+.pa-policy-card {
+    display: flex; gap: 16px; align-items: flex-start;
+    padding: 22px 24px; border-radius: 20px; margin-bottom: 24px;
+    background: #ffffff; border: 1px solid #e7efec;
+    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.20);
+}
+.pa-policy-icon {
+    width: 44px; height: 44px; border-radius: 50%;
+    background: #0F766E; color: #ffffff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem; flex: none;
+}
+.pa-policy-title { font-weight: 900; color: #1E2E28; font-size: 1.05rem; margin-bottom: 6px; }
+.pa-policy-text { margin: 0; color: #4b5b55; line-height: 1.65; font-size: 0.95rem; }
+
+/* ---------- Verification Pending banner ---------- */
+.pa-verify-banner {
+    display: flex; gap: 14px; align-items: flex-start;
+    background: #FEF8E7; border: 2px solid #DFC15D; border-radius: 18px;
+    padding: 18px 20px; margin-bottom: 26px;
+}
+.pa-verify-icon {
+    width: 44px; height: 44px; border-radius: 12px; background: #F6A81C;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.25rem; flex: none;
+}
+.pa-verify-title { font-weight: 900; color: #8C4722; margin-bottom: 4px; font-size: 1rem; }
+.pa-verify-text { color: #7a5b2e; font-size: 0.92rem; line-height: 1.55; }
+
+/* ---------- Recent Applications table card head ---------- */
 .pa-table-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 18px;
-    flex-wrap: wrap;
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 12px; margin-bottom: 18px; flex-wrap: wrap;
 }
-
 .pa-table-head .card-title { margin-bottom: 0; }
-
-.pa-view-all {
-    color: #1F7261;
-    font-weight: 800;
-    text-decoration: none;
-    font-size: 0.9rem;
-}
-
+.pa-view-all { color: #1F7261; font-weight: 800; text-decoration: none; font-size: 0.9rem; }
 .pa-view-all:hover { color: #165B4C; text-decoration: underline; }
 
 /* ---------- Responsive ---------- */
 @media (max-width: 800px) {
     body.pa-restyle .pa-stats-2 { grid-template-columns: 1fr; }
+}
+
+/* ============================================================
+   THEME VARIANTS — pages differ, one green family, three depths
+   body class set by includes/header.php:
+     theme-deep  → dashboards (forest green canvas)
+     theme-mint  → messages + notifications (pale mint canvas)
+     theme-sage  → every other shelter/adopter page (sage canvas)
+   ============================================================ */
+
+/* Deep (dashboards) — default already defined above (#134E43) */
+
+/* Mint (messages, notifications) */
+body.pa-restyle.theme-mint {
+    background-color: #E8F5F1;
+    background-image: radial-gradient(rgba(19, 78, 67, 0.06) 1px, transparent 1px);
+    background-size: 24px 24px;
+}
+
+body.pa-restyle.theme-mint .card,
+body.pa-restyle.theme-mint .pa-policy-card,
+body.pa-restyle.theme-mint .stat-card {
+    box-shadow: 0 10px 24px rgba(19, 78, 67, 0.10);
+}
+
+/* Sage (browse, pets, applications, profile, favorites, pet-detail) */
+body.pa-restyle.theme-sage {
+    background-color: #DCE9E2;
+    background-image: radial-gradient(rgba(19, 78, 67, 0.07) 1px, transparent 1px);
+    background-size: 24px 24px;
+}
+
+body.pa-restyle.theme-sage .card,
+body.pa-restyle.theme-sage .stat-card {
+    box-shadow: 0 10px 24px rgba(19, 78, 67, 0.12);
+}
+
+/* ============================================================
+   SHARED COMPONENT OVERRIDES — so EVERY page changes, not just
+   the dashboards. These target classes used across all
+   shelter/adopter pages (forms, tables, tabs, chat, modals...).
+   ============================================================ */
+
+/* Forms */
+body.pa-restyle .form-label {
+    color: #1E2E28;
+    font-weight: 800;
+}
+
+body.pa-restyle .form-control {
+    border-radius: 14px;
+    border: 1px solid #d6e3df;
+    background: #fcfefe;
+    padding: 12px 14px;
+}
+
+body.pa-restyle .form-control:focus {
+    border-color: #1F7261;
+    box-shadow: 0 0 0 4px rgba(31, 114, 97, 0.15);
+    outline: none;
+}
+
+/* Buttons */
+body.pa-restyle .btn-secondary { border-radius: 999px; font-weight: 800; }
+body.pa-restyle .btn-outline   { border-radius: 999px; font-weight: 800; }
+body.pa-restyle .btn-danger    { border-radius: 999px; font-weight: 800; }
+
+/* Status badges → capsule shape */
+body.pa-restyle .badge {
+    border-radius: 999px;
+    padding: 5px 12px;
+    font-weight: 800;
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+/* Data tables */
+body.pa-restyle .data-table thead th {
+    background: #EAF4F0;
+    color: #165B4C;
+    text-transform: uppercase;
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+}
+
+body.pa-restyle .data-table tbody tr:hover { background: #F0F9F5; }
+
+/* Modals */
+body.pa-restyle .modal-content {
+    border-radius: 20px;
+    border: none;
+    box-shadow: 0 25px 60px rgba(2, 8, 23, 0.28);
+}
+
+body.pa-restyle .modal-header { border-bottom: 1px solid #edf2f0; }
+body.pa-restyle .modal-title  { color: #165B4C; font-weight: 900; }
+
+/* Flash messages */
+body.pa-restyle .flash-message { border-radius: 999px; font-weight: 800; }
+
+/* Empty states */
+body.pa-restyle .empty-state { color: #556960; }
+
+/* Pet cards (browse / pets / favorites / featured) */
+body.pa-restyle .pet-card {
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+/* Tab buttons (applications pages define .tab-btn in page styles) */
+body.pa-restyle .tab-btn {
+    border-radius: 999px;
+    font-weight: 800;
+    border: 1px solid #d6e3df;
+    background: #ffffff;
+    color: #556960;
+}
+
+body.pa-restyle .tab-btn.active {
+    background: #165B4C;
+    color: #ffffff;
+    border-color: #165B4C;
+}
+
+/* Action strip buttons (adopter dashboard: Share Feedback / Report) */
+body.pa-restyle .action-mini {
+    border-radius: 999px;
+    border: none;
+    background: #ffffff;
+    box-shadow: 0 12px 26px rgba(0, 0, 0, 0.16);
+    font-weight: 800;
+}
+
+body.pa-restyle .action-mini.report { color: #B33927; }
+
+/* Filter bar (adopter browse) */
+body.pa-restyle .filter-bar {
+    background: #ffffff;
+    border-radius: 20px;
+    box-shadow: 0 10px 24px rgba(19, 78, 67, 0.12);
+}
+
+/* Wizard sections (pet-detail adoption form) */
+body.pa-restyle .wizard-section {
+    border-radius: 20px;
+}
+
+/* ---------- Messages pages (chat layout) — MINT variant look ---------- */
+body.pa-restyle .chat-shell {
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 14px 30px rgba(19, 78, 67, 0.14);
+}
+
+body.pa-restyle .chat-sidebar { background: #F3FAF7; }
+
+body.pa-restyle .chat-kicker {
+    color: #1F7261;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-size: 0.74rem;
+}
+
+body.pa-restyle .chat-active { background: #165B4C; color: #ffffff; }
+
+/* vd-* buttons (shelter/adopter applications) */
+body.pa-restyle .vd-btn { border-radius: 999px; font-weight: 800; }
+
+/* ============================================================
+   PAGE CONTENT SHELL — rounded panel on the canvas, per-page
+   accent via .pa-page-<role>-<page> (wrapper added in each page)
+   ============================================================ */
+.pa-page {
+    padding: 22px 24px 30px;
+    border-radius: 24px;
+    min-height: 60vh;
+}
+
+/* Per-page accent bar + panel tint — same family, different feel */
+.pa-page::before {
+    content: "";
+    display: block;
+    height: 6px;
+    border-radius: 999px;
+    margin: 0 0 20px;
+    background: #1F7261;
+}
+
+/* dashboards: forest accent */
+.pa-page-shelter-dashboard::before,
+.pa-page-adopter-dashboard::before { background: linear-gradient(90deg, #165B4C, #1F7261 60%, #B33927); }
+
+/* messages + notifications: mint/teal accent */
+.pa-page-shelter-messages::before,
+.pa-page-adopter-messages::before,
+.pa-page-shelter-notifications::before,
+.pa-page-adopter-notifications::before { background: linear-gradient(90deg, #2FA08C, #7FC8B8); }
+
+/* applications: amber accent (pending-apps feel) */
+.pa-page-shelter-applications::before,
+.pa-page-adopter-applications::before { background: linear-gradient(90deg, #D9A13B, #E8C98A); }
+
+/* browse + favorites + pet-detail: coral accent (adoption warmth) */
+.pa-page-adopter-browse::before,
+.pa-page-adopter-favorites::before,
+.pa-page-adopter-pet-detail::before { background: linear-gradient(90deg, #B33927, #E07A5F); }
+
+/* profile + pets + add/edit: plum accent */
+.pa-page-adopter-profile::before,
+.pa-page-shelter-profile::before,
+.pa-page-shelter-pets::before,
+.pa-page-shelter-add-pet::before,
+.pa-page-shelter-edit-pet::before { background: linear-gradient(90deg, #6D5B8F, #A99BC4); }
+
+/* Panel backgrounds differ per theme so pages don't look identical */
+.theme-deep .pa-page { background: rgba(255, 255, 255, 0.06); }
+.theme-mint .pa-page { background: rgba(255, 255, 255, 0.55); }
+.theme-sage .pa-page { background: rgba(255, 255, 255, 0.40); }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 800px) {
+    .pa-page { padding: 16px 14px 22px; }
+}
+
+/* ============================================================
+   APPLICATIONS PAGES — full gradient treatment (no flat fills)
+   ============================================================ */
+
+/* Page panel: layered green gradient canvas */
+.pa-page-shelter-applications,
+.pa-page-adopter-applications {
+    background: linear-gradient(160deg, rgba(22, 91, 76, 0.94) 0%, rgba(31, 114, 97, 0.88) 45%, rgba(19, 78, 67, 0.96) 100%);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.25);
+}
+
+/* Gradient texture dots over the panel gradient */
+.pa-page-shelter-applications,
+.pa-page-adopter-applications {
+    background-image:
+        radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+        linear-gradient(160deg, #165B4C 0%, #1F7261 45%, #134E43 100%);
+    background-size: 24px 24px, cover;
+}
+
+/* Page header card: warm green-to-teal gradient band */
+.pa-page-shelter-applications .page-header,
+.pa-page-adopter-applications .page-header {
+    background: linear-gradient(120deg, #165B4C 0%, #1F7261 55%, #2FA08C 100%);
+    border-radius: 20px;
+    padding: 18px 24px;
+    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.28);
+}
+
+.pa-page-shelter-applications .page-title,
+.pa-page-adopter-applications .page-title {
+    color: #ffffff;
+}
+
+.pa-page-shelter-applications .page-title .icon,
+.pa-page-adopter-applications .page-title .icon {
+    filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.3));
+}
+
+/* Tab buttons: gradient active state */
+.pa-page-shelter-applications .tab-btn,
+.pa-page-adopter-applications .tab-btn {
+    background: rgba(255, 255, 255, 0.92);
+}
+
+.pa-page-shelter-applications .tab-btn.active,
+.pa-page-adopter-applications .tab-btn.active {
+    background: linear-gradient(120deg, #165B4C, #1F7261);
+    color: #ffffff;
+    border-color: transparent;
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.25);
+}
+
+/* Cards inside applications: soft white→mint vertical gradient */
+.pa-page-shelter-applications .card,
+.pa-page-adopter-applications .card {
+    background: linear-gradient(180deg, #ffffff 0%, #F2FAF6 100%);
+}
+
+/* Table header inside applications: gradient strip */
+.pa-page-shelter-applications .data-table thead th,
+.pa-page-adopter-applications .data-table thead th {
+    background: linear-gradient(120deg, #EAF4F0, #D8EDE4);
+    color: #165B4C;
+}
+
+/* Status badges on applications: gradient capsules */
+.pa-page-shelter-applications .badge,
+.pa-page-adopter-applications .badge {
+    box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.06);
+}
+
+.pa-page-shelter-applications .badge-success,
+.pa-page-adopter-applications .badge-success {
+    background: linear-gradient(120deg, #d1fae5, #a7f3d0);
+}
+
+.pa-page-shelter-applications .badge-warning,
+.pa-page-adopter-applications .badge-warning {
+    background: linear-gradient(120deg, #fef3c7, #fde68a);
+}
+
+.pa-page-shelter-applications .badge-danger,
+.pa-page-adopter-applications .badge-danger {
+    background: linear-gradient(120deg, #fee2e2, #fecaca);
+}
+
+.pa-page-shelter-applications .badge-info,
+.pa-page-adopter-applications .badge-info {
+    background: linear-gradient(120deg, #dbeafe, #bfdbfe);
+}
+
+/* vd-* info panels on applications: gradient tint */
+.pa-page-shelter-applications .vd-info,
+.pa-page-adopter-applications .vd-info {
+    background: linear-gradient(180deg, #ffffff, #EEF9F4);
 }

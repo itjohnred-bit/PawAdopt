@@ -12,6 +12,18 @@ $basePath = APP_URL;
 
 $current_page = basename($_SERVER['PHP_SELF']);
 
+// Presentation-only: pick a green-theme variant per page (deep = dashboards,
+// mint = messages/notifications, sage = everything else). Admin pages never
+// receive pa-restyle, so they are unaffected.
+$paPageKey = strtolower(pathinfo($current_page, PATHINFO_FILENAME));
+if ($paPageKey === 'dashboard') {
+    $paVariant = 'deep';
+} elseif (in_array($paPageKey, ['messages', 'notifications'], true)) {
+    $paVariant = 'mint';
+} else {
+    $paVariant = 'sage';
+}
+
 if ($role === 'ADOPTER') {
     $dashUrl    = "$basePath/pages/adopter/dashboard.php";
     $browseUrl  = "$basePath/pages/adopter/browse.php";
@@ -51,8 +63,6 @@ if ($role === 'ADOPTER') {
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="<?= APP_URL ?>/assets/css/dark-mode.css">
-    <link rel="stylesheet" href="<?= APP_URL ?>/assets/css/restyle.css">
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="<?= APP_URL ?>/assets/js/ui-customization.js"></script>
 
@@ -191,8 +201,7 @@ if ($role === 'ADOPTER') {
     </style>
     <link rel="stylesheet" href="<?= APP_URL ?>/assets/css/restyle.css">
 </head>
-<body class="<?= ($role === 'SHELTER' || $role === 'ADOPTER') ? 'pa-restyle' : '' ?>">
-
+<body class="<?= ($role === 'SHELTER' || $role === 'ADOPTER') ? 'pa-restyle theme-' . $paVariant . ' pa-page-' . $paPageKey : '' ?>">
 
 <div class="admin-wrapper">
     <aside class="sidebar">
