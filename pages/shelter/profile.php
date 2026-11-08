@@ -33,6 +33,8 @@ $verif   = $db->fetch("SELECT * FROM shelter_verifications WHERE shelter_id = ?"
 
 include __DIR__ . '/../../includes/header.php';
 ?>
+<div class="pa-page pa-page-shelter-profile">
+
 
 <div class="page-header">
     <h1 class="page-title"><span class="icon">🏠</span> Shelter Profile</h1>
@@ -136,6 +138,8 @@ include __DIR__ . '/../../includes/header.php';
             </div>
         </div>
     </div>
+</div>
+
 </div>
 
 <?php include __DIR__ . '/../../includes/footer.php'; ?>

@@ -18,6 +18,8 @@ $apps =$db->fetchAll(
 
 include __DIR__ . '/../../includes/header.php';
 ?>
+<div class="pa-page pa-page-adopter-applications">
+
 
 <div class="page-header">
     <h1 class="page-title"><span class="icon">📋</span> My Applications</h1>
@@ -172,5 +174,7 @@ function handleApplicationSubmissionResponse(app) {
         </div>`;
 }
 </script>
+
+</div>
 
 <?php include __DIR__ . '/../../includes/footer.php'; ?>

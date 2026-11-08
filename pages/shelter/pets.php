@@ -21,6 +21,8 @@ $pets = $db->fetchAll(
 
 include __DIR__ . '/../../includes/header.php';
 ?>
+<div class="pa-page pa-page-shelter-pets">
+
 
 <div class="page-header">
     <h1 class="page-title"><span class="icon">🐾</span> My Pet Listings</h1>
@@ -117,5 +119,7 @@ async function deletePet(petId) {
     });
 }
 </script>
+
+</div>
 
 <?php include __DIR__ . '/../../includes/footer.php'; ?>

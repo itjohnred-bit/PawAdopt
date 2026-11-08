@@ -5,6 +5,8 @@ $pageTitle = 'Shelter Notifications';
 
 include __DIR__ . '/../../includes/header.php';
 ?>
+<div class="pa-page pa-page-shelter-notifications">
+
 
 <div class="page-header">
     <h1 class="page-title"><span class="icon">🔔</span> Shelter Notifications</h1>
@@ -45,5 +47,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 });
 </script>
+
+</div>
 
 <?php include __DIR__ . '/../../includes/footer.php'; ?>

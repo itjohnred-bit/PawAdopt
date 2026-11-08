@@ -13,6 +13,8 @@ if (!$pet) { flashMessage('error','Pet not found.'); redirect(APP_URL.'/pages/sh
 $photos = $db->fetchAll("SELECT * FROM pet_photos WHERE pet_id = ? ORDER BY is_primary DESC", [$petId]);
 include __DIR__ . '/../../includes/header.php';
 ?>
+<div class="pa-page pa-page-shelter-edit-pet">
+
 
 <div class="page-header">
     <h1 class="page-title"><span class="icon">✏️</span> Edit <?= sanitize($pet['name']) ?></h1>
@@ -188,5 +190,7 @@ async function submitEditPet(form, petId) {
     }
 }
 </script>
+
+</div>
 
 <?php include __DIR__ . '/../../includes/footer.php'; ?>

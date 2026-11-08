@@ -31,6 +31,8 @@ $existingApp = $db->fetch(
 $pageTitle = sanitize($pet['name']);
 include __DIR__ . '/../../includes/header.php';
 ?>
+<div class="pa-page pa-page-adopter-pet-detail">
+
 
 <div style="margin-bottom:16px">
     <a href="<?= APP_URL ?>/pages/adopter/browse.php" class="btn btn-secondary btn-sm"><i class="fas fa-arrow-left"></i> Back to Browse</a>
@@ -511,5 +513,7 @@ function switchGalleryImage(url, img) {
     img.classList.add('active');
 }
 </script>
+
+</div>
 
 <?php include __DIR__ . '/../../includes/footer.php'; ?>

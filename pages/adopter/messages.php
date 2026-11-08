@@ -25,6 +25,8 @@ $activeConv   = $activeConvId ? current(array_filter($convs, fn($c) => (int) $c[
 
 include __DIR__ . '/../../includes/header.php';
 ?>
+<div class="pa-page pa-page-adopter-messages">
+
 
 <style>
 .chat-shell{display:grid;grid-template-columns:340px minmax(0,1fr);gap:22px;min-height:calc(100vh - 220px)}
@@ -281,5 +283,7 @@ include __DIR__ . '/../../includes/header.php';
     }
 })();
 </script>
+
+</div>
 
 <?php include __DIR__ . '/../../includes/footer.php'; ?>

@@ -38,6 +38,8 @@ $recentApps = $db->fetchAll("
 
 include __DIR__ . '/../../includes/header.php';
 ?>
+<div class="pa-page pa-page-shelter-dashboard">
+
 
 <style>
 .shelter-actions{display:flex;gap:12px;flex-wrap:wrap;margin:0 0 22px}
@@ -58,52 +60,57 @@ include __DIR__ . '/../../includes/header.php';
 
 <div class="page-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
     <h1 class="page-title" style="font-weight:900;margin:0">🏠 <?= sanitize($profile['shelter_name'] ?? 'My Shelter') ?></h1>
-    <a href="<?= APP_URL ?>/pages/shelter/add-pet.php" class="btn btn-primary" style="background:var(--active-text);color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:700">
-        <i class="fas fa-plus"></i> Add New Pet
-    </a>
 </div>
 
-<div class="shelter-actions">
+<div class="pa-action-bar">
     <button type="button" class="shelter-action report" id="openReportBtn"><i class="fas fa-flag"></i> Report to Admin</button>
+    <a href="<?= APP_URL ?>/pages/shelter/add-pet.php" class="shelter-action add-pet"><i class="fas fa-plus"></i> Add New Pet</a>
 </div>
 
-<div class="dashboard-tip">
-    Use <strong>one report button only</strong> for account concerns, adopter issues, animal welfare concerns, or technical problems. This keeps the shelter dashboard clean and avoids duplicate actions.
+<div class="pa-policy-card">
+    <div class="pa-policy-icon"><i class="fas fa-info"></i></div>
+    <div>
+        <div class="pa-policy-title">Dashboard Usage Policy</div>
+        <p class="pa-policy-text">Use <strong>one report button only</strong> for account concerns, adopter issues, animal welfare concerns, or technical problems. This keeps the shelter dashboard clean and avoids duplicate actions.</p>
+    </div>
 </div>
 
 <?php if (isset($profile['is_verified']) && !$profile['is_verified']): ?>
-<div style="background:#fffbeb;border:2px solid #f59e0b;border-radius:14px;padding:16px;margin-bottom:24px;display:flex;gap:12px;align-items:center">
-    <span style="font-size:1.8rem">⚠️</span>
+<div class="pa-verify-banner">
+    <div class="pa-verify-icon"><i class="fas fa-exclamation-triangle"></i></div>
     <div>
-        <div style="font-weight:800;color:#92400e">Verification Pending</div>
-        <div style="color:#78350f;font-size:.88rem">Admin is reviewing your shelter. 
+        <div class="pa-verify-title">Verification Pending</div>
+        <div class="pa-verify-text">Admin is currently reviewing your shelter documents.
             Status: <strong><?= $verif ? sanitize($verif['status']) : 'Not submitted' ?></strong>
         </div>
     </div>
 </div>
 <?php endif; ?>
 
-<div class="stats-grid" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:20px;margin-bottom:30px">
-    <div class="stat-card" style="background:#fff;padding:20px;border-radius:15px;display:flex;align-items:center;gap:15px;border:1px solid #eee">
-        <div style="background:var(--active-bg);color:var(--active-text);width:50px;height:50px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.5rem">🐾</div>
-        <div><div style="font-size:1.5rem;font-weight:900"><?= $petCount ?></div><div style="color:#888;font-size:0.85rem">Total Pets</div></div>
+<div class="stats-grid pa-stats-2">
+    <div class="stat-card">
+        <div class="stat-icon teal"><span>🐾</span></div>
+        <div><div class="stat-value"><?= $petCount ?></div><div class="stat-label">Total Pets</div></div>
     </div>
-    <div class="stat-card" style="background:#fff;padding:20px;border-radius:15px;display:flex;align-items:center;gap:15px;border:1px solid #eee">
-        <div style="background:#e6fffa;color:#047481;width:50px;height:50px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.5rem">✅</div>
-        <div><div style="font-size:1.5rem;font-weight:900"><?= $availPets ?></div><div style="color:#888;font-size:0.85rem">Available</div></div>
+    <div class="stat-card">
+        <div class="stat-icon green"><span>✅</span></div>
+        <div><div class="stat-value"><?= $availPets ?></div><div class="stat-label">Available</div></div>
     </div>
-    <div class="stat-card" style="background:#fff;padding:20px;border-radius:15px;display:flex;align-items:center;gap:15px;border:1px solid #eee">
-        <div style="background:#fffbea;color:#92400e;width:50px;height:50px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.5rem">📋</div>
-        <div><div style="font-size:1.5rem;font-weight:900"><?= $pendApps ?></div><div style="color:#888;font-size:0.85rem">Pending Apps</div></div>
+    <div class="stat-card">
+        <div class="stat-icon red"><span>📋</span></div>
+        <div><div class="stat-value"><?= $pendApps ?></div><div class="stat-label">Pending Apps</div></div>
     </div>
-    <div class="stat-card" style="background:#fff;padding:20px;border-radius:15px;display:flex;align-items:center;gap:15px;border:1px solid #eee">
-        <div style="background:#ebf8ff;color:#2c5282;width:50px;height:50px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.5rem">💬</div>
-        <div><div style="font-size:1.5rem;font-weight:900"><?= $msgCount ?></div><div style="color:#888;font-size:0.85rem">Messages</div></div>
+    <div class="stat-card">
+        <div class="stat-icon purple"><span>💬</span></div>
+        <div><div class="stat-value"><?= $msgCount ?></div><div class="stat-label">Messages</div></div>
     </div>
 </div>
 
-<div class="card" style="background:#fff;padding:25px;border-radius:15px;border:1px solid #eee">
-    <div style="font-weight:900;margin-bottom:20px;font-size:1.1rem"><i class="fas fa-file-alt"></i> Recent Applications</div>
+<div class="card">
+    <div class="pa-table-head">
+        <div class="card-title"><i class="fas fa-file-alt"></i> Recent Applications</div>
+        <a href="<?= APP_URL ?>/pages/shelter/applications.php" class="pa-view-all">View All</a>
+    </div>
     <?php if (empty($recentApps)): ?>
         <p style="text-align:center;color:#888;padding:20px">No recent applications found.</p>
     <?php else: ?>
@@ -208,5 +215,7 @@ include __DIR__ . '/../../includes/header.php';
     });
 })();
 </script>
+
+</div>
 
 <?php include __DIR__ . '/../../includes/footer.php'; ?>

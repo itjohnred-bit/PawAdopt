@@ -51,6 +51,8 @@ try {
 
 include __DIR__ . '/../../includes/header.php';
 ?>
+<div class="pa-page pa-page-adopter-dashboard">
+
 
 <style>
 .stats-grid a.stat-card{display:flex;text-decoration:none;color:inherit;transition:transform .15s ease,box-shadow .15s ease;border-radius:14px}
@@ -529,5 +531,7 @@ $vetPhoneDigits = $upcomingAppt && !empty($upcomingAppt['vet_phone'])
     syncFeedbackSubmit();
 })();
 </script>
+
+</div>
 
 <?php include __DIR__ . '/../../includes/footer.php'; ?>

@@ -69,6 +69,8 @@ function appStatusBadgeClass(string $status): string {
 }
 ?>
 
+<div class="pa-page pa-page-shelter-applications">
+
 <!-- BLOCK B — Modal CSS -->
 <style>
 .vd-modal[hidden] { display: none !important; }.vd-modal {
@@ -871,5 +873,7 @@ function appStatusBadgeClass(string $status): string {
     }
 });document.addEventListener('DOMContentLoaded', refreshHistory);
 })();</script>
+
+</div>
 
 <?php include __DIR__ . '/../../includes/footer.php'; ?>

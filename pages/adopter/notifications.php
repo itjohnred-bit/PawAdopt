@@ -1,7 +1,11 @@
 <?php
 require_once __DIR__ . '/../../includes/functions.php';
 requireRole('ADOPTER'); // server-side guard: redirect if not logged in as ADOPTER
+$pageTitle = 'My Notifications';
+include __DIR__ . '/../../includes/header.php';
 ?>
+<div class="pa-page pa-page-adopter-notifications">
+
 
 <div class="page-header">
     <h1 class="page-title"><span class="icon">🔔</span> My Notifications</h1>
@@ -42,5 +46,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 });
 </script>
+
+</div>
 
 <?php include __DIR__ . '/../../includes/footer.php'; ?>

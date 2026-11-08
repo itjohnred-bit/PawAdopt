@@ -18,6 +18,8 @@ $pets = $db->fetchAll(
 
 include __DIR__ . '/../../includes/header.php';
 ?>
+<div class="pa-page pa-page-adopter-favorites">
+
 
 <div class="page-header">
     <h1 class="page-title"><span class="icon">❤️</span> My Favorites</h1>
@@ -78,5 +80,7 @@ async function removeFav(petId, btn) {
     }
 }
 </script>
+
+</div>
 
 <?php include __DIR__ . '/../../includes/footer.php'; ?>

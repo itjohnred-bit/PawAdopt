@@ -51,6 +51,8 @@ if ($role === 'ADOPTER') {
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="<?= APP_URL ?>/assets/css/dark-mode.css">
+    <link rel="stylesheet" href="<?= APP_URL ?>/assets/css/restyle.css">
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="<?= APP_URL ?>/assets/js/ui-customization.js"></script>
 
@@ -187,13 +189,15 @@ if ($role === 'ADOPTER') {
             align-items: center; justify-content: center; font-size: 12px;
         }
     </style>
+    <link rel="stylesheet" href="<?= APP_URL ?>/assets/css/restyle.css">
 </head>
-<body>
+<body class="<?= ($role === 'SHELTER' || $role === 'ADOPTER') ? 'pa-restyle' : '' ?>">
+
 
 <div class="admin-wrapper">
     <aside class="sidebar">
         <div class="sidebar-brand">
-            <span>🐾</span> Paw-Adopt
+            <span class="pa-brand-paw"><i class="fas fa-paw"></i></span> <span class="pa-brand-text">Pawadopt</span>
         </div>
 
         <nav class="sidebar-nav">
@@ -202,10 +206,12 @@ if ($role === 'ADOPTER') {
                 <a href="<?= $browseUrl ?>" class="nav-item <?= $current_page == 'browse.php' ? 'active' : '' ?>"><i class="fas fa-search"></i> Browse</a>
                 <a href="<?= $favUrl ?>" class="nav-item <?= $current_page == 'favorites.php' ? 'active' : '' ?>"><i class="fas fa-heart"></i> Favorites</a>
                 <a href="<?= $appsUrl ?>" class="nav-item <?= $current_page == 'applications.php' ? 'active' : '' ?>"><i class="fas fa-file-alt"></i> My Applications</a>
+                <a href="<?= $basePath ?>/pages/customize.php" class="nav-item <?= $current_page == 'customize.php' ? 'active' : '' ?>"><i class="fas fa-palette"></i> Customize UI</a>
             <?php elseif ($role === 'SHELTER'): ?>
                 <a href="<?= $dashUrl ?>" class="nav-item <?= $current_page == 'dashboard.php' ? 'active' : '' ?>"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
                 <a href="<?= $petsUrl ?>" class="nav-item <?= $current_page == 'pets.php' ? 'active' : '' ?>"><i class="fas fa-paw"></i> My Pets</a>
                 <a href="<?= $appsUrl ?>" class="nav-item <?= $current_page == 'applications.php' ? 'active' : '' ?>"><i class="fas fa-file-alt"></i> Applications</a>
+                <a href="<?= $basePath ?>/pages/customize.php" class="nav-item <?= $current_page == 'customize.php' ? 'active' : '' ?>"><i class="fas fa-palette"></i> Customize UI</a>
             <?php else: ?>
                 <a href="<?= $dashUrl ?>" class="nav-item <?= $current_page == 'dashboard.php' ? 'active' : '' ?>"><i class="fas fa-th-large"></i> Dashboard</a>
                 <a href="<?= $usersUrl ?>" class="nav-item <?= $current_page == 'users.php' ? 'active' : '' ?>"><i class="fas fa-users"></i> Users</a>
@@ -213,6 +219,7 @@ if ($role === 'ADOPTER') {
                 <a href="<?= $petsAdmUrl ?>" class="nav-item <?= $current_page == 'pets.php' ? 'active' : '' ?>"><i class="fas fa-paw"></i> Pets</a>
                 <a href="<?= $reportsUrl ?>" class="nav-item <?= $current_page == 'reports.php' ? 'active' : '' ?>"><i class="fas fa-chart-bar"></i> Reports</a>
                 <a href="<?= $auditLogsUrl ?>" class="nav-item <?= $current_page == 'audit-logs.php' ? 'active' : '' ?>"><i class="fas fa-history"></i> Audit Logs</a>
+                <a href="<?= $basePath ?>/pages/customize.php" class="nav-item <?= $current_page == 'customize.php' ? 'active' : '' ?>"><i class="fas fa-palette"></i> Customize UI</a>
             <?php endif; ?>
         </nav>
 

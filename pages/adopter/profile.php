@@ -132,6 +132,8 @@ if (pa_has_account_deletion_table($pdo)) {
 }
 include __DIR__ . '/../../includes/header.php';
 ?>
+<div class="pa-page pa-page-adopter-profile">
+
 
 <style>
 .danger-zone{margin-top:18px;border:1px solid rgba(185,28,28,.16);border-radius:18px;padding:20px;background:linear-gradient(180deg,#fff 0%,#fff7f7 100%);box-shadow:0 16px 34px rgba(15,23,42,.06)}
@@ -286,6 +288,8 @@ body.dark-mode .danger-pill{background:#3b2a10 !important;color:#fff7d6 !importa
             </div>
         </div>
     </div>
+</div>
+
 </div>
 
 <?php include __DIR__ . '/../../includes/footer.php'; ?>

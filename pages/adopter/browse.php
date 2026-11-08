@@ -44,6 +44,8 @@ $favIds = array_column($favRes, 'pet_id');
 
 include __DIR__ . '/../../includes/header.php';
 ?>
+<div class="pa-page pa-page-adopter-browse">
+
 
 <div class="page-header">
     <h1 class="page-title"><span class="icon">🔍</span> Browse Adoptable Pets</h1>
@@ -143,5 +145,7 @@ include __DIR__ . '/../../includes/header.php';
 </div>
 <?php endif; ?>
 <?php endif; ?>
+
+</div>
 
 <?php include __DIR__ . '/../../includes/footer.php'; ?>

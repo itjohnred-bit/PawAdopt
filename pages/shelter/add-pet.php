@@ -10,6 +10,8 @@ $profile = $db->fetch("SELECT * FROM shelter_profiles WHERE shelter_id = ?", [$u
 
 include __DIR__ . '/../../includes/header.php';
 ?>
+<div class="pa-page pa-page-shelter-add-pet">
+
 
 <div class="page-header">
     <h1 class="page-title"><span class="icon">➕</span> Add New Pet Listing</h1>
@@ -201,5 +203,7 @@ async function submitAddPet(form) {
     }
 }
 </script>
+
+</div>
 
 <?php include __DIR__ . '/../../includes/footer.php'; ?>
