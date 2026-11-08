@@ -40,6 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'pawbo
     // (GEMINI_API_KEY). It is never hardcoded and never sent to the browser.
     $apiKey = getenv('GEMINI_API_KEY') ?: ($_ENV['GEMINI_API_KEY'] ?? $_SERVER['GEMINI_API_KEY'] ?? '');
     if ($apiKey === '') {
+        error_log('PawAdopt Gemini: GEMINI_API_KEY is empty on the server.');
         http_response_code(500);
         echo json_encode(['ok' => false, 'error' => 'AI assistant is not configured. Add GEMINI_API_KEY to the server environment.']);
         exit;
@@ -69,7 +70,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'pawbo
         ]
     ];
 
-    $endpoint = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' . rawurlencode($apiKey);
+    $geminiModel = getenv('GEMINI_MODEL') ?: ($_ENV['GEMINI_MODEL'] ?? 'gemini-3.8-flash');
+    $endpoint = 'https://generativelanguage.googleapis.com/v1beta/models/' . rawurlencode($geminiModel) . ':generateContent?key=' . rawurlencode($apiKey);
 
     $ch = curl_init($endpoint);
     curl_setopt_array($ch, [
@@ -86,6 +88,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'pawbo
     curl_close($ch);
 
     if ($response === false) {
+        error_log('PawAdopt Gemini: cURL failed - ' . $curlError);
         http_response_code(502);
         echo json_encode(['ok' => false, 'error' => 'Gemini request failed: ' . $curlError]);
         exit;
@@ -96,6 +99,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'pawbo
 
     if ($reply === '') {
         $apiError = $decoded['error']['message'] ?? 'No response returned from Gemini.';
+        error_log('PawAdopt Gemini: HTTP ' . $statusCode . ' - ' . $apiError);
         http_response_code($statusCode > 0 ? $statusCode : 502);
         echo json_encode(['ok' => false, 'error' => $apiError]);
         exit;

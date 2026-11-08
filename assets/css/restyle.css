@@ -591,3 +591,105 @@ body.pa-restyle .vd-btn { border-radius: 999px; font-weight: 800; }
 .pa-page-adopter-applications .vd-info {
     background: linear-gradient(180deg, #ffffff, #EEF9F4);
 }
+
+/* ============================================================
+   MOBILE LAYOUT — sidebar becomes a drawer, content centered
+   ============================================================ */
+body.pa-restyle .pa-hamburger {
+    display: none;
+    background: #f2f7f5;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    font-size: 17px;
+    color: #165B4C;
+    cursor: pointer;
+}
+
+body.pa-restyle .icon-btn.pa-signout {
+    color: #B33927;
+    font-size: 17px;
+    width: 40px;
+    height: 40px;
+}
+
+@media (max-width: 900px) {
+    body.pa-restyle .pa-hamburger { display: inline-flex; align-items: center; justify-content: center; }
+
+    /* Sidebar goes off-canvas; opens via the ☰ button, closes on outside tap */
+    body.pa-restyle .sidebar {
+        left: -290px;
+        transition: left .3s ease;
+        box-shadow: none;
+    }
+    body.pa-restyle .sidebar.pa-drawer-open {
+        left: 0;
+        box-shadow: 0 0 60px rgba(0, 0, 0, 0.35);
+    }
+
+    /* Content: full width, centered column, no dead gap */
+    body.pa-restyle .main-content {
+        margin-left: 0 !important;
+        margin-right: auto;
+        width: 100% !important;
+        max-width: 640px;
+        padding: 16px 14px 24px;
+    }
+
+    body.pa-restyle .top-header {
+        width: 100% !important;
+        left: 0;
+        padding: 0 14px;
+        gap: 8px;
+        justify-content: space-between;
+    }
+
+    body.pa-restyle .header-actions { gap: 10px; }
+    body.pa-restyle .user-pill span { display: none; }
+}
+
+/* ============================================================
+   BRAND LOGO — same as the landing page
+   ("Paw" script red + "adopt" slab green + paw icon)
+   ============================================================ */
+body.pa-restyle .pa-brand-text { display: inline-flex; align-items: baseline; }
+body.pa-restyle .pa-paw-word {
+    font-family: 'Pacifico', cursive;
+    color: #7D1515;
+    font-size: 1.02em;
+    transform: rotate(-4deg) translateY(1px);
+    display: inline-block;
+    margin-right: 2px;
+}
+body.pa-restyle .pa-adopt-word {
+    font-family: 'Alfa Slab One', serif;
+    color: #0d5423;
+    letter-spacing: .5px;
+}
+body.pa-restyle .pa-paw-ico {
+    color: #0d5423;
+    font-size: .55em;
+    margin-left: 2px;
+    transform: translateY(-6px);
+}
+
+/* ============================================================
+   BACKGROUND GRADIENTS — subtle vertical depth on all variants
+   ============================================================ */
+body.pa-restyle.theme-deep {
+    background-image: linear-gradient(180deg, #0E3F36 0%, #134E43 45%, #1B6353 100%);
+    background-size: auto, 24px 24px;
+}
+body.pa-restyle.theme-mint {
+    background-image: linear-gradient(180deg, #DFF0EA 0%, #E8F5F1 50%, #F2FAF6 100%);
+}
+body.pa-restyle.theme-sage {
+    background-image: linear-gradient(180deg, #D2E3DA 0%, #DCE9E2 50%, #E9F3ED 100%);
+}
+
+/* ============================================================
+   PAWBOT CHAT HEAD — draggable launcher
+   ============================================================ */
+#pawAssistant .pa-dragging { cursor: grabbing !important; }
+body.pa-bot-dragging, body.pa-bot-dragging * { user-select: none !important; }

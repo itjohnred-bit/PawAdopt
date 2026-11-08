@@ -228,4 +228,87 @@
         });
         quick.appendChild(b);
     });
+
+    /* ── DRAGGABLE CHAT HEAD (mouse + touch, clamped, position saved) ── */
+    (function paBotDrag() {
+        var savedX = null, savedY = null;
+        try {
+            savedX = localStorage.getItem('paBotX');
+            savedY = localStorage.getItem('paBotY');
+        } catch (e) {}
+
+        function place(px, py) {
+            var w = launcher.offsetWidth || 74;
+            var h = launcher.offsetHeight || 74;
+            var maxX = Math.max(0, window.innerWidth - w - 4);
+            var maxY = Math.max(0, window.innerHeight - h - 4);
+            var x = Math.min(Math.max(4, px), maxX);
+            var y = Math.min(Math.max(4, py), maxY);
+            launcher.style.left = x + 'px';
+            launcher.style.top = y + 'px';
+            launcher.style.right = 'auto';
+            launcher.style.bottom = 'auto';
+            launcher.style.position = 'fixed';
+            try {
+                localStorage.setItem('paBotX', String(x));
+                localStorage.setItem('paBotY', String(y));
+            } catch (e) {}
+        }
+
+        if (savedX !== null && savedY !== null) {
+            place(parseFloat(savedX), parseFloat(savedY));
+        }
+
+        var dragging = false, moved = false, startX = 0, startY = 0, origX = 0, origY = 0;
+
+        function down(e) {
+            if (win.classList.contains('open')) return; /* drag only when closed */
+            dragging = true; moved = false;
+            var pt = e.touches ? e.touches[0] : e;
+            startX = pt.clientX; startY = pt.clientY;
+            origX = launcher.getBoundingClientRect().left;
+            origY = launcher.getBoundingClientRect().top;
+            document.body.classList.add('pa-bot-dragging');
+            if (e.cancelable) e.preventDefault();
+        }
+        function move(e) {
+            if (!dragging) return;
+            var pt = e.touches ? e.touches[0] : e;
+            var dx = pt.clientX - startX, dy = pt.clientY - startY;
+            if (Math.abs(dx) > 6 || Math.abs(dy) > 6) {
+                moved = true;
+                launcher.classList.add('pa-dragging');
+            }
+            if (moved) place(origX + dx, origY + dy);
+            if (e.cancelable) e.preventDefault();
+        }
+        function up() {
+            if (dragging && moved) {
+                /* snap to nearest horizontal edge */
+                var r = launcher.getBoundingClientRect();
+                var snapX = (r.left + r.width / 2) < window.innerWidth / 2 ? 4 : window.innerWidth - r.width - 4;
+                place(snapX, r.top);
+            }
+            dragging = false; moved = false;
+            launcher.classList.remove('pa-dragging');
+            document.body.classList.remove('pa-bot-dragging');
+        }
+
+        launcher.addEventListener('mousedown', down);
+        window.addEventListener('mousemove', move);
+        window.addEventListener('mouseup', up);
+        launcher.addEventListener('touchstart', down, { passive: false });
+        window.addEventListener('touchmove', move, { passive: false });
+        window.addEventListener('touchend', up);
+        window.addEventListener('resize', function () {
+            var r = launcher.getBoundingClientRect();
+            place(r.left, r.top);
+        });
+
+        /* a drag must not open the chat: suppress click after a real drag */
+        launcher.addEventListener('click', function (e) {
+            if (launcher.classList.contains('pa-dragging')) e.stopImmediatePropagation();
+        }, true);
+    })();
+
 })();

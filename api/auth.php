@@ -279,6 +279,63 @@ if (!function_exists('pa_send_smtp_mail')) {
     }
 }
 
+if (!function_exists('pa_brevo_api_key')) {
+    function pa_brevo_api_key(): string
+    {
+        $key = getenv('BREVO_API_KEY');
+        if ($key === false || $key === '') {
+            $key = $_ENV['BREVO_API_KEY'] ?? $_SERVER['BREVO_API_KEY'] ?? '';
+        }
+        if (($key === '' || $key === null) && defined('BREVO_API_KEY')) {
+            $key = (string) BREVO_API_KEY;
+        }
+        return trim((string) $key);
+    }
+}
+
+if (!function_exists('pa_send_brevo_mail')) {
+    function pa_send_brevo_mail(string $toEmail, string $toName, string $subject, string $htmlBody, string $textBody = ''): bool
+    {
+        $cfg = pa_smtp_config();
+        $fromEmail = $cfg['from_email'] !== '' ? $cfg['from_email'] : $cfg['username'];
+        if ($fromEmail === '') {
+            throw new RuntimeException('Brevo sender email is not configured (set SMTP_FROM_EMAIL or SMTP_USERNAME).');
+        }
+
+        $payload = json_encode([
+            'sender' => ['name' => $cfg['from_name'] !== '' ? $cfg['from_name'] : 'PawAdopt', 'email' => $fromEmail],
+            'to' => [['email' => $toEmail, 'name' => $toName]],
+            'subject' => $subject,
+            'htmlContent' => $htmlBody,
+            'textContent' => $textBody !== '' ? $textBody : trim(strip_tags($htmlBody)),
+        ]);
+
+        $ch = curl_init('https://api.brevo.com/v3/smtp/email');
+        curl_setopt_array($ch, [
+            CURLOPT_POST => true,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HTTPHEADER => [
+                'Content-Type: application/json',
+                'accept: application/json',
+                'api-key: ' . pa_brevo_api_key(),
+            ],
+            CURLOPT_POSTFIELDS => $payload,
+            CURLOPT_TIMEOUT => 20,
+        ]);
+        $response = curl_exec($ch);
+        $curlError = curl_error($ch);
+        $statusCode = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($response !== false && $statusCode >= 200 && $statusCode < 300) {
+            return true;
+        }
+
+        error_log('PawAdopt Brevo send failed (HTTP ' . $statusCode . '): ' . ($curlError !== '' ? $curlError : substr((string) $response, 0, 300)));
+        throw new RuntimeException('Brevo API send failed (HTTP ' . $statusCode . ').');
+    }
+}
+
 if (!function_exists('pa_send_reset_otp_email')) {
     function pa_send_reset_otp_email(string $toEmail, string $username, string $otp): bool
     {
@@ -293,6 +350,14 @@ if (!function_exists('pa_send_reset_otp_email')) {
             . '</div>';
         $text = "PawAdopt Password Reset\n\nHello {$username},\n\nUse this OTP to reset your password: {$otp}\nThis OTP expires in 10 minutes.\n\nIf you did not request this, ignore this email.";
 
+        // Brevo HTTPS API first (works on hosts that block outbound SMTP ports,
+        // e.g. Render free web services block ports 25/465/587). The sender
+        // address must be verified in the Brevo dashboard (Senders tab).
+        if (pa_brevo_api_key() !== '') {
+            return pa_send_brevo_mail($toEmail, $username, $subject, $html, $text);
+        }
+
+        // No Brevo key configured — fall back to the direct SMTP socket.
         return pa_send_smtp_mail($toEmail, $username, $subject, $html, $text);
     }
 }
@@ -557,10 +622,11 @@ switch ($action) {
                 ['redirect' => APP_URL . "/pages/{$roleDir}/dashboard.php"],
                 'Account created!'
             );
-            } catch (Exception $e) {
-                error_log('PawAdopt register failed: ' . $e->getMessage());
-                jsonError('Registration failed.');
-            }
+        } catch (Exception $e) {
+            error_log('PawAdopt register failed: ' . $e->getMessage());
+            jsonError('Registration failed.');
+        }
+        break;
 
     case 'request_reset_otp':
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') { jsonError('Method not allowed', 405); break; }
@@ -610,11 +676,10 @@ switch ($action) {
             $userRole = strtoupper((string)($user['role'] ?? 'ADOPTER'));
             log_action((int)$user['user_id'], 'request_password_reset_otp', 'Requested password reset OTP', $userRole, (string)($user['username'] ?? ''));
             jsonSuccess([], 'If that email exists, an OTP has been sent.');
-            } catch (Throwable $e) {
-                error_log('PawAdopt OTP send failed: ' . $e->getMessage());
-                jsonError('Unable to send OTP right now. Check SMTP configuration and try again.');
-            }
-
+        } catch (Throwable $e) {
+            error_log('PawAdopt OTP send failed: ' . $e->getMessage());
+            jsonError('Unable to send OTP right now. Check SMTP configuration and try again.');
+        }
         break;
 
     case 'reset_password_otp':

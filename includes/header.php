@@ -60,7 +60,7 @@ if ($role === 'ADOPTER') {
     <link rel="stylesheet" href="<?= APP_URL ?>/assets/css/main.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Pacifico&family=Alfa+Slab+One&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="<?= APP_URL ?>/assets/css/dark-mode.css">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -206,7 +206,7 @@ if ($role === 'ADOPTER') {
 <div class="admin-wrapper">
     <aside class="sidebar">
         <div class="sidebar-brand">
-            <span class="pa-brand-paw"><i class="fas fa-paw"></i></span> <span class="pa-brand-text">Pawadopt</span>
+            <span class="pa-brand-paw"><i class="fas fa-paw"></i></span> <span class="pa-brand-text"><span class="pa-paw-word">Paw</span><span class="pa-adopt-word">adopt</span><i class="fas fa-paw pa-paw-ico"></i></span>
         </div>
 
         <nav class="sidebar-nav">
@@ -240,6 +240,10 @@ if ($role === 'ADOPTER') {
     <div style="flex: 1; display: flex; flex-direction: column;">
         <header class="top-header">
             <div class="header-actions">
+                <?php if ($role === 'SHELTER' || $role === 'ADOPTER'): ?>
+                <button type="button" class="pa-hamburger" id="paSidebarToggle" aria-label="Open menu"><i class="fas fa-bars"></i></button>
+                <?php endif; ?>
+
                 <a href="<?= $msgUrl ?>" class="icon-btn">
                     <i class="fas fa-envelope"></i>
                     <?php if ($unreadMsgs > 0): ?><span class="badge-dot"><?= $unreadMsgs ?></span><?php endif; ?>
@@ -256,8 +260,29 @@ if ($role === 'ADOPTER') {
                         <span><?= sanitize($currentUser['username'] ?? 'User') ?></span>
                     </div>
                 </a>
+
+                <?php if ($role === 'SHELTER' || $role === 'ADOPTER'): ?>
+                <a href="<?= $basePath ?>/api/auth.php?action=logout" class="icon-btn pa-signout" title="Sign Out" aria-label="Sign Out"><i class="fas fa-sign-out-alt"></i></a>
+                <?php endif; ?>
             </div>
         </header>
+
+        <script>
+        (function () {
+            var btn = document.getElementById('paSidebarToggle');
+            var sidebar = document.querySelector('.sidebar');
+            if (!btn || !sidebar) return;
+            btn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                sidebar.classList.toggle('pa-drawer-open');
+            });
+            document.addEventListener('click', function (e) {
+                if (sidebar.classList.contains('pa-drawer-open') && !sidebar.contains(e.target) && !btn.contains(e.target)) {
+                    sidebar.classList.remove('pa-drawer-open');
+                }
+            });
+        })();
+        </script>
 
         <?php $flash = getFlash(); if ($flash): ?>
         <div class="flash-message flash-<?= $flash['type'] ?>" id="flashMsg">
