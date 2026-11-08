@@ -23,7 +23,7 @@ $applicationsUrl= 'applications.php';
 $messagesUrl    = 'messages.php';
 $notificationsUrl = 'notifications.php';
 $vetPortalUrl   = 'https://www.facebook.com/paranaqueveterinaryservicesoffice';
-
+$registerVetUrl = 'register.php?role=vet';
 $loginUrl       = 'login.php';
 $logoutUrl      = 'logout.php';
 $privacyUrl     = 'privacy.php';
@@ -1244,7 +1244,6 @@ footer{
             <span class="eyebrow">Our Goal</span>
             <h3>The journey <em>continues.</em></h3>
             <p>What started as an idea from <strong>four IT students at PUP Parañaque</strong> continues to grow through technology, teamwork, and compassion. Because every stray deserves a chance, every rescued pet deserves a home, and every loving family has the opportunity to give one.</p>
-            <a href="<?= e($browsePetsUrl) ?>" class="btn btn-primary">Explore Pets <i class="fa-solid fa-arrow-right"></i></a>
         </div>
     </div>
 </section>
@@ -1318,10 +1317,7 @@ footer{
             </span>
             <h2>Someone is <em>waiting</em> for you.</h2>
             <p>Your next best friend could be one click away.</p>
-            <div class="final-ctas">
-                <a href="<?= e($browsePetsUrl) ?>" class="btn btn-primary">
-                    Explore Available Pets <i class="fa-solid fa-arrow-right"></i>
-                </a>
+
                
             </div>
         </div>

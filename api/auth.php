@@ -210,6 +210,9 @@ if (!function_exists('pa_send_smtp_mail')) {
         if ($cfg['host'] === '' || $cfg['username'] === '' || $cfg['password'] === '' || $cfg['from_email'] === '') {
             throw new RuntimeException('SMTP settings are incomplete.');
         }
+        error_log('PawAdopt SMTP attempt: host=' . $cfg['host'] . ' port=' . $cfg['port']
+            . ' enc=' . $cfg['encryption'] . ' user=' . $cfg['username']
+            . ' passLen=' . strlen($cfg['password']) . ' from=' . $cfg['from_email']);
 
         $socket = stream_socket_client(
             'tcp://' . $cfg['host'] . ':' . $cfg['port'],
@@ -607,9 +610,11 @@ switch ($action) {
             $userRole = strtoupper((string)($user['role'] ?? 'ADOPTER'));
             log_action((int)$user['user_id'], 'request_password_reset_otp', 'Requested password reset OTP', $userRole, (string)($user['username'] ?? ''));
             jsonSuccess([], 'If that email exists, an OTP has been sent.');
-        } catch (Throwable $e) {
-            jsonError('Unable to send OTP right now. Check SMTP configuration and try again.');
-        }
+            } catch (Throwable $e) {
+                error_log('PawAdopt OTP send failed: ' . $e->getMessage());
+                jsonError('Unable to send OTP right now. Check SMTP configuration and try again.');
+            }
+
         break;
 
     case 'reset_password_otp':
