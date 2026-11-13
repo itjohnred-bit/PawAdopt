@@ -1,210 +1,121 @@
-# 🐾 PAWAdopt – Pet Adoption Platform
+# 🐾 PawAdopt — Pet Adoption Platform
 
-A full-stack pet adoption web application connecting **Adopters** and **Shelters/Rescue Organizations**.
+**PawAdopt** ("Paw-Adopt — Give a Paw. Give a Home.") is a full-stack pet adoption web application that connects **pet adopters** with **animal shelters and veterinary partners**, with an admin back-office for moderation and oversight.
+
+🌐 **Live demo:** **[https://pawadopt-web.onrender.com](https://pawadopt-web.onrender.com)**
 
 ---
 
-## ✅ Quick Start
+## ✨ Why Use PawAdopt?
+
+### For Adopters
+- **Browse pets from anywhere** — search and filter available pets by species, with photos and shelter details, instead of visiting multiple shelters in person.
+- **Apply online in minutes** — submit an adoption application directly to the shelter and track its status (Submitted → Under Review → Approved/Rejected) from your dashboard.
+- **Save favorites** — bookmark pets you love and revisit them later.
+- **Stay informed** — in-app notifications and messages keep you connected with the shelter; book adoption appointments without back-and-forth phone calls.
+- **Personalize your experience** — the built-in Customize UI panel lets each user pick a theme, accent color, typography, and accessibility options.
+
+### For Shelters & Veterinary Partners
+- **Manage your shelter digitally** — list pets with photos and health details, review incoming applications in one queue, and message adopters directly.
+- **Zero paperwork scheduling** — appointment slots with built-in double-booking prevention.
+- **Verification built in** — shelter documents are reviewed by an admin before your listings go live, building trust with adopters.
+- **Escalation path** — report concerns straight to platform admins from the dashboard.
+
+### For Everyone
+- **Secure by design** — hashed passwords, session-based auth, role-based access control, CSRF protection, and per-user data isolation enforced server-side.
+- **Mobile friendly** — responsive layout with a drawer navigation for phones.
+- **AI assistant** — PawBot, a chat helper, answers common questions about adopting and using the platform.
+
+---
+
+## 🚀 How to Use It
+
+### 1. Visit the live app
+Open **[https://pawadopt-web.onrender.com](https://pawadopt-web.onrender.com)** — the free tier may take **30–60 seconds to wake up** on the first visit.
+
+### 2. Create an account
+Click **Sign Up** and choose your role:
+
+| Role | What you can do |
+|---|---|
+| **Adopter** | Browse pets, save favorites, apply for adoption, message shelters, book appointments |
+| **Shelter / Veterinary** | Manage pets, review applications, respond to adopters, verify shelter documents |
+| **Admin** | Platform moderation, user/shelter management, audit logs (assigned by the operator) |
+
+### 3. Adopter walkthrough
+1. **Browse** — open *Browse* to see available pets; use filters to narrow by species.
+2. **Save** — tap ❤️ on pets you're interested in.
+3. **Apply** — on a pet's page, submit an adoption application (one active application per pet; duplicates are blocked automatically).
+4. **Track** — follow your application status under *My Applications*.
+5. **Meet** — once approved, book an appointment slot with the shelter.
+
+### 4. Shelter walkthrough
+1. **Sign up** as a shelter — your listing shows *Verification Pending* until an admin reviews your documents.
+2. **Add pets** — list each animal with photos and details.
+3. **Review** — accept or reject applications from your dashboard queue.
+4. **Chat** — message adopters and confirm appointment slots.
+5. **Customize** — use *🎨 Customize UI* to brand your dashboard.
+
+> 💡 **Note for demo visitors:** accounts on the live demo are for the site operator. Please **register your own account** to explore both adopter and shelter flows — registration is instant and free.
+
+---
+
+## 🛠️ Running It Yourself (Local Development)
 
 ### Requirements
-- PHP 7.4+ (PHP 8.x recommended)
-- MySQL 5.7+ / MariaDB 10.3+
-- Apache / Nginx with `mod_rewrite`
-- OR: XAMPP / WAMP / Laragon (local development)
-/c/xampp/php/php -S localhost:8085 -t public router.php
----
+- PHP 8.1+ (8.2 recommended)
+- MySQL 8 / MariaDB 10.6+
+- Apache/Nginx (or XAMPP/WAMP for local development)
+- A free [Brevo](https://www.brevo.com) account (transactional email) and a [Google AI Studio](https://aistudio.google.com) key (AI assistant) — both optional for basic use
 
-## 🗂️ Installation
+### Setup
+1. **Place the files** in your web root (XAMPP: `C:\xampp\htdocs\PawAdopt\`).
+2. **Create the database** and import the SQL files from `sql/` in numeric order (the main schema first, then the auxiliary tables).
+3. **Configure environment variables** — copy `.env.example` to `.env` and fill in your own values:
 
-### Step 1 – Place files
-Copy the `PAWAdopt` folder into your web server root:
-- **XAMPP**: `C:\xampp\htdocs\PAWAdopt\`
-- **WAMP**: `C:\wamp64\www\PAWAdopt\`
-- **Linux Apache**: `/var/www/html/PAWAdopt/`
+   ```env
+   DB_HOST=127.0.0.1
+   DB_PORT=3306
+   DB_NAME=pawadopt
+   DB_USER=your_db_user
+   DB_PASS=your_db_password
+   APP_URL=http://localhost:8080/PawAdopt
+   APP_ENV=development
 
-### Step 2 – Create the database
-1. Open **phpMyAdmin** (or MySQL CLI)
-2. Create a new database called `pawadopt`
-3. Import `sql/pawadopt.sql`
+   # Optional integrations
+   GEMINI_API_KEY=your_gemini_key
+   GEMINI_MODEL=gemini-3.8-flash
+   BREVO_API_KEY=your_brevo_key
+   SMTP_HOST=smtp.gmail.com
+   SMTP_PORT=587
+   SMTP_ENCRYPTION=tls
+   SMTP_USERNAME=your_email@example.com
+   SMTP_PASSWORD=your_email_app_password
+   SMTP_FROM_EMAIL=your_email@example.com
+   SMTP_FROM_NAME=PawAdopt
+   ```
 
-```sql
-CREATE DATABASE pawadopt;
-USE pawadopt;
-SOURCE /path/to/PAWAdopt/sql/pawadopt.sql;
-```
+   > 🔒 **Never commit `.env` to version control.** All credentials are read from the environment at runtime — no secrets are stored in the source code.
 
-### Step 3 – Configure database
-Edit `config/database.php`:
+4. **Run** and open the app in your browser.
 
-```php
-define('DB_HOST', 'localhost');
-define('DB_NAME', 'pawadopt');
-define('DB_USER', 'root');       // Your MySQL username
-define('DB_PASS', '');           // Your MySQL password
-define('APP_URL', 'http://localhost/PAWAdopt');
-```
-
-### Step 4 – Set permissions
-Make the uploads folder writable:
-```bash
-chmod -R 775 uploads/
-```
-
-### Step 5 – Open in browser
-```
-http://localhost/PAWAdopt/
-```
-
----php -S localhost:8000 -t public router.php
-
-## 👤 Demo Accounts
-
-All demo accounts use the **same password**: `password`
-
-| Role    | Username     | Email               | Password   |
-|---------|-------------|---------------------|------------|
-| Admin   | admin        | admin@pawadopt.com  | admin123  |
-| Veterinary | Veterinary   | vet@tester.com     | veterinary123   |
-| Adopter | Adopter     | adopter@test.com    | adopter123   |
-
-> ⚠️ **Change these passwords** before deploying to production!
+### Deploying
+The repo ships with a `Dockerfile` and `render.yaml` Blueprint for one-click hosting on [Render](https://render.com) (Docker runtime) with an external MySQL database. See the deployment guide included in the repo for the full walkthrough.
 
 ---
 
-## 🏗️ Project Structure
+## 🔐 Security Highlights
 
-```
-PAWAdopt/
-├── index.php               ← Login / Register page
-├── config/
-│   └── database.php        ← DB config & connection
-├── includes/
-│   ├── functions.php       ← Auth, helpers, notifications
-│   ├── header.php          ← Navbar, session check
-│   └── footer.php          ← Footer, scripts
-├── api/
-│   ├── auth.php            ← Login / Register / Logout
-│   ├── pets.php            ← Pet CRUD
-│   ├── applications.php    ← Adoption applications
-│   ├── messages.php        ← Messaging
-│   ├── favorites.php       ← Favorites
-│   ├── notifications.php   ← Notifications
-│   └── admin.php           ← Admin actions
-├── pages/
-│   ├── adopter/
-│   │   ├── dashboard.php
-│   │   ├── browse.php
-│   │   ├── pet-detail.php
-│   │   ├── applications.php
-│   │   ├── favorites.php
-│   │   ├── messages.php
-│   │   └── profile.php
-│   ├── shelter/
-│   │   ├── dashboard.php
-│   │   ├── pets.php
-│   │   ├── add-pet.php
-│   │   ├── edit-pet.php
-│   │   ├── applications.php
-│   │   ├── messages.php
-│   │   └── profile.php
-│   └── admin/
-│       ├── dashboard.php
-│       ├── users.php
-│       ├── shelters.php
-│       ├── pets.php
-│       └── reports.php
-├── assets/
-│   ├── css/
-│   │   ├── main.css        ← App-wide styles
-│   │   └── auth.css        ← Login/Register styles
-│   ├── js/
-│   │   ├── app.js          ← Main JS (dropdowns, messaging, etc.)
-│   │   └── auth.js         ← Auth page JS
-│   └── images/
-│       └── pet-placeholder.png
-├── uploads/
-│   └── pets/               ← Pet photo uploads
-└── sql/
-    └── pawadopt.sql        ← Database schema + seed data
-```
+- Passwords hashed with **bcrypt** (`password_hash` / `password_verify`)
+- **Role-based access control** enforced server-side on every endpoint (`requireLogin()` / `requireRole()`)
+- **Per-user data isolation** — all queries scoped by session user ID
+- **CSRF tokens** on state-changing forms
+- **Unique constraints** at the database level to prevent duplicate applications, bookings, favorites, and chats
+- **Secrets management** — all API keys and credentials supplied via environment variables only
+- **Audit logging** of security-relevant events (logins, registrations, password resets)
 
 ---
 
-## 🎨 UI Design
+## 📄 License & Credits
 
-- **Color Palette**: Teal (`#0d9488`) + Light Gray (`#f3f4f6`)
-- **Font**: Nunito (Google Fonts)
-- **Icons**: Font Awesome 6
-- **Style**: Rounded, modern, mobile-responsive
-- **Decorations**: 🦴 pixel bone,  🐾 paw prints
-
----
-
-## 🔐 User Roles
-
-### Adopter
-- Browse & search pet listings
-- Save favorites
-- Submit adoption applications
-- Track application status
-- Message shelters
-- Receive notifications
-
-### Shelter
-- Post pet listings with photos
-- Review adoption applications (Approve / Reject)
-- Message adopters
-- Manage shelter profile
-- Await admin verification
-
-### Admin
-- Verify/reject shelters
-- Manage all users (activate/deactivate/delete)
-- Moderate pet listings
-- View reports & analytics
-- Edit site content (About, Terms)
-
----
-
-## 🗄️ Database Tables
-
-| Table | Description |
-|-------|-------------|
-| `users` | All user accounts (Adopter/Shelter/Admin) |
-| `adopter_profiles` | Adopter profile details |
-| `shelter_profiles` | Shelter info & verification status |
-| `pets` | Pet listings |
-| `pet_photos` | Multiple photos per pet |
-| `adoption_applications` | Applications with status tracking |
-| `favorites` | Adopter saved pets |
-| `conversations` | Messaging threads |
-| `messages` | Individual messages |
-| `notifications` | In-app notifications |
-| `shelter_verifications` | Admin verification records |
-| `site_content` | CMS for About/Terms text |
-
----
-
-## 🔒 Security Features
-- `password_hash()` with bcrypt (cost 10)
-- PDO prepared statements (SQL injection prevention)
-- `htmlspecialchars()` output escaping (XSS prevention)
-- Role-based access control on every page
-- CSRF protection available via `generateCsrfToken()`
-- File upload validation (type + size)
-
----
-
-## 🚀 Production Checklist
-- [ ] Update `DB_USER`, `DB_PASS` in `config/database.php`
-- [ ] Update `APP_URL` to your domain
-- [ ] Change all demo account passwords
-- [ ] Set `chmod 775 uploads/`
-- [ ] Enable HTTPS
-- [ ] Disable PHP error display (`display_errors = Off`)
-- [ ] Set up email for password reset (update `api/auth.php`)
-
----
-
-## 📧 Support
-Built with ❤️ for PAWAdopt – *Finding forever homes, one paw at a time.* 🐶🐱🐰
+Built as a capstone project. Pet photos belong to their respective shelters.

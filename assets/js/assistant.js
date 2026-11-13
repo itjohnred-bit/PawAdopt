@@ -312,3 +312,114 @@
     })();
 
 })();
+    launcher.style.touchAction = 'none'; /* pointermove owns touch gestures */
+
+    function paPlace(px, py) {
+        var w  = launcher.offsetWidth || 74;
+        var h  = launcher.offsetHeight || 74;
+        var maxX = Math.max(4, window.innerWidth  - w - 4);
+        var maxY = Math.max(4, window.innerHeight - h - 4);
+        var x = Math.min(Math.max(4, px), maxX);
+        var y = Math.min(Math.max(4, py), maxY);
+        launcher.style.position = 'fixed';
+        launcher.style.left = x + 'px';
+        launcher.style.top  = y + 'px';
+        launcher.style.right = 'auto';
+        launcher.style.bottom = 'auto';
+        try {
+            localStorage.setItem('paBotX', String(x));
+            localStorage.setItem('paBotY', String(y));
+        } catch (e) {}
+    }
+
+    function paSyncWindow() {
+        var r = launcher.getBoundingClientRect();
+        var ww = Math.min(360, window.innerWidth - 24);
+        var wh = Math.min(520, Math.round(window.innerHeight * 0.72));
+        win.style.position = 'fixed';
+        win.style.width = ww + 'px';
+        win.style.height = wh + 'px';
+        var headCenter = r.left + r.width / 2;
+        if (headCenter < window.innerWidth / 2) {
+            win.style.left = Math.max(8, r.left) + 'px';
+        } else {
+            win.style.left = Math.max(8, r.right - ww) + 'px';
+        }
+        win.style.right = 'auto';
+        var above = r.top - wh - 10;
+        if (above > 8) { win.style.top = above + 'px'; }
+        else { win.style.top = Math.min(r.bottom + 10, window.innerHeight - wh - 8) + 'px'; }
+        win.style.bottom = 'auto';
+    }
+
+    (function paRestorePos() {
+        var sx = null, sy = null;
+        try { sx = localStorage.getItem('paBotX'); sy = localStorage.getItem('paBotY'); } catch (e) {}
+        if (sx !== null && sy !== null) paPlace(parseFloat(sx), parseFloat(sy));
+    })();
+
+    (function paPointerDrag() {
+        var dragging = false, moved = false, sx = 0, sy = 0, ox = 0, oy = 0;
+
+        function down(e) {
+            if (e.button !== undefined && e.button !== 0) return; /* primary button / touch only */
+            dragging = true; moved = false;
+            sx = e.clientX; sy = e.clientY;
+            var r = launcher.getBoundingClientRect();
+            ox = r.left; oy = r.top;
+            try { launcher.setPointerCapture(e.pointerId); } catch (err) {}
+            e.preventDefault();
+        }
+        function move(e) {
+            if (!dragging) return;
+            var dx = e.clientX - sx, dy = e.clientY - sy;
+            if (!moved && (Math.abs(dx) > 6 || Math.abs(dy) > 6)) {
+                moved = true;
+                launcher.classList.add('pa-dragging');
+                document.body.classList.add('pa-bot-dragging');
+            }
+            if (moved) {
+                paPlace(ox + dx, oy + dy);
+                e.preventDefault();
+            }
+        }
+        function up(e) {
+            if (!dragging) return;
+            dragging = false;
+            if (moved) {
+                justDragged = true;
+                var r = launcher.getBoundingClientRect();
+                var snapX = (r.left + r.width / 2) < window.innerWidth / 2
+                    ? 4
+                    : window.innerWidth - r.width - 4;
+                paPlace(snapX, r.top);
+                setTimeout(function () { justDragged = false; }, 200);
+            } else {
+                toggleBot(e); /* tap without drag → open/close */
+                if (win.classList.contains('open')) paSyncWindow();
+            }
+            launcher.classList.remove('pa-dragging');
+            document.body.classList.remove('pa-bot-dragging');
+        }
+
+        launcher.addEventListener('pointerdown', down);
+        launcher.addEventListener('pointermove', move);
+        launcher.addEventListener('pointerup', up);
+        launcher.addEventListener('pointercancel', function () {
+            dragging = false; moved = false;
+            launcher.classList.remove('pa-dragging');
+            document.body.classList.remove('pa-bot-dragging');
+        });
+
+        /* a completed drag must not also fire the open-click */
+        launcher.addEventListener('click', function (e) {
+            if (justDragged) { e.stopImmediatePropagation(); e.preventDefault(); }
+        }, true);
+
+        /* keep the head (and open window) inside the viewport on rotate/resize */
+        window.addEventListener('resize', function () {
+            var r = launcher.getBoundingClientRect();
+            paPlace(r.left, r.top);
+            if (win.classList.contains('open')) paSyncWindow();
+        });
+    })();
