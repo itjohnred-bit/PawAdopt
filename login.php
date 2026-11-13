@@ -74,13 +74,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'pawbo
     $endpoint = 'https://generativelanguage.googleapis.com/v1beta/models/' . rawurlencode($geminiModel) . ':generateContent?key=' . rawurlencode($apiKey);
 
     $ch = curl_init($endpoint);
-    curl_setopt_array($ch, [
+    $geminiCurlOpts = [
         CURLOPT_POST => true,
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
         CURLOPT_POSTFIELDS => json_encode($payload),
+        CURLOPT_CONNECTTIMEOUT => 10,
         CURLOPT_TIMEOUT => 25,
-    ]);
+    ];
+    // Render containers can hang on IPv6 (dual-stack black hole, 0 bytes received):
+    // force IPv4 resolution for the Google API endpoint.
+    if (defined('CURLOPT_IPRESOLVE') && defined('CURL_IPRESOLVE_V4')) {
+        $geminiCurlOpts[CURLOPT_IPRESOLVE] = CURL_IPRESOLVE_V4;
+    }
+    curl_setopt_array($ch, $geminiCurlOpts);
 
     $response = curl_exec($ch);
     $curlError = curl_error($ch);
@@ -148,6 +155,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'pawbo
             <div class="auth-alert error"><i class="fas fa-exclamation-circle"></i> You are not authorized for that page.</div>
             <?php endif; ?>
 
+            <?php if (($_GET['pending'] ?? '') === '1'): ?>
+            <div class="auth-alert error" style="background:#fff7ed;border:1px solid #fdba74;color:#9a3412;"><i class="fas fa-clock"></i> Your veterinary account is awaiting admin approval. You will be able to sign in once it has been reviewed.</div>
+            <?php endif; ?>
+
             <div class="auth-role-label">Sign in as</div>
             <div class="role-toggle">
                 <button type="button" class="role-btn active" data-role="ADOPTER">🐶 Adopter</button>
@@ -192,7 +203,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'pawbo
             <div class="auth-role-label">Register as</div>
             <div class="role-toggle">
                 <button type="button" class="role-btn active" data-role="ADOPTER">🐶 Adopter</button>
-              
+                <button type="button" class="role-btn" data-role="VETERINARY">🩺 Veterinary</button>
             </div>
 
             <form id="registerForm" novalidate style="width:100%;display:flex;flex-direction:column;align-items:center;">
@@ -944,6 +955,11 @@ function clearErrors() {
 .pa-btn-primary{background:#0d9488;color:#fff}.pa-btn-primary:hover:not(:disabled){background:#0f766e}
 .pa-btn-primary:disabled{background:#9ca3af;cursor:not-allowed}
 .pa-mini-note{margin-top:12px;padding:12px 14px;border-radius:14px;background:#ecfeff;color:#155e75;font-size:.8rem;line-height:1.55}
+.pa-scroll-hint{margin-top:10px;text-align:center;font-size:.75rem;color:#6b7280;font-weight:700}
+/* Centering hardening — nothing may offset the notice from true center,
+   even inside transformed/offset ancestors */
+.pa-privacy-gate{left:0;right:0;top:0;bottom:0;margin:0 !important;transform:none !important}
+.pa-privacy-card{margin:0 auto;max-width:min(460px,calc(100vw - 40px));box-sizing:border-box}
 </style>
 
 <script>
@@ -1075,7 +1091,6 @@ function ensureGate(){
         'I have read and accept the Privacy Policy. Paw-Adopt may store and process my data as described above.'+
       '</label>'+
       '<div class="pa-privacy-actions">'+
-        '<button type="button" id="ppDecline" class="pa-btn pa-btn-ghost">Decline</button>'+
         '<button type="button" id="ppAcceptBtn" class="pa-btn pa-btn-primary" disabled>I Agree</button>'+
       '</div>'+
     '</div>';
@@ -1128,12 +1143,29 @@ function ensureEmailAssuranceModal(){
 function openGate(){
   var m = ensureGate();
   m.classList.add('show');
+  var card = m.querySelector('.pa-privacy-card');
   var cb  = document.getElementById('ppAccept');
   var btn = document.getElementById('ppAcceptBtn');
   cb.checked = false; btn.disabled = true;
-  cb.onchange = function(){ btn.disabled = !cb.checked; };
+  paPolicyRead = false;
+  /* "I Agree" unlocks only after the user has scrolled to the
+     bottom of the notice AND ticked the acceptance box. If the
+     notice fits on screen without scrolling it counts as read. */
+  function checkRead(){
+    if (paPolicyRead) return;
+    if (card.scrollHeight <= card.clientHeight + 24 ||
+        card.scrollTop + card.clientHeight >= card.scrollHeight - 24) {
+      paPolicyRead = true;
+      refreshBtn();
+    }
+  }
+  function refreshBtn(){ btn.disabled = !(paPolicyRead && cb.checked); }
+  card.addEventListener('scroll', checkRead, { passive: true });
+  checkRead();
+  cb.onchange = refreshBtn;
   btn.onclick = function(){
     consent.value = '1';
+    try { localStorage.setItem('paPrivacyAccepted', '1'); } catch (e) {}
     enableInputs(true);
     m.classList.remove('show');
     gateSubmit();
@@ -1142,9 +1174,6 @@ function openGate(){
       setTimeout(function(){ var firstField = document.getElementById('regUsername'); if (firstField) firstField.focus(); }, 80);
     }
     registerAfterConsent = false;
-  };
-  document.getElementById('ppDecline').onclick = function(){
-    consent.value = '0'; m.classList.remove('show'); enableInputs(false); registerAfterConsent = false;
   };
 }
 function openLoginPrivacyNotice(){
@@ -1191,14 +1220,16 @@ form.addEventListener('submit', function(e){
 document.addEventListener('pawadopt:panelchange', function(event){
   var panelId = event && event.detail ? event.detail.panelId : '';
   if (panelId === 'loginPanel') {
-    openLoginPrivacyNotice();
+    /* The login notice is intentionally NOT re-shown on every visit;
+       the "Privacy Policy" footer link still opens it on demand. */
   }
   if (panelId === 'registerPanel') {
     registerViewEmailNoticeShown = false;
-    if (consent.value !== '1') {
+    if (consent.value !== '1' && !paAcceptedBefore) {
       enableInputs(false);
       openGate();
     } else {
+      consent.value = '1';
       enableInputs(true);
       gateSubmit();
     }
@@ -1208,9 +1239,13 @@ document.addEventListener('pawadopt:panelchange', function(event){
 window.openPrivacyGate = function(options){ registerAfterConsent = !!(options && options.openRegister); openGate(); };
 window.openPrivacyNotice = function(){ openLoginPrivacyNotice(); };
 
-/* Initial state on page load */
+/* Initial state on page load — the privacy gate shows ONCE per browser
+   (localStorage). Returning visitors who already agreed go straight in. */
+var paAcceptedBefore = false;
+try { paAcceptedBefore = localStorage.getItem('paPrivacyAccepted') === '1'; } catch (e) {}
 if (panel.classList.contains('active')) {
-  if (consent.value === '1') {
+  if (consent.value === '1' || paAcceptedBefore) {
+    consent.value = '1';
     enableInputs(true);
   } else {
     enableInputs(false);
@@ -1220,7 +1255,12 @@ if (panel.classList.contains('active')) {
   enableInputs(false);
 }
 if (loginPanel && loginPanel.classList.contains('active')) {
-  setTimeout(openLoginPrivacyNotice, 180);
+  var paLoginSeen = false;
+  try { paLoginSeen = localStorage.getItem('paLoginNoticeSeen') === '1'; } catch (e) {}
+  if (!paLoginSeen) {
+    try { localStorage.setItem('paLoginNoticeSeen', '1'); } catch (e) {}
+    setTimeout(openLoginPrivacyNotice, 180);
+  }
 }
 })();
 </script>

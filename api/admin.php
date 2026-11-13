@@ -95,12 +95,27 @@ switch ($action) {
         $shelter = $db->fetch("SELECT shelter_name FROM shelter_profiles WHERE shelter_id = ?", [$shelId]);
 
         $db->execute(
-            "UPDATE shelter_verifications SET status = ?, note = ?, reviewed_by_admin_id = ?, reviewed_at = NOW() WHERE shelter_id = ?",
-            [$status, $note, $user['user_id'], $shelId]
+            "UPDATE shelter_verifications SET status = ?, remarks = ?, updated_at = NOW() WHERE shelter_id = ?",
+            [$status, $note, $shelId]
         );
 
         $verified = ($status === 'APPROVED') ? 1 : 0;
         $db->execute("UPDATE shelter_profiles SET is_verified = ? WHERE shelter_id = ?", [$verified, $shelId]);
+
+        // Keep the login gate in sync: an approved shelter/veterinary account
+        // may sign in; a rejected one stays locked out. (Self-contained column
+        // check — pa_table_columns lives in api/auth.php, not loaded here.)
+        try {
+            $hasApprovalCol = (bool)$pdo->query("SHOW COLUMNS FROM `users` LIKE 'approval_status'")->fetch();
+        } catch (Throwable $colErr) {
+            $hasApprovalCol = false;
+        }
+        if ($hasApprovalCol) {
+            $db->execute(
+                "UPDATE users SET approval_status = ? WHERE user_id = ? AND role IN ('SHELTER','VETERINARY')",
+                [$status, $shelId]
+            );
+        }
 
         $msg = $status === 'APPROVED'
             ? 'Your shelter has been verified! You can now post pet listings. 🎉'

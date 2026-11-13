@@ -10,6 +10,20 @@ $unreadMsgs   = getUnreadMessageCount($currentUser['user_id']);
 $role = $currentUser['role'];
 $basePath = APP_URL;
 
+// Presentation: resolve the user's profile picture (adopter avatar /
+// shelter logo) so the header icon shows the real photo when set.
+$paAvatarUrl = '';
+try {
+    $paDb = Database::getInstance();
+    if ($role === 'ADOPTER') {
+        $paRow = $paDb->fetch('SELECT avatar_url FROM adopter_profiles WHERE adopter_id = ?', [$currentUser['user_id']]);
+        $paAvatarUrl = (string)($paRow['avatar_url'] ?? '');
+    } elseif ($role === 'SHELTER' || $role === 'VETERINARY') {
+        $paRow = $paDb->fetch('SELECT logo_url FROM shelter_profiles WHERE shelter_id = ?', [$currentUser['user_id']]);
+        $paAvatarUrl = (string)($paRow['logo_url'] ?? '');
+    }
+} catch (Throwable $e) { $paAvatarUrl = ''; }
+
 $current_page = basename($_SERVER['PHP_SELF']);
 
 // Presentation-only: pick a green-theme variant per page (deep = dashboards,
@@ -199,7 +213,7 @@ if ($role === 'ADOPTER') {
             align-items: center; justify-content: center; font-size: 12px;
         }
     </style>
-    <link rel="stylesheet" href="<?= APP_URL ?>/assets/css/restyle.css">
+    <link rel="stylesheet" href="<?= APP_URL ?>/assets/css/restyle.css?v=4">
 </head>
 <body class="<?= ($role === 'SHELTER' || $role === 'ADOPTER') ? 'pa-restyle theme-' . $paVariant . ' pa-page-' . $paPageKey : '' ?>">
 
@@ -256,7 +270,11 @@ if ($role === 'ADOPTER') {
 
                 <a href="<?= $profileUrl ?>" style="text-decoration:none; color:inherit;">
                     <div class="user-pill">
+                        <?php if ($paAvatarUrl !== ''): ?>
+                        <img class="avatar-circle-sm" src="<?= APP_URL . '/' . ltrim($paAvatarUrl, '/') ?>?v=<?= (function_exists('filemtime') && @filemtime(__DIR__ . '/../' . $paAvatarUrl)) ? @filemtime(__DIR__ . '/../' . $paAvatarUrl) : time() ?>" alt="" style="object-fit:cover;">
+                        <?php else: ?>
                         <div class="avatar-circle-sm"><?= strtoupper(substr($currentUser['username'] ?? 'U', 0, 1)) ?></div>
+                        <?php endif; ?>
                         <span><?= sanitize($currentUser['username'] ?? 'User') ?></span>
                     </div>
                 </a>
@@ -275,12 +293,29 @@ if ($role === 'ADOPTER') {
             btn.addEventListener('click', function (e) {
                 e.stopPropagation();
                 sidebar.classList.toggle('pa-drawer-open');
+                document.body.classList.toggle('pa-drawer-open', sidebar.classList.contains('pa-drawer-open'));
             });
             document.addEventListener('click', function (e) {
-                if (sidebar.classList.contains('pa-drawer-open') && !sidebar.contains(e.target) && !btn.contains(e.target)) {
+                if (sidebar.classList.contains('pa-drawer-open') && !sidebar.contains(e.target) && !btn.contains(e.target) && !e.target.closest('#sbCloseBtn')) {
                     sidebar.classList.remove('pa-drawer-open');
+                    document.body.classList.remove('pa-drawer-open');
                 }
             });
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape' && sidebar.classList.contains('pa-drawer-open')) {
+                    sidebar.classList.remove('pa-drawer-open');
+                    document.body.classList.remove('pa-drawer-open');
+                }
+            });
+            /* The footer widget's ✕ button must close the overlay drawer
+               (not trigger the legacy collapse state) when in drawer mode. */
+            document.addEventListener('click', function (e) {
+                if (e.target && e.target.id === 'sbCloseBtn' && sidebar.classList.contains('pa-drawer-open')) {
+                    e.stopPropagation();
+                    sidebar.classList.remove('pa-drawer-open');
+                    document.body.classList.remove('pa-drawer-open');
+                }
+            }, true);
         })();
         </script>
 

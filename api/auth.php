@@ -207,12 +207,44 @@ if (!function_exists('pa_send_smtp_mail')) {
     function pa_send_smtp_mail(string $toEmail, string $toName, string $subject, string $htmlBody, string $textBody = ''): bool
     {
         $cfg = pa_smtp_config();
+
+        // ── Brevo HTTP API route (works on hosts that block outbound SMTP ports) ──
+        $brevoKey = getenv('BREVO_API_KEY') ?: ($_ENV['BREVO_API_KEY'] ?? $_SERVER['BREVO_API_KEY'] ?? '');
+        if ($brevoKey !== '') {
+            $bh = [
+                'Content-Type: application/json',
+                'api-key: ' . $brevoKey,
+                'accept: application/json',
+            ];
+            $bPayload = json_encode([
+                'sender' => ['name' => $cfg['from_name'] ?: 'PawAdopt', 'email' => $cfg['from_email'] ?: $cfg['username']],
+                'to' => [['email' => $toEmail, 'name' => $toName]],
+                'subject' => $subject,
+                'htmlContent' => $htmlBody,
+                'textContent' => $textBody !== '' ? $textBody : trim(strip_tags($htmlBody)),
+            ]);
+            $bch = curl_init('https://api.brevo.com/v3/smtp/email');
+            curl_setopt_array($bch, [
+                CURLOPT_POST => true,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_HTTPHEADER => $bh,
+                CURLOPT_POSTFIELDS => $bPayload,
+                CURLOPT_TIMEOUT => 20,
+            ]);
+            $bRes = curl_exec($bch);
+            $bErr = curl_error($bch);
+            $bCode = (int) curl_getinfo($bch, CURLINFO_HTTP_CODE);
+            curl_close($bch);
+            if ($bRes !== false && $bCode >= 200 && $bCode < 300) {
+                return true;
+            }
+            error_log('PawAdopt Brevo send failed (HTTP ' . $bCode . '): ' . ($bErr !== '' ? $bErr : substr((string)$bRes, 0, 300)));
+            // fall through to SMTP socket if Brevo failed
+        }
+
         if ($cfg['host'] === '' || $cfg['username'] === '' || $cfg['password'] === '' || $cfg['from_email'] === '') {
             throw new RuntimeException('SMTP settings are incomplete.');
         }
-        error_log('PawAdopt SMTP attempt: host=' . $cfg['host'] . ' port=' . $cfg['port']
-            . ' enc=' . $cfg['encryption'] . ' user=' . $cfg['username']
-            . ' passLen=' . strlen($cfg['password']) . ' from=' . $cfg['from_email']);
 
         $socket = stream_socket_client(
             'tcp://' . $cfg['host'] . ':' . $cfg['port'],
@@ -279,63 +311,6 @@ if (!function_exists('pa_send_smtp_mail')) {
     }
 }
 
-if (!function_exists('pa_brevo_api_key')) {
-    function pa_brevo_api_key(): string
-    {
-        $key = getenv('BREVO_API_KEY');
-        if ($key === false || $key === '') {
-            $key = $_ENV['BREVO_API_KEY'] ?? $_SERVER['BREVO_API_KEY'] ?? '';
-        }
-        if (($key === '' || $key === null) && defined('BREVO_API_KEY')) {
-            $key = (string) BREVO_API_KEY;
-        }
-        return trim((string) $key);
-    }
-}
-
-if (!function_exists('pa_send_brevo_mail')) {
-    function pa_send_brevo_mail(string $toEmail, string $toName, string $subject, string $htmlBody, string $textBody = ''): bool
-    {
-        $cfg = pa_smtp_config();
-        $fromEmail = $cfg['from_email'] !== '' ? $cfg['from_email'] : $cfg['username'];
-        if ($fromEmail === '') {
-            throw new RuntimeException('Brevo sender email is not configured (set SMTP_FROM_EMAIL or SMTP_USERNAME).');
-        }
-
-        $payload = json_encode([
-            'sender' => ['name' => $cfg['from_name'] !== '' ? $cfg['from_name'] : 'PawAdopt', 'email' => $fromEmail],
-            'to' => [['email' => $toEmail, 'name' => $toName]],
-            'subject' => $subject,
-            'htmlContent' => $htmlBody,
-            'textContent' => $textBody !== '' ? $textBody : trim(strip_tags($htmlBody)),
-        ]);
-
-        $ch = curl_init('https://api.brevo.com/v3/smtp/email');
-        curl_setopt_array($ch, [
-            CURLOPT_POST => true,
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_HTTPHEADER => [
-                'Content-Type: application/json',
-                'accept: application/json',
-                'api-key: ' . pa_brevo_api_key(),
-            ],
-            CURLOPT_POSTFIELDS => $payload,
-            CURLOPT_TIMEOUT => 20,
-        ]);
-        $response = curl_exec($ch);
-        $curlError = curl_error($ch);
-        $statusCode = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-
-        if ($response !== false && $statusCode >= 200 && $statusCode < 300) {
-            return true;
-        }
-
-        error_log('PawAdopt Brevo send failed (HTTP ' . $statusCode . '): ' . ($curlError !== '' ? $curlError : substr((string) $response, 0, 300)));
-        throw new RuntimeException('Brevo API send failed (HTTP ' . $statusCode . ').');
-    }
-}
-
 if (!function_exists('pa_send_reset_otp_email')) {
     function pa_send_reset_otp_email(string $toEmail, string $username, string $otp): bool
     {
@@ -350,14 +325,6 @@ if (!function_exists('pa_send_reset_otp_email')) {
             . '</div>';
         $text = "PawAdopt Password Reset\n\nHello {$username},\n\nUse this OTP to reset your password: {$otp}\nThis OTP expires in 10 minutes.\n\nIf you did not request this, ignore this email.";
 
-        // Brevo HTTPS API first (works on hosts that block outbound SMTP ports,
-        // e.g. Render free web services block ports 25/465/587). The sender
-        // address must be verified in the Brevo dashboard (Senders tab).
-        if (pa_brevo_api_key() !== '') {
-            return pa_send_brevo_mail($toEmail, $username, $subject, $html, $text);
-        }
-
-        // No Brevo key configured — fall back to the direct SMTP socket.
         return pa_send_smtp_mail($toEmail, $username, $subject, $html, $text);
     }
 }
@@ -504,9 +471,28 @@ switch ($action) {
             break;
         }
 
-        if (strtoupper($user['role']) !== $roleInput) {
+        // Accept VETERINARY and SHELTER interchangeably at login so both
+        // legacy SHELTER accounts and new VETERINARY accounts can use the
+        // same "Veterinary" toggle.
+        $userRole = strtoupper($user['role']);
+        $normalizedInput = $roleInput;
+        if (in_array($roleInput, ['SHELTER', 'VETERINARY'], true) && in_array($userRole, ['SHELTER', 'VETERINARY'], true)) {
+            $normalizedInput = $userRole;
+        }
+
+        if ($userRole !== $normalizedInput) {
             $actualRole = ucfirst(strtolower($user['role']));
             jsonError("Incorrect role selection. This account is registered as: {$actualRole}");
+            break;
+        }
+
+        // Veterinary/shelter accounts sign in only after admin approval
+        // (sql/vet_approval.sql adds the approval_status column).
+        $userCols = pa_table_columns($pdo, 'users');
+        if (isset($userCols['approval_status'])
+            && in_array($userRole, ['SHELTER', 'VETERINARY'], true)
+            && strtoupper($user['approval_status'] ?? 'APPROVED') !== 'APPROVED') {
+            jsonError('Your veterinary account is awaiting admin approval. You will be able to sign in once it has been reviewed.');
             break;
         }
 
@@ -585,9 +571,27 @@ switch ($action) {
         $hash = password_hash($password, PASSWORD_BCRYPT);
 
         try {
+            // Veterinary/shelter accounts require admin approval before they can
+            // sign in; adopters are approved immediately. The two extra columns
+            // are added dynamically only when sql/vet_approval.sql was applied,
+            // so the build keeps working on databases without the migration.
+            $needsApproval = in_array($role, ['SHELTER', 'VETERINARY'], true);
+            $userCols = pa_table_columns($pdo, 'users');
+            $colList  = 'role, username, email, password_hash';
+            $marks    = '?, ?, ?, ?';
+            $params   = [$role, $username, $email, $hash];
+            if (isset($userCols['approval_status'])) {
+                $colList .= ', approval_status';
+                $marks    .= ', ?';
+                $params[]  = $needsApproval ? 'PENDING' : 'APPROVED';
+            }
+            if (isset($userCols['privacy_accepted_at'])) {
+                $colList .= ', privacy_accepted_at';
+                $marks    .= ', NOW()';
+            }
             $db->execute(
-                'INSERT INTO users (role, username, email, password_hash) VALUES (?, ?, ?, ?)',
-                [$role, $username, $email, $hash]
+                "INSERT INTO users ($colList) VALUES ($marks)",
+                $params
             );
             $userId = (int)$db->lastInsertId();
 
@@ -618,12 +622,20 @@ switch ($action) {
             $roleDir = strtolower($role);
             if ($roleDir === 'veterinary') $roleDir = 'shelter';
 
+            if ($needsApproval) {
+                // Pending veterinary accounts are NOT logged in until approved.
+                jsonSuccess(
+                    ['redirect' => APP_URL . '/login.php?pending=1', 'pending' => true],
+                    'Account created! Your veterinary account is now awaiting admin approval. You can sign in once an admin approves it.'
+                );
+                break;
+            }
+
             jsonSuccess(
                 ['redirect' => APP_URL . "/pages/{$roleDir}/dashboard.php"],
                 'Account created!'
             );
         } catch (Exception $e) {
-            error_log('PawAdopt register failed: ' . $e->getMessage());
             jsonError('Registration failed.');
         }
         break;
