@@ -1,0 +1,99 @@
+/* ============================================================
+   PawAdopt — appearance applied from the signed-in user's settings.
+   Consumes the CSS variables printed by includes/ui-runtime.php.
+   Loaded on every authenticated page (all roles).
+   ============================================================ */
+
+body.pa-user-theme {
+    font-family: var(--pa-font, 'Nunito', sans-serif);
+}
+
+/* ---- Background: solid colour + optional image + radial blur ---- */
+body.pa-user-theme {
+    background-color: var(--pa-bg, #f4f7f6);
+    background-image: var(--pa-bg-image, none);
+    background-size: var(--pa-bg-size, cover);
+    background-repeat: var(--pa-bg-repeat, no-repeat);
+    background-position: center center;
+    background-attachment: fixed;
+}
+
+/* Soft radial vignette (the "radial blur" look of a photo backdrop) */
+body.pa-user-theme.has-bg-image::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background: radial-gradient(circle at 50% 40%, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, .28) 100%);
+}
+
+/* Real gaussian blur behind the content when the user enables it */
+body.pa-user-theme.has-bg-image.blur-on::after {
+    content: '';
+    position: fixed;
+    inset: calc(-1 * var(--pa-bg-blur, 14px));
+    pointer-events: none;
+    z-index: -1;
+    background-image: var(--pa-bg-image, none);
+    background-size: var(--pa-bg-size, cover);
+    background-repeat: var(--pa-bg-repeat, no-repeat);
+    background-position: center center;
+    filter: blur(var(--pa-bg-blur, 14px));
+    transform: scale(1.04);
+}
+
+/* Keep the app chrome above the backdrop layers */
+body.pa-user-theme .admin-wrapper { position: relative; z-index: 1; background: transparent; }
+
+/* When a custom background is set, let it show through the content column */
+body.pa-user-theme.has-bg-image .main-content { background: transparent !important; }
+
+/* ---- Large text ---- */
+body.pa-user-theme.large-text { font-size: 118%; }
+body.pa-user-theme.large-text .main-content { font-size: 1.06rem; }
+body.pa-user-theme.large-text .nav-item { font-size: 1.05rem; }
+body.pa-user-theme.large-text .page-title { font-size: 2.15rem; }
+
+/* ---- Header colour + texture ---- */
+html body.pa-user-theme .top-header {
+    background: var(--pa-header-bg, #fff) !important;
+    background-image: none;
+}
+html body.pa-user-theme[data-header-texture="dots"] .top-header {
+    background-image: radial-gradient(rgba(0, 0, 0, .10) 1px, transparent 1px);
+    background-size: 14px 14px;
+}
+html body.pa-user-theme[data-header-texture="gradient"] .top-header {
+    background-image: linear-gradient(90deg, rgba(0, 0, 0, .10), rgba(255, 255, 255, 0));
+}
+html body.pa-user-theme[data-header-texture="diagonal"] .top-header {
+    background-image: repeating-linear-gradient(45deg, rgba(0, 0, 0, .07) 0 8px, transparent 8px 16px);
+}
+html body.pa-user-theme[data-header-texture="grain"] .top-header {
+    background-image: repeating-linear-gradient(0deg, rgba(0, 0, 0, .05) 0 1px, transparent 1px 3px);
+}
+
+/* ---- Sidebar colour + texture ---- */
+html body.pa-user-theme .sidebar {
+    background: var(--pa-sidebar-bg, #fff) !important;
+    background-image: none;
+}
+html body.pa-user-theme[data-sidebar-texture="dots"] .sidebar {
+    background-image: radial-gradient(rgba(0, 0, 0, .10) 1px, transparent 1px);
+    background-size: 14px 14px;
+}
+html body.pa-user-theme[data-sidebar-texture="gradient"] .sidebar {
+    background-image: linear-gradient(180deg, rgba(0, 0, 0, .10), rgba(255, 255, 255, 0));
+}
+html body.pa-user-theme[data-sidebar-texture="diagonal"] .sidebar {
+    background-image: repeating-linear-gradient(45deg, rgba(0, 0, 0, .07) 0 8px, transparent 8px 16px);
+}
+html body.pa-user-theme[data-sidebar-texture="grain"] .sidebar {
+    background-image: repeating-linear-gradient(0deg, rgba(0, 0, 0, .05) 0 1px, transparent 1px 3px);
+}
+
+/* Dark header/sidebar → readable icons */
+body.pa-user-theme.dark-header .top-header .icon-btn,
+body.pa-user-theme.dark-header .top-header .user-pill { color: #f8fafc; }
+body.pa-user-theme.dark-header .top-header .pa-hamburger { background: rgba(255, 255, 255, .18); }

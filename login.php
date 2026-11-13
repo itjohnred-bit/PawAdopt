@@ -998,6 +998,7 @@ var consent    = document.getElementById('privacyAcceptedField');
 var loginPanel = document.getElementById('loginPanel');
 var registerViewEmailNoticeShown = false;
 var registerAfterConsent = false;
+var paPolicyRead = false;
 
 /* ─── 1. EMAIL VALIDATION  (regex + giant-provider whitelist) ───────── */
 var EMAIL_RE = /^[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}$/;
@@ -1146,24 +1147,18 @@ function openGate(){
   var card = m.querySelector('.pa-privacy-card');
   var cb  = document.getElementById('ppAccept');
   var btn = document.getElementById('ppAcceptBtn');
-  cb.checked = false; btn.disabled = true;
-  paPolicyRead = false;
-  /* "I Agree" unlocks only after the user has scrolled to the
-     bottom of the notice AND ticked the acceptance box. If the
-     notice fits on screen without scrolling it counts as read. */
-  function checkRead(){
-    if (paPolicyRead) return;
-    if (card.scrollHeight <= card.clientHeight + 24 ||
-        card.scrollTop + card.clientHeight >= card.scrollHeight - 24) {
-      paPolicyRead = true;
-      refreshBtn();
-    }
-  }
-  function refreshBtn(){ btn.disabled = !(paPolicyRead && cb.checked); }
-  card.addEventListener('scroll', checkRead, { passive: true });
-  checkRead();
-  cb.onchange = refreshBtn;
+  if (!cb || !btn) return;
+  cb.checked = false;
+  btn.disabled = true;
+  /* The notice is short enough to read on one screen, so a single explicit
+     tick unlocks "I Agree". (The old scroll-to-bottom requirement threw a
+     strict-mode ReferenceError on paPolicyRead and left the button dead.) */
+  function refresh(){ btn.disabled = !cb.checked; }
+  cb.onchange = refresh;
+  cb.onclick  = refresh;
+  refresh();
   btn.onclick = function(){
+    if (!cb.checked) return;
     consent.value = '1';
     try { localStorage.setItem('paPrivacyAccepted', '1'); } catch (e) {}
     enableInputs(true);
@@ -1171,10 +1166,12 @@ function openGate(){
     gateSubmit();
     if (registerAfterConsent && typeof window.pawAuthShowRegister === 'function') {
       window.pawAuthShowRegister();
-      setTimeout(function(){ var firstField = document.getElementById('regUsername'); if (firstField) firstField.focus(); }, 80);
+      setTimeout(function(){ var f = document.getElementById('regUsername'); if (f) f.focus(); }, 80);
     }
     registerAfterConsent = false;
   };
+  /* Clicking the card body toggles nothing; the ✕ / overlay does not dismiss
+     because acceptance is required before registering. */
 }
 function openLoginPrivacyNotice(){
   var m = ensureLoginPrivacyNotice();

@@ -24,6 +24,11 @@ try {
     }
 } catch (Throwable $e) { $paAvatarUrl = ''; }
 
+require_once __DIR__ . '/ui-runtime.php';
+$paUiSettings = pa_ui_runtime_settings((int) ($currentUser['user_id'] ?? 0));
+$paUiCss      = pa_ui_runtime_css($paUiSettings);
+$paUiDarkHeader = !empty($paUiSettings['header_color']) && pa_ui_is_dark_hex((string) $paUiSettings['header_color']);
+
 $current_page = basename($_SERVER['PHP_SELF']);
 
 // Presentation-only: pick a green-theme variant per page (deep = dashboards,
@@ -77,6 +82,8 @@ if ($role === 'ADOPTER') {
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Pacifico&family=Alfa+Slab+One&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="<?= APP_URL ?>/assets/css/dark-mode.css">
+    <link rel="stylesheet" href="<?= APP_URL ?>/assets/css/layout-fix.css">
+    <link rel="stylesheet" href="<?= APP_URL ?>/assets/css/user-theme.css">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="<?= APP_URL ?>/assets/js/ui-customization.js"></script>
 
@@ -215,7 +222,8 @@ if ($role === 'ADOPTER') {
     </style>
     <link rel="stylesheet" href="<?= APP_URL ?>/assets/css/restyle.css?v=4">
 </head>
-<body class="<?= ($role === 'SHELTER' || $role === 'ADOPTER') ? 'pa-restyle theme-' . $paVariant . ' pa-page-' . $paPageKey : '' ?>">
+<body class="<?= ($role === 'SHELTER' || $role === 'ADOPTER') ? 'pa-restyle theme-' . $paVariant . ' pa-page-' . $paPageKey : '' ?> pa-user-theme<?= !empty($paUiSettings['bg_image_url']) ? ' has-bg-image' : '' ?><?= !empty($paUiSettings['bg_blur']) ? ' blur-on' : '' ?><?= !empty($paUiSettings['large_text']) ? ' large-text' : '' ?><?= $paUiDarkHeader ? ' dark-header' : '' ?>" data-header-texture="<?= htmlspecialchars((string) $paUiSettings['header_texture'], ENT_QUOTES, 'UTF-8') ?>" data-sidebar-texture="<?= htmlspecialchars((string) $paUiSettings['sidebar_texture'], ENT_QUOTES, 'UTF-8') ?>">
+<style id="paUserTheme">:root{<?= $paUiCss ?>}</style>
 
 <div class="admin-wrapper">
     <aside class="sidebar">
@@ -225,18 +233,27 @@ if ($role === 'ADOPTER') {
 
         <nav class="sidebar-nav">
             <?php if ($role === 'ADOPTER'): ?>
+                <a href="<?= $basePath ?>/index.php" class="nav-item"><i class="fas fa-house"></i> Home</a>
+                <a href="<?= $basePath ?>/pages/community.php" class="nav-item <?= $current_page == 'community.php' ? 'active' : '' ?>"><i class="fas fa-users-rectangle"></i> Community</a>
+
                 <a href="<?= $dashUrl ?>" class="nav-item <?= $current_page == 'dashboard.php' ? 'active' : '' ?>"><i class="fas fa-home"></i> Dashboard</a>
                 <a href="<?= $browseUrl ?>" class="nav-item <?= $current_page == 'browse.php' ? 'active' : '' ?>"><i class="fas fa-search"></i> Browse</a>
                 <a href="<?= $favUrl ?>" class="nav-item <?= $current_page == 'favorites.php' ? 'active' : '' ?>"><i class="fas fa-heart"></i> Favorites</a>
                 <a href="<?= $appsUrl ?>" class="nav-item <?= $current_page == 'applications.php' ? 'active' : '' ?>"><i class="fas fa-file-alt"></i> My Applications</a>
                 <a href="<?= $basePath ?>/pages/customize.php" class="nav-item <?= $current_page == 'customize.php' ? 'active' : '' ?>"><i class="fas fa-palette"></i> Customize UI</a>
             <?php elseif ($role === 'SHELTER'): ?>
+                <a href="<?= $basePath ?>/index.php" class="nav-item"><i class="fas fa-house"></i> Home</a>
+                <a href="<?= $basePath ?>/pages/community.php" class="nav-item <?= $current_page == 'community.php' ? 'active' : '' ?>"><i class="fas fa-users-rectangle"></i> Community</a>
+
                 <a href="<?= $dashUrl ?>" class="nav-item <?= $current_page == 'dashboard.php' ? 'active' : '' ?>"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
                 <a href="<?= $petsUrl ?>" class="nav-item <?= $current_page == 'pets.php' ? 'active' : '' ?>"><i class="fas fa-paw"></i> My Pets</a>
                 <a href="<?= $appsUrl ?>" class="nav-item <?= $current_page == 'applications.php' ? 'active' : '' ?>"><i class="fas fa-file-alt"></i> Applications</a>
                 <a href="<?= $basePath ?>/pages/customize.php" class="nav-item <?= $current_page == 'customize.php' ? 'active' : '' ?>"><i class="fas fa-palette"></i> Customize UI</a>
             <?php else: ?>
                 <a href="<?= $dashUrl ?>" class="nav-item <?= $current_page == 'dashboard.php' ? 'active' : '' ?>"><i class="fas fa-th-large"></i> Dashboard</a>
+                <a href="<?= $basePath ?>/index.php" class="nav-item"><i class="fas fa-house"></i> Home</a>
+                <a href="<?= $basePath ?>/pages/community.php" class="nav-item <?= $current_page == 'community.php' ? 'active' : '' ?>"><i class="fas fa-users-rectangle"></i> Community</a>
+
                 <a href="<?= $usersUrl ?>" class="nav-item <?= $current_page == 'users.php' ? 'active' : '' ?>"><i class="fas fa-users"></i> Users</a>
  
                 <a href="<?= $petsAdmUrl ?>" class="nav-item <?= $current_page == 'pets.php' ? 'active' : '' ?>"><i class="fas fa-paw"></i> Pets</a>
@@ -254,7 +271,7 @@ if ($role === 'ADOPTER') {
     <div style="flex: 1; display: flex; flex-direction: column;">
         <header class="top-header">
             <div class="header-actions">
-                <?php if ($role === 'SHELTER' || $role === 'ADOPTER'): ?>
+                <?php if (true): ?>
                 <button type="button" class="pa-hamburger" id="paSidebarToggle" aria-label="Open menu"><i class="fas fa-bars"></i></button>
                 <?php endif; ?>
 

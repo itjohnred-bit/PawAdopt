@@ -298,6 +298,8 @@ $vetPhoneDigits = $upcomingAppt && !empty($upcomingAppt['vet_phone'])
     </div>
 </div>
 
+<?php include __DIR__ . '/../../includes/ad-slot.php'; ?>
+
 <div class="quick-panel">
     <div class="mini-card">
         <h3><i class="fas fa-heart"></i> My Recent Feedback</h3>

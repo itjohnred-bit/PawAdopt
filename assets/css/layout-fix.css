@@ -1,0 +1,94 @@
+/* ============================================================
+   PawAdopt — LAYOUT FIX (all roles, incl. admin)
+   Loaded AFTER main.css / dark-mode.css / restyle.css.
+
+   1. Restores native page scrolling. main.css pinned
+      `body{height:100vh;overflow:hidden}` and made .main-content an
+      inner scrollbox; combined with the fixed 70px header that hid the
+      first rows of content and stopped the wheel/touch scroll — which is
+      also why the "scroll to the bottom" privacy gate never unlocked.
+   2. Puts the sidebar toggle (☰) on the LEFT of the top bar.
+   3. Keeps the header full width so it never looks cropped.
+   Presentation only: no PHP, queries or session logic.
+   ============================================================ */
+
+html,
+body {
+    height: auto !important;
+    min-height: 100% !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+}
+
+body {
+    display: block !important;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* The wrapper must not be a fixed-height scroll trap */
+.admin-wrapper {
+    display: flex !important;
+    height: auto !important;
+    min-height: 100vh !important;
+    max-height: none !important;
+    overflow: visible !important;
+}
+
+/* Content flows in the document; the page scrolls, not a nested box */
+.main-content {
+    height: auto !important;
+    max-height: none !important;
+    min-height: calc(100vh - 70px) !important;
+    overflow: visible !important;
+    box-sizing: border-box;
+}
+
+/* ---- Top bar: full width, toggle on the left ---- */
+.top-header {
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    justify-content: flex-start !important;
+    gap: 14px !important;
+    padding: 0 18px !important;
+    box-sizing: border-box;
+}
+
+.top-header .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    width: 100%;
+}
+
+/* ☰ sits first, everything else is pushed to the right */
+.top-header .pa-hamburger {
+    margin-right: auto !important;
+    order: -1;
+    flex: 0 0 auto;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 12px;
+    background: #165B4C;
+    color: #fff;
+    font-size: 17px;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.top-header .pa-hamburger:hover { background: #134E43; }
+.top-header .pa-hamburger i { pointer-events: none; }
+
+/* ---- Footer must never be clipped by the old fixed heights ---- */
+.app-footer { position: static !important; margin-top: 40px; }
+
+/* ---- Long/tall modals scroll instead of overflowing the viewport ---- */
+.modal-dialog,
+.dash-modal-card {
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+}
