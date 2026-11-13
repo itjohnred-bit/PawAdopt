@@ -41,7 +41,7 @@ include __DIR__ . '/../../includes/header.php';
 <div class="card" style="padding:0">
 <div class="table-wrap">
 <table class="data-table">
-    <thead><tr><th>#</th><th>Username</th><th>Email</th><th>Role</th><th>Status</th><th>Joined</th><th>Actions</th></tr></thead>
+    <thead><tr><th>#</th><th>Username</th><th>Email</th><th>Role</th><th>Approval</th><th>Status</th><th>Joined</th><th>Actions</th></tr></thead>
     <tbody>
     <?php foreach ($users as $u): ?>
     <tr id="user-<?= $u['user_id'] ?>">
@@ -54,11 +54,32 @@ include __DIR__ . '/../../includes/header.php';
         </td>
         <td class="text-muted"><?= sanitize($u['email']) ?></td>
         <td><?= statusBadge($u['role']) ?></td>
+        <?php
+            $needsApproval = in_array($u['role'], ['SHELTER', 'VETERINARY'], true);
+            $approval = $needsApproval ? ($u['approval_status'] ?? 'APPROVED') : 'APPROVED';
+        ?>
+        <td>
+            <?php if (!$needsApproval): ?>
+                <span class="text-muted" style="font-size:.78rem">&mdash;</span>
+            <?php elseif ($approval === 'PENDING'): ?>
+                <span class="badge badge-warning">Pending</span>
+            <?php elseif ($approval === 'REJECTED'): ?>
+                <span class="badge badge-danger">Rejected</span>
+            <?php else: ?>
+                <span class="badge badge-success">Approved</span>
+            <?php endif; ?>
+        </td>
         <td><?= $u['is_active'] ? '<span class="badge badge-success">Active</span>' : '<span class="badge badge-danger">Inactive</span>' ?></td>
         <td class="text-muted" style="font-size:.82rem"><?= date('M j, Y', strtotime($u['created_at'])) ?></td>
         <td>
-            <div style="display:flex;gap:6px">
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
                 <?php if ($u['user_id'] !== $user['user_id']): ?>
+                <?php if ($needsApproval && $approval !== 'APPROVED'): ?>
+                <button onclick="approveUser(<?= $u['user_id'] ?>,'APPROVED')" class="btn btn-success btn-sm">Approve</button>
+                <button onclick="approveUser(<?= $u['user_id'] ?>,'REJECTED')" class="btn btn-danger btn-sm">Reject</button>
+                <?php elseif ($needsApproval && $approval === 'APPROVED'): ?>
+                <button onclick="approveUser(<?= $u['user_id'] ?>,'PENDING')" class="btn btn-secondary btn-sm">Revoke</button>
+                <?php endif; ?>
                 <button onclick="toggleUser(<?= $u['user_id'] ?>,<?= $u['is_active'] ?>)"
                         class="btn btn-sm <?= $u['is_active']?'btn-warning':'btn-success' ?>">
                     <?= $u['is_active']?'Deactivate':'Activate' ?>
@@ -77,6 +98,7 @@ include __DIR__ . '/../../includes/header.php';
 </div>
 
 <script>
+var API_BASE = <?= json_encode(APP_URL) ?>;
 
 
 function confirmAction(message, callback) {
@@ -103,7 +125,7 @@ function showToast(message, type = 'success') {
 async function toggleUser(userId, isActive) {
     const actionText = isActive ? 'Deactivate' : 'Activate';
     confirmAction(`${actionText} this user?`, async () => {
-        const res = await apiRequest('/PAWAdopt/api/admin.php','POST',new URLSearchParams({action:'toggle_user',user_id:userId}));
+        const res = await apiRequest(API_BASE + '/api/admin.php','POST',new URLSearchParams({action:'toggle_user',user_id:userId}));
         if (res.success) { 
             showToast('User updated.'); 
             setTimeout(()=>location.reload(), 800); 
@@ -112,9 +134,21 @@ async function toggleUser(userId, isActive) {
     });
 }
 
+async function approveUser(userId, status) {
+    let note = '';
+    if (status === 'REJECTED') {
+        note = window.prompt('Reason shown to the applicant (optional):', '') || '';
+    }
+    if (!window.confirm(status + ' this account?')) return;
+    const res = await apiRequest(API_BASE + '/api/admin.php', 'POST',
+        new URLSearchParams({action: 'approve_user', user_id: userId, status: status, note: note}));
+    if (res.success) { showToast(res.message || 'Account updated.'); setTimeout(() => location.reload(), 800); }
+    else showToast(res.message || 'Action failed.', 'error');
+}
+
 async function deleteUser(userId) {
     confirmAction('Permanently delete this user? This cannot be undone!', async () => {
-        const res = await apiRequest('/PAWAdopt/api/admin.php','POST',new URLSearchParams({action:'delete_user',user_id:userId}));
+        const res = await apiRequest(API_BASE + '/api/admin.php','POST',new URLSearchParams({action:'delete_user',user_id:userId}));
         if (res.success) { 
             document.getElementById('user-'+userId)?.remove(); 
             showToast('User deleted.'); 

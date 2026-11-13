@@ -255,6 +255,25 @@ if ($role === 'ADOPTER') {
                 <a href="<?= $basePath ?>/pages/community.php" class="nav-item <?= $current_page == 'community.php' ? 'active' : '' ?>"><i class="fas fa-users-rectangle"></i> Community</a>
 
                 <a href="<?= $usersUrl ?>" class="nav-item <?= $current_page == 'users.php' ? 'active' : '' ?>"><i class="fas fa-users"></i> Users</a>
+                <a href="<?= $sheltersUrl ?>" class="nav-item <?= $current_page == 'shelters.php' ? 'active' : '' ?>"><i class="fas fa-user-shield"></i> Verification <span id="paVetPend"></span></a>
+
+                <script>
+                /* Small badge: how many vet/shelter accounts await approval */
+                (function () {
+                    var el = document.getElementById('paVetPend');
+                    if (!el) return;
+                    fetch('<?= APP_URL ?>/api/admin.php?action=pending_count')
+                        .then(function (r) { return r.json(); })
+                        .then(function (j) {
+                            var n = (j && j.data && j.data.count) || 0;
+                            if (n > 0) {
+                                el.textContent = ' ' + n;
+                                el.style.cssText = 'background:#dc2626;color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;font-weight:800;margin-left:4px';
+                            }
+                        })
+                        .catch(function () {});
+                })();
+                </script>
  
                 <a href="<?= $petsAdmUrl ?>" class="nav-item <?= $current_page == 'pets.php' ? 'active' : '' ?>"><i class="fas fa-paw"></i> Pets</a>
                 <a href="<?= $reportsUrl ?>" class="nav-item <?= $current_page == 'reports.php' ? 'active' : '' ?>"><i class="fas fa-chart-bar"></i> Reports</a>
@@ -271,10 +290,6 @@ if ($role === 'ADOPTER') {
     <div style="flex: 1; display: flex; flex-direction: column;">
         <header class="top-header">
             <div class="header-actions">
-                <?php if (true): ?>
-                <button type="button" class="pa-hamburger" id="paSidebarToggle" aria-label="Open menu"><i class="fas fa-bars"></i></button>
-                <?php endif; ?>
-
                 <a href="<?= $msgUrl ?>" class="icon-btn">
                     <i class="fas fa-envelope"></i>
                     <?php if ($unreadMsgs > 0): ?><span class="badge-dot"><?= $unreadMsgs ?></span><?php endif; ?>
@@ -302,39 +317,6 @@ if ($role === 'ADOPTER') {
             </div>
         </header>
 
-        <script>
-        (function () {
-            var btn = document.getElementById('paSidebarToggle');
-            var sidebar = document.querySelector('.sidebar');
-            if (!btn || !sidebar) return;
-            btn.addEventListener('click', function (e) {
-                e.stopPropagation();
-                sidebar.classList.toggle('pa-drawer-open');
-                document.body.classList.toggle('pa-drawer-open', sidebar.classList.contains('pa-drawer-open'));
-            });
-            document.addEventListener('click', function (e) {
-                if (sidebar.classList.contains('pa-drawer-open') && !sidebar.contains(e.target) && !btn.contains(e.target) && !e.target.closest('#sbCloseBtn')) {
-                    sidebar.classList.remove('pa-drawer-open');
-                    document.body.classList.remove('pa-drawer-open');
-                }
-            });
-            document.addEventListener('keydown', function (e) {
-                if (e.key === 'Escape' && sidebar.classList.contains('pa-drawer-open')) {
-                    sidebar.classList.remove('pa-drawer-open');
-                    document.body.classList.remove('pa-drawer-open');
-                }
-            });
-            /* The footer widget's ✕ button must close the overlay drawer
-               (not trigger the legacy collapse state) when in drawer mode. */
-            document.addEventListener('click', function (e) {
-                if (e.target && e.target.id === 'sbCloseBtn' && sidebar.classList.contains('pa-drawer-open')) {
-                    e.stopPropagation();
-                    sidebar.classList.remove('pa-drawer-open');
-                    document.body.classList.remove('pa-drawer-open');
-                }
-            }, true);
-        })();
-        </script>
 
         <?php $flash = getFlash(); if ($flash): ?>
         <div class="flash-message flash-<?= $flash['type'] ?>" id="flashMsg">

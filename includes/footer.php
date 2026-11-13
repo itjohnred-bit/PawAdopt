@@ -139,7 +139,7 @@ aside.sidebar::before {
 }
 </style>
 
-<button id="sbOpenBtn" aria-label="Open sidebar" title="Open sidebar">☰</button>
+<button id="sbOpenBtn" type="button" aria-label="Open menu" title="Open menu"><i class="fas fa-bars"></i></button>
 
 <script>
 (function () {
@@ -149,52 +149,50 @@ aside.sidebar::before {
         document.querySelector('.sidebar') ||
         document.querySelector('.side-nav') ||
         document.querySelector('aside.sidebar');
-    if (!sidebar) {
-        console.warn('[ClosableSidebar] No sidebar found — widget skipped.');
-        return;
-    }
-
-    if (document.getElementById('sbCloseBtn')) return;
+    if (!sidebar) { return; }
+    if (document.getElementById('sbCloseBtn')) { return; }
 
     var closeBtn = document.createElement('button');
     closeBtn.id = 'sbCloseBtn';
-    closeBtn.setAttribute('aria-label', 'Close sidebar');
-    closeBtn.setAttribute('title', 'Close sidebar (Esc)');
-    closeBtn.innerHTML = '✕';
+    closeBtn.type = 'button';
+    closeBtn.setAttribute('aria-label', 'Close menu');
+    closeBtn.setAttribute('title', 'Close menu (Esc)');
+    closeBtn.innerHTML = '\u2715';
     sidebar.appendChild(closeBtn);
 
     var openBtn = document.getElementById('sbOpenBtn');
     var KEY = 'pawadopt_sidebar_closed';
+    var isDrawer = document.body.classList.contains('pa-restyle');
 
     function applyState(closed) {
         sidebar.classList.toggle('collapsed', closed);
         document.body.classList.toggle('sidebar-closed', closed);
-        openBtn.classList.toggle('show', closed);
+        /* drawer mode (adopter/shelter) is driven by pa-drawer-open */
+        sidebar.classList.toggle('pa-drawer-open', !closed && isDrawer);
+        document.body.classList.toggle('pa-drawer-open', !closed && isDrawer);
+        if (openBtn) { openBtn.classList.toggle('show', closed); }
     }
 
-    try {
-        applyState(localStorage.getItem(KEY) === '1');
-    } catch (e) {}
+    var stored = null;
+    try { stored = localStorage.getItem(KEY); } catch (e) {}
+    applyState(stored === null ? isDrawer : stored === '1');
 
     function setClosed(closed) {
         applyState(closed);
         try { localStorage.setItem(KEY, closed ? '1' : '0'); } catch (e) {}
     }
 
-    closeBtn.addEventListener('click', function () { setClosed(true); });
-    openBtn.addEventListener('click', function () { setClosed(false); });
+    closeBtn.addEventListener('click', function (e) { e.preventDefault(); setClosed(true); });
+    if (openBtn) { openBtn.addEventListener('click', function (e) { e.preventDefault(); setClosed(false); }); }
 
-    document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape' && !sidebar.classList.contains('collapsed')) {
-            var tag = (document.activeElement && document.activeElement.tagName) || '';
-            if (tag !== 'INPUT' && tag !== 'TEXTAREA') {
-                setClosed(true);
-            }
-        }
+    document.addEventListener('click', function (e) {
+        if (!sidebar.classList.contains('pa-drawer-open')) { return; }
+        if (sidebar.contains(e.target) || (openBtn && openBtn.contains(e.target))) { return; }
+        setClosed(true);
     });
 
-    window.addEventListener('beforeunload', function () {
-        try { localStorage.setItem(KEY, sidebar.classList.contains('collapsed') ? '1' : '0'); } catch (e) {}
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && sidebar.classList.contains('pa-drawer-open')) { setClosed(true); }
     });
 })();
 </script>

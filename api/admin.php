@@ -137,6 +137,73 @@ switch ($action) {
         jsonSuccess([], "Shelter $status.");
         break;
 
+    // ─── Veterinary / shelter approval queue ──────────────
+    case 'pending_count':
+        $c = 0;
+        try {
+            $hasCol = (bool)$pdo->query("SHOW COLUMNS FROM `users` LIKE 'approval_status'")->fetch();
+            if ($hasCol) {
+                $row = $db->fetch("SELECT COUNT(*) AS c FROM users WHERE approval_status = 'PENDING'");
+                $c = (int)($row['c'] ?? 0);
+            }
+        } catch (Throwable $e) { $c = 0; }
+        jsonSuccess(['count' => $c]);
+        break;
+
+    // approve_user — lets an admin approve / reject a veterinary or shelter
+    // account so it can sign in. Writes users.approval_status (the login gate),
+    // shelter_profiles.is_verified, the legacy shelter_verifications row,
+    // a notification for the applicant and an audit entry.
+    case 'approve_user':
+        $targetId = (int)($_POST['user_id'] ?? 0);
+        $status   = strtoupper(trim((string)($_POST['status'] ?? '')));
+        $note     = trim((string)($_POST['note'] ?? ''));
+        if (!$targetId || !in_array($status, ['APPROVED', 'REJECTED', 'PENDING'], true)) {
+            jsonError('Invalid parameters.');
+        }
+        $target = $db->fetch("SELECT user_id, role, username, email FROM users WHERE user_id = ?", [$targetId]);
+        if (!$target) { jsonError('User not found.'); }
+        if (!in_array($target['role'], ['SHELTER', 'VETERINARY'], true)) {
+            jsonError('Only veterinary or shelter accounts require approval.');
+        }
+
+        $hasCol = false;
+        try {
+            $hasCol = (bool)$pdo->query("SHOW COLUMNS FROM `users` LIKE 'approval_status'")->fetch();
+        } catch (Throwable $e) { $hasCol = false; }
+        if (!$hasCol) {
+            jsonError('Run sql/vet_approval.sql first: users.approval_status is missing.', 500);
+        }
+
+        $db->execute("UPDATE users SET approval_status = ? WHERE user_id = ?", [$status, $targetId]);
+        $db->execute("UPDATE shelter_profiles SET is_verified = ? WHERE shelter_id = ?",
+                     [$status === 'APPROVED' ? 1 : 0, $targetId]);
+
+        $verif = $db->fetch("SELECT verification_id FROM shelter_verifications WHERE shelter_id = ?", [$targetId]);
+        if ($verif) {
+            $db->execute("UPDATE shelter_verifications SET status = ?, remarks = ?, updated_at = NOW() WHERE shelter_id = ?",
+                         [$status, $note !== '' ? $note : null, $targetId]);
+        } else {
+            $db->execute("INSERT INTO shelter_verifications (shelter_id, status, remarks) VALUES (?, ?, ?)",
+                         [$targetId, $status, $note !== '' ? $note : null]);
+        }
+
+        $msg = $status === 'APPROVED'
+            ? 'Your account has been approved. You can now sign in.'
+            : ($status === 'REJECTED'
+                ? 'Your account application was not approved.' . ($note !== '' ? ' Note: ' . $note : '')
+                : 'Your account was set back to pending review.');
+        if (function_exists('createNotification')) {
+            createNotification($targetId, 'ACCOUNT_APPROVAL', 'Account Approval Update', $msg, APP_URL . '/login.php');
+        }
+        if (function_exists('log_action')) {
+            log_action($user['user_id'], 'approve_user',
+                "Admin set approval_status={$status} for '{$target['username']}' (ID: {$targetId}). Note: " . ($note ?: 'None'));
+        }
+
+        jsonSuccess(['approval_status' => $status], "Account {$status}.");
+        break;
+
     // ─── Pet moderation ───────────────────────────────────────────
     case 'all_pets':
         $status = $_GET['status'] ?? '';
