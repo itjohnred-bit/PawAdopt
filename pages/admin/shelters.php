@@ -104,6 +104,7 @@ include __DIR__ . '/../../includes/header.php';
 </div>
 
 <script>
+var API_URL = <?= json_encode(APP_URL) ?>;
 let rejectShelId = null;
 function showRejectModal(shelterId) { rejectShelId = shelterId; openModal('rejectModal'); }
 async function confirmReject() {
@@ -112,7 +113,7 @@ async function confirmReject() {
     await verifyShelter(rejectShelId, 'REJECTED', note);
 }
 async function verifyShelter(shelterId, status, note = '') {
-    const res = await apiRequest('/PAWAdopt/api/admin.php','POST',new URLSearchParams({action:'verify_shelter',shelter_id:shelterId,status:status,note:note||'Reviewed by admin'}));
+    const res = await apiRequest(API_URL + '/api/admin.php','POST',new URLSearchParams({action:'verify_shelter',shelter_id:shelterId,status:status,note:note||'Reviewed by admin'}));
     if (res.success) { showToast('Shelter '+status+'!'); setTimeout(()=>location.reload(),900); }
     else showToast(res.message,'error');
 }

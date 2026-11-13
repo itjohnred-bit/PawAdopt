@@ -68,9 +68,10 @@ include __DIR__ . '/../../includes/header.php';
 <?php endif; ?>
 
 <script>
+var API_URL = <?= json_encode(APP_URL) ?>;
 async function removeFav(petId, btn) {
     const card = document.getElementById('fav-' + petId);
-    const res  = await apiRequest('/PAWAdopt/api/favorites.php', 'POST', new URLSearchParams({action:'toggle',pet_id:petId}));
+    const res  = await apiRequest(API_URL + '/api/favorites.php', 'POST', new URLSearchParams({action:'toggle',pet_id:petId}));
     if (res.success && !res.data.favorited) {
         card.style.opacity = '0';
         card.style.transform = 'scale(.9)';

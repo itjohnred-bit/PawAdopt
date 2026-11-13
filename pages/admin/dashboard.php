@@ -258,11 +258,12 @@ include __DIR__ . '/../../includes/header.php';
 </div>
 
 <script>
+var API_URL = <?= json_encode(APP_URL) ?>;
 let activeReportId = null;
 
 async function quickVerify(shelterId, status) {
     const note = status === 'REJECTED' ? (prompt('Rejection note (optional):') || '') : 'Verified by admin.';
-    const res = await apiRequest('/PAWAdopt/api/admin.php', 'POST', new URLSearchParams({
+    const res = await apiRequest(API_URL + '/api/admin.php', 'POST', new URLSearchParams({
         action:'verify_shelter', shelter_id:shelterId, status:status, note:note
     }));
     if (res.success) { showToast('Shelter '+status.toLowerCase()+'!'); setTimeout(()=>location.reload(),900); }

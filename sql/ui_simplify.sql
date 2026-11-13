@@ -23,21 +23,21 @@ END$$
 DELIMITER ;
 
 -- Background -------------------------------------------------------------
-CALL pa_add_column('user_preferences', 'bg_color',        "VARCHAR(7)  NOT NULL DEFAULT '#134E43'");
-CALL pa_add_column('user_preferences', 'bg_image_url',    "VARCHAR(255) DEFAULT NULL");
-CALL pa_add_column('user_preferences', 'bg_blur',         "TINYINT(1)  NOT NULL DEFAULT 0");
-CALL pa_add_column('user_preferences', 'bg_blur_strength',"INT         NOT NULL DEFAULT 14");
-CALL pa_add_column('user_preferences', 'bg_image_fit',    "VARCHAR(16) NOT NULL DEFAULT 'cover'");
+CALL pa_add_column('user_preferences', 'bg_color',        'VARCHAR(7)  NOT NULL DEFAULT ''#134E43''');
+CALL pa_add_column('user_preferences', 'bg_image_url',    'VARCHAR(255) DEFAULT NULL');
+CALL pa_add_column('user_preferences', 'bg_blur',         'TINYINT(1)  NOT NULL DEFAULT 0');
+CALL pa_add_column('user_preferences', 'bg_blur_strength','INT         NOT NULL DEFAULT 14');
+CALL pa_add_column('user_preferences', 'bg_image_fit',    'VARCHAR(16) NOT NULL DEFAULT ''cover''');
 
 -- Typography -------------------------------------------------------------
-CALL pa_add_column('user_preferences', 'font_family',     "VARCHAR(32) NOT NULL DEFAULT 'Nunito'");
-CALL pa_add_column('user_preferences', 'large_text',      "TINYINT(1)  NOT NULL DEFAULT 0");
+CALL pa_add_column('user_preferences', 'font_family',     'VARCHAR(32) NOT NULL DEFAULT ''Nunito''');
+CALL pa_add_column('user_preferences', 'large_text',      'TINYINT(1)  NOT NULL DEFAULT 0');
 
 -- Header / sidebar -------------------------------------------------------
-CALL pa_add_column('user_preferences', 'header_color',    "VARCHAR(7)  NOT NULL DEFAULT '#FFFFFF'");
-CALL pa_add_column('user_preferences', 'header_texture',  "VARCHAR(16) NOT NULL DEFAULT 'none'");
-CALL pa_add_column('user_preferences', 'sidebar_color',   "VARCHAR(7)  NOT NULL DEFAULT '#FFFFFF'");
-CALL pa_add_column('user_preferences', 'sidebar_texture', "VARCHAR(16) NOT NULL DEFAULT 'none'");
+CALL pa_add_column('user_preferences', 'header_color',    'VARCHAR(7)  NOT NULL DEFAULT ''#FFFFFF''');
+CALL pa_add_column('user_preferences', 'header_texture',  'VARCHAR(16) NOT NULL DEFAULT ''none''');
+CALL pa_add_column('user_preferences', 'sidebar_color',   'VARCHAR(7)  NOT NULL DEFAULT ''#FFFFFF''');
+CALL pa_add_column('user_preferences', 'sidebar_texture', 'VARCHAR(16) NOT NULL DEFAULT ''none''');
 
 DROP PROCEDURE IF EXISTS pa_add_column;
 

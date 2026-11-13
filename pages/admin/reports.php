@@ -116,6 +116,7 @@ include __DIR__ . '/../../includes/header.php';
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
 <script>
+var API_URL = <?= json_encode(APP_URL) ?>;
 // Registration Chart
 const regLabels = <?= json_encode(array_column($monthlyRegs,'month')) ?>;
 const regData   = <?= json_encode(array_column($monthlyRegs,'count')) ?>;
@@ -135,7 +136,7 @@ if (ctx2 && window.Chart) {
 }
 
 async function saveContent(key, value) {
-    const res = await apiRequest('/PAWAdopt/api/admin.php','POST',new URLSearchParams({action:'update_content',key:key,value:value}));
+    const res = await apiRequest(API_URL + '/api/admin.php','POST',new URLSearchParams({action:'update_content',key:key,value:value}));
     showToast(res.success ? 'Content saved!' : res.message, res.success?'success':'error');
 }
 </script>

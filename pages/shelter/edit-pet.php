@@ -146,6 +146,7 @@ include __DIR__ . '/../../includes/header.php';
 </div>
 
 <script>
+var API_URL = <?= json_encode(APP_URL) ?>;
 function updateFileName(input) {
     const display = input.parentElement.querySelector('.file-name-display');
     if (input.files && input.files.length > 0) {
@@ -157,7 +158,7 @@ function updateFileName(input) {
 
 async function deletePhoto(photoId, btn) {
     confirmAction('Remove this photo?', async () => {
-        const res = await apiRequest('/PAWAdopt/api/pets.php?action=delete_photo&photo_id='+photoId);
+        const res = await apiRequest(API_URL + '/api/pets.php?action=delete_photo&photo_id='+photoId);
         if (res.success) { btn.closest('div[style]').remove(); showToast('Photo removed.'); }
         else showToast(res.message,'error');
     });
@@ -174,11 +175,11 @@ async function submitEditPet(form, petId) {
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving…';
 
     try {
-        const res = await fetch('/PAWAdopt/api/pets.php?action=edit', { method:'POST', body:fd });
+        const res = await fetch(API_URL + '/api/pets.php?action=edit', { method:'POST', body:fd });
         const data = await res.json();
         if (data.success) { 
             showToast('Pet updated! 🐾'); 
-            setTimeout(()=>window.location.href='/PAWAdopt/pages/shelter/pets.php', 1000); 
+            setTimeout(()=>window.location.href=API_URL + '/pages/shelter/pets.php', 1000); 
         } else {
             showToast(data.message || 'Update failed.', 'error');
         }
